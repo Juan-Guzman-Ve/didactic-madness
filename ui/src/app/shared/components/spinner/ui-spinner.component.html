@@ -1,0 +1,8 @@
+@if (show()) {
+  <div class="spinner-overlay">
+    <mat-spinner [diameter]="diameter()" [color]="color()" />
+    @if (message()) {
+      <p class="spinner-message">{{ message() }}</p>
+    }
+  </div>
+}

@@ -1,0 +1,20 @@
+@if (visible()) {
+  <div class="dialog-backdrop" (click)="close.emit()">
+    <div class="dialog-container" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2 mat-dialog-title>{{ title() }}</h2>
+        <button mat-icon-button class="close-btn" (click)="close.emit()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-dialog-content>
+        <ng-content />
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <ng-content select="[actions]" />
+      </mat-dialog-actions>
+    </div>
+  </div>
+}

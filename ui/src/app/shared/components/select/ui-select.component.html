@@ -1,0 +1,15 @@
+<mat-form-field appearance="outline" class="full-width">
+  @if (label()) { <mat-label>{{ label() }}</mat-label> }
+
+  <mat-select [formControl]="control()" [placeholder]="placeholder()">
+    @for (opt of options(); track opt[optionValue()]) {
+      <mat-option [value]="opt[optionValue()]">
+        {{ opt[optionLabel()] }}
+      </mat-option>
+    }
+  </mat-select>
+
+  @if (control().invalid && control().touched) {
+    <mat-error>{{ label() || 'Selection' }} is required.</mat-error>
+  }
+</mat-form-field>

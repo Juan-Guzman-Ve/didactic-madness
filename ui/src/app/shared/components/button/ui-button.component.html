@@ -1,0 +1,32 @@
+@if (variant() === 'icon') {
+  <button mat-icon-button
+          [disabled]="disabled() || loading()"
+          [attr.aria-label]="label()"
+          (click)="clicked.emit()">
+    @if (loading()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      <mat-icon>{{ icon() }}</mat-icon>
+    }
+  </button>
+} @else if (variant() === 'stroked') {
+  <button mat-stroked-button
+          [disabled]="disabled() || loading()"
+          [color]="matColor()"
+          [type]="type()"
+          (click)="clicked.emit()">
+    @if (loading()) { <mat-spinner diameter="16" class="btn-spinner" /> }
+    @if (icon() && !loading()) { <mat-icon>{{ icon() }}</mat-icon> }
+    {{ label() }}
+  </button>
+} @else {
+  <button mat-raised-button
+          [disabled]="disabled() || loading()"
+          [color]="matColor()"
+          [type]="type()"
+          (click)="clicked.emit()">
+    @if (loading()) { <mat-spinner diameter="16" class="btn-spinner" /> }
+    @if (icon() && !loading()) { <mat-icon>{{ icon() }}</mat-icon> }
+    {{ label() }}
+  </button>
+}

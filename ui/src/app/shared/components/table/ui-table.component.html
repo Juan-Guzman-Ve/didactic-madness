@@ -1,0 +1,54 @@
+<div class="table-wrapper">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <mat-spinner diameter="48" />
+    </div>
+  }
+
+  <table mat-table [dataSource]="data()" matSort (matSortChange)="onSort($event)" class="ui-mat-table">
+    @for (col of columns(); track col.key) {
+      <ng-container [matColumnDef]="col.key">
+        <th mat-header-cell *matHeaderCellDef
+            [mat-sort-header]="col.sortable ? col.key : ''"
+            [style.min-width]="col.width ?? 'auto'">
+          {{ col.header }}
+        </th>
+        <td mat-cell *matCellDef="let row">
+          {{ col.formatter ? col.formatter(row[col.key], row) : row[col.key] }}
+        </td>
+      </ng-container>
+    }
+
+    @if (hasActions()) {
+      <ng-container matColumnDef="__actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let row">
+          <ng-container *ngTemplateOutlet="actionsTemplate()!; context: { $implicit: row }" />
+        </td>
+      </ng-container>
+    }
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"
+        [class.clickable-row]="rowClickable()"
+        (click)="rowClick.emit(row)"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td [attr.colspan]="displayedColumns().length">
+        <ui-empty-state
+          icon="inbox"
+          title="No data"
+          message="There are no items to display." />
+      </td>
+    </tr>
+  </table>
+
+  @if (paginated()) {
+    <mat-paginator
+      [length]="totalItems()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      showFirstLastButtons />
+  }
+</div>

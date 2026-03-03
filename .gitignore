@@ -1,0 +1,168 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Node / NPM
+# ══════════════════════════════════════════════════════════════════════════════
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Environment Variables (NEVER commit secrets)
+# ══════════════════════════════════════════════════════════════════════════════
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.test
+
+# Keep example files
+!.env.example
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Build Outputs
+# ══════════════════════════════════════════════════════════════════════════════
+# API (NestJS)
+api/dist/
+api/build/
+
+# UI (Angular)
+ui/dist/
+ui/.angular/
+ui/out-tsc/
+ui/bazel-out/
+ui/tmp/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Test Coverage
+# ══════════════════════════════════════════════════════════════════════════════
+coverage/
+*.lcov
+.nyc_output/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# IDE / Editors
+# ══════════════════════════════════════════════════════════════════════════════
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/
+
+# JetBrains (WebStorm, IntelliJ)
+.idea/
+*.swp
+*.swo
+*~
+*.iml
+.project
+.classpath
+.settings/
+.loadpath
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OS Files
+# ══════════════════════════════════════════════════════════════════════════════
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.Trash-*
+.nfs*
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Logs
+# ══════════════════════════════════════════════════════════════════════════════
+logs/
+*.log
+combined.log
+error.log
+exceptions.log
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TypeScript
+# ══════════════════════════════════════════════════════════════════════════════
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Testing
+# ══════════════════════════════════════════════════════════════════════════════
+test-results/
+playwright-report/
+*.spec.js
+*.e2e.js
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Database (local dev only - never commit connection strings or dumps)
+# ══════════════════════════════════════════════════════════════════════════════
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Database migration tracking (TypeORM generated - we use hand-written SQL)
+# Keep: database/*.sql (source of truth)
+# Ignore: api/migrations/*.js (auto-generated wrappers)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Temporary / Cache
+# ══════════════════════════════════════════════════════════════════════════════
+tmp/
+temp/
+.cache/
+.temp/
+*.tmp
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Uploads (if storing files locally during dev)
+# ══════════════════════════════════════════════════════════════════════════════
+uploads/
+public/uploads/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Optional: Docker
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.override.yml
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Optional: Azure / Cloud Credentials (if using local config files)
+# ══════════════════════════════════════════════════════════════════════════════
+# azure-credentials.json
+# service-account.json
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Bruno (API client) - ignore environment secrets
+# ══════════════════════════════════════════════════════════════════════════════
+bruno/environments/*.local.bru

@@ -1,0 +1,201 @@
+<div class="page-container">
+  <header class="showcase-header">
+    <h1>Component Showcase</h1>
+    <p>Generic UI components library for the PC Store application.</p>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       BUTTONS
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Buttons</h2>
+    <mat-card>
+      <mat-card-content class="flex-row flex-wrap gap-16 align-center">
+        <ui-button variant="primary"   label="Primary"   (clicked)="onButtonClick('primary')" />
+        <ui-button variant="secondary" label="Secondary" (clicked)="onButtonClick('secondary')" />
+        <ui-button variant="accent"    label="Accent"    (clicked)="onButtonClick('accent')" />
+        <ui-button variant="warn"      label="Warn"      (clicked)="onButtonClick('warn')" />
+        <ui-button variant="stroked"   label="Stroked"   (clicked)="onButtonClick('stroked')" />
+        <ui-button variant="icon"      icon="delete"     (clicked)="onButtonClick('icon')" />
+        <ui-button variant="primary"   label="Loading"   [loading]="btnLoading()" (clicked)="onButtonClick('loading')" />
+        <ui-button variant="primary"   label="Disabled"  [disabled]="true" />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       FORM INPUTS
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Form Inputs</h2>
+    <mat-card>
+      <mat-card-content class="flex-col gap-16">
+        <ui-input
+          label="Product Name"
+          [control]="nameControl"
+          placeholder="Enter product name"
+          icon="inventory_2" />
+
+        <ui-input
+          label="Email"
+          [control]="emailControl"
+          type="email"
+          placeholder="user@example.com"
+          icon="email" />
+
+        <ui-input
+          label="Price"
+          [control]="priceControl"
+          type="number"
+          placeholder="0.00"
+          icon="attach_money" />
+
+        <ui-select
+          label="Category"
+          [control]="categoryControl"
+          [options]="categories"
+          optionLabel="name"
+          optionValue="id" />
+
+        <ui-checkbox
+          label="I agree to terms and conditions"
+          [control]="agreeControl" />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       CHIPS / TAGS
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Chips / Tags</h2>
+    <mat-card>
+      <mat-card-content class="flex-row flex-wrap gap-8">
+        <ui-chip label="In Stock" color="accent" />
+        <ui-chip label="Low Stock" color="warn" />
+        <ui-chip label="Featured" color="primary" />
+        <ui-chip label="On Sale" color="accent" />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       CARDS
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Cards</h2>
+    <div class="cards-grid">
+      <ui-card
+        title="Intel i9-13900K"
+        subtitle="$589.99"
+        imageUrl="https://via.placeholder.com/300x200/1976d2/ffffff?text=Intel+i9"
+        [hasActions]="true">
+        <p>24 Cores, 32 Threads. Base clock 3.0 GHz, boost up to 5.8 GHz.</p>
+        <div actions>
+          <ui-button variant="stroked" label="Details" />
+          <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />
+        </div>
+      </ui-card>
+
+      <ui-card
+        title="RTX 4090"
+        subtitle="$1,599.99"
+        imageUrl="https://via.placeholder.com/300x200/388e3c/ffffff?text=RTX+4090"
+        [hasActions]="true">
+        <p>24GB GDDR6X. 16384 CUDA Cores. Boost clock: 2.52 GHz.</p>
+        <div actions>
+          <ui-button variant="stroked" label="Details" />
+          <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />
+        </div>
+      </ui-card>
+
+      <ui-card
+        title="Corsair Vengeance"
+        subtitle="$129.99"
+        imageUrl="https://via.placeholder.com/300x200/d32f2f/ffffff?text=Corsair+RAM"
+        [hasActions]="true">
+        <p>32GB DDR5 (2x16GB), 5600 MHz, CL36. RGB lighting.</p>
+        <div actions>
+          <ui-button variant="stroked" label="Details" />
+          <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />
+        </div>
+      </ui-card>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TABLE
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Data Table</h2>
+    <mat-card>
+      <mat-card-content>
+        <ui-table
+          [data]="products()"
+          [columns]="tableColumns"
+          [loading]="tableLoading()"
+          [paginated]="true"
+          [totalItems]="products().length"
+          [pageSize]="10"
+          [rowClickable]="true"
+          (rowClick)="onRowClick($event)"
+          (pageChange)="onPageChange($event)"
+          (sortChange)="onSortChange($event)" />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       EMPTY STATE
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Empty State</h2>
+    <mat-card>
+      <mat-card-content>
+        <ui-empty-state
+          icon="shopping_cart"
+          title="Your cart is empty"
+          message="Start adding products to see them here.">
+          <ui-button variant="primary" label="Browse Products" />
+        </ui-empty-state>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       DIALOG
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Dialog</h2>
+    <mat-card>
+      <mat-card-content>
+        <ui-button variant="primary" label="Open Dialog" (clicked)="openDialog()" />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <ui-dialog
+    title="Confirm Action"
+    [visible]="dialogVisible()"
+    (close)="closeDialog()">
+    <p>Are you sure you want to proceed with this action?</p>
+    <div actions>
+      <ui-button variant="stroked" label="Cancel" (clicked)="closeDialog()" />
+      <ui-button variant="warn" label="Confirm" (clicked)="confirmDialog()" />
+    </div>
+  </ui-dialog>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       SPINNER
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Spinner</h2>
+    <mat-card>
+      <mat-card-content>
+        <ui-button variant="primary" label="Show Spinner (3s)" (clicked)="showSpinner()" />
+        <ui-spinner [show]="spinnerVisible()" message="Loading data..." />
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+</div>

@@ -1,0 +1,28 @@
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  color: #757575;
+}
+
+.empty-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  opacity: 0.4;
+}
+
+.empty-title {
+  margin: 16px 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.empty-message {
+  margin: 0;
+  max-width: 400px;
+  color: #9e9e9e;
+}
