@@ -1,42 +1,77 @@
-// ─── App Shell Layout ────────────────────────────────────────────────────────
+// ─── App Shell Layout (NZXT-Inspired) ───────────────────────────────────────
 
 .app-container {
   height: 100vh;
+  background: var(--nzxt-gray-50);
 }
 
 .app-sidenav {
-  width: 220px;
-  background: #1a1a2e;
-  color: #fff;
-  border-right: none;
+  width: 260px;
+  background: var(--nzxt-white);
+  color: var(--nzxt-gray-900);
+  border-right: 1px solid var(--nzxt-gray-200);
+  box-shadow: var(--shadow-md);
 
   .sidenav-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 20px 16px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    gap: 12px;
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-bottom: 1px solid var(--nzxt-gray-200);
+    background: linear-gradient(135deg, var(--nzxt-gray-50) 0%, var(--nzxt-white) 100%);
 
-    .logo-icon { color: #5c91f7; font-size: 28px; }
-    .logo-text  { font-size: 18px; color: #fff; strong { color: #5c91f7; } }
+    .logo-icon { 
+      color: var(--nzxt-black); 
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+    .logo-text { 
+      font-size: 1.25rem;
+      font-weight: var(--font-weight-normal);
+      color: var(--nzxt-gray-900);
+      letter-spacing: 0.02em;
+      
+      strong { 
+        font-weight: var(--font-weight-bold);
+        color: var(--nzxt-black);
+      }
+    }
+  }
+
+  mat-nav-list {
+    padding: var(--spacing-md);
   }
 
   mat-nav-list a {
-    color: rgba(255,255,255,0.75);
-    border-radius: 8px;
-    margin: 4px 8px;
+    color: var(--nzxt-gray-700);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-xs);
+    font-weight: var(--font-weight-medium);
+    transition: all 0.2s ease;
 
-    mat-icon { color: rgba(255,255,255,0.55); }
+    mat-icon { 
+      color: var(--nzxt-gray-600);
+      transition: color 0.2s ease;
+    }
 
     &.active-link {
-      background: rgba(92,145,247,0.2);
-      color: #5c91f7;
-      mat-icon { color: #5c91f7; }
+      background: var(--nzxt-black);
+      color: var(--nzxt-white);
+      
+      mat-icon { 
+        color: var(--nzxt-white);
+      }
     }
 
     &:hover:not(.active-link) {
-      background: rgba(255,255,255,0.07);
-      color: #fff;
+      background: var(--nzxt-gray-100);
+      color: var(--nzxt-black);
+      transform: translateX(2px);
+      
+      mat-icon {
+        color: var(--nzxt-black);
+      }
     }
   }
 }
@@ -45,16 +80,69 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: var(--nzxt-white);
+  color: var(--nzxt-gray-900);
+  border-bottom: 1px solid var(--nzxt-gray-200);
+  box-shadow: var(--shadow-sm);
+  height: 64px;
+  padding: 0 var(--spacing-md);
+
+  .menu-button {
+    margin-right: var(--spacing-md);
+    color: var(--nzxt-gray-900);
+    
+    &:hover {
+      background: var(--nzxt-gray-100);
+    }
+  }
+
+  .toolbar-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--nzxt-black);
+    letter-spacing: 0.01em;
+  }
+
+  button[mat-icon-button] {
+    color: var(--nzxt-gray-700);
+    
+    &:hover {
+      background: var(--nzxt-gray-100);
+      color: var(--nzxt-black);
+    }
+  }
 }
 
 .app-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .main-area {
   flex: 1;
   overflow: auto;
-  background: #f5f5f5;
+  background: var(--nzxt-white);
+}
+
+// ─── Responsive Adjustments ─────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .app-sidenav {
+    width: 280px;
+  }
+
+  .app-toolbar {
+    padding: 0 var(--spacing-sm);
+    
+    .toolbar-title {
+      font-size: 1rem;
+    }
+  }
+}
+
+// ─── Material Overrides for NZXT Style ──────────────────────────────────────
+::ng-deep {
+  .mat-drawer-backdrop.mat-drawer-shown {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
 }

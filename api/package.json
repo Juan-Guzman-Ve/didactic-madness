@@ -1,0 +1,45 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "NestJS API for PC Parts Store with TypeORM + Supabase PostgreSQL",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "prettier --check \"src/**/*.ts\"",
+    "test": "echo \"Tests not configured yet\"",
+    "migration:generate": "typeorm migration:generate -d src/config/typeorm.config.ts",
+    "migration:run": "typeorm migration:run -d src/config/typeorm.config.ts",
+    "migration:revert": "typeorm migration:revert -d src/config/typeorm.config.ts"
+  },
+  "keywords": ["nestjs", "typeorm", "postgresql", "supabase", "ddd"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@nestjs/common": "^11.1.16",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.16",
+    "@nestjs/platform-express": "^11.1.16",
+    "@nestjs/typeorm": "^11.0.0",
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.28"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/testing": "^11.1.16",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.5",
+    "@types/pg": "^8.18.0",
+    "prettier": "^3.8.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  }
+}

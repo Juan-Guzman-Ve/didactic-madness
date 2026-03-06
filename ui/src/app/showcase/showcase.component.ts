@@ -15,6 +15,7 @@ import { UiDialogComponent } from '@shared/components/dialog/ui-dialog.component
 import { UiCheckboxComponent } from '@shared/components/checkbox/ui-checkbox.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiSpinnerComponent } from '@shared/components/spinner/ui-spinner.component';
+import { UiRatingComponent } from '@shared/components/rating/ui-rating.component';
 
 interface Product {
   id: string;
@@ -22,6 +23,9 @@ interface Product {
   category: string;
   price: number;
   stock: number;
+  rating?: number;
+  reviewCount?: number;
+  imageUrl?: string;
 }
 
 @Component({
@@ -40,6 +44,7 @@ interface Product {
     UiCheckboxComponent,
     UiChipComponent,
     UiSpinnerComponent,
+    UiRatingComponent,
   ],
   templateUrl: './showcase.component.html',
   styleUrl: './showcase.component.scss',
@@ -75,10 +80,66 @@ export class ShowcaseComponent {
 
   // ─── Table examples ─────────────────────────────────────────────────────────
   products = signal<Product[]>([
-    { id: '1', name: 'Intel i9-13900K',    category: 'CPU',     price: 589.99, stock: 12 },
-    { id: '2', name: 'RTX 4090',           category: 'GPU',     price: 1599.99, stock: 5 },
-    { id: '3', name: 'Corsair Vengeance',  category: 'RAM',     price: 129.99, stock: 45 },
-    { id: '4', name: 'Samsung 990 Pro',    category: 'Storage', price: 199.99, stock: 0 },
+    { 
+      id: '1', 
+      name: 'Intel i9-13900K', 
+      category: 'CPU', 
+      price: 589.99, 
+      stock: 12,
+      rating: 4.5,
+      reviewCount: 234,
+      imageUrl: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=400&h=300&fit=crop'
+    },
+    { 
+      id: '2', 
+      name: 'RTX 4090', 
+      category: 'GPU', 
+      price: 1599.99, 
+      stock: 5,
+      rating: 4.8,
+      reviewCount: 567,
+      imageUrl: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=300&fit=crop'
+    },
+    { 
+      id: '3', 
+      name: 'Corsair Vengeance DDR5', 
+      category: 'RAM', 
+      price: 129.99, 
+      stock: 45,
+      rating: 4.3,
+      reviewCount: 892,
+      imageUrl: 'https://images.unsplash.com/photo-1541348263662-e068662d82af?w=400&h=300&fit=crop'
+    },
+    { 
+      id: '4', 
+      name: 'Samsung 990 Pro', 
+      category: 'Storage', 
+      price: 199.99, 
+      stock: 0,
+      rating: 4.7,
+      reviewCount: 1023,
+      imageUrl: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&h=300&fit=crop'
+    },
+    { 
+      id: '5', 
+      name: 'NZXT H710i Case', 
+      category: 'Case', 
+      price: 169.99, 
+      stock: 23,
+      rating: 4.6,
+      reviewCount: 445,
+      imageUrl: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=400&h=300&fit=crop'
+    },
+    { 
+      id: '6', 
+      name: 'Corsair RM850x PSU', 
+      category: 'PSU', 
+      price: 134.99, 
+      stock: 18,
+      rating: 4.9,
+      reviewCount: 678,
+      imageUrl: 'https://images.unsplash.com/photo-1591799265444-d66432b91588?w=400&h=300&fit=crop'
+    },
   ]);
 
   tableLoading = signal(false);

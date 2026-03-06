@@ -1,8 +1,95 @@
 <div class="page-container">
   <header class="showcase-header">
-    <h1>Component Showcase</h1>
-    <p>Generic UI components library for the PC Store application.</p>
+    <h1>NZXT-Inspired Component Showcase</h1>
+    <p>Clean, minimal UI components for modern PC store applications.</p>
   </header>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       HERO SECTION (NZXT-STYLE)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="hero-section section">
+    <div class="hero-content">
+      <h2>Build Your Dream PC</h2>
+      <p>Premium components, expert support, and unbeatable performance.</p>
+      <div class="flex-row gap-16">
+        <ui-button variant="primary" label="Shop Now" icon="shopping_cart" />
+        <ui-button variant="stroked" label="Learn More" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       PRODUCT GRID (NZXT-STYLE)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Featured Products</h2>
+      <p>Handpicked components for your perfect build</p>
+    </div>
+    
+    <div class="product-grid">
+      @for (product of products(); track product.id) {
+        <ui-card
+          [title]="product.name"
+          [subtitle]="'$' + product.price.toFixed(2)"
+          [imageUrl]="product.imageUrl ?? ''"
+          [hasActions]="true">
+          
+          <div class="product-meta">
+            <ui-rating 
+              [rating]="product.rating ?? 0" 
+              [showCount]="true"
+              [reviewCount]="product.reviewCount ?? 0"
+              size="small" />
+            
+            @if (product.stock > 0) {
+              <ui-chip label="In Stock" color="accent" />
+            } @else {
+              <ui-chip label="Out of Stock" color="warn" />
+            }
+          </div>
+          
+          <p class="product-category">{{ product.category }}</p>
+          
+          <div actions class="full-width">
+            <ui-button variant="stroked" label="Details" />
+            <ui-button 
+              variant="primary" 
+              label="Add to Cart" 
+              icon="shopping_cart"
+              [disabled]="product.stock === 0" />
+          </div>
+        </ui-card>
+      }
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       RATING COMPONENT
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="showcase-section">
+    <h2>Rating Component</h2>
+    <mat-card>
+      <mat-card-content class="flex-col gap-16">
+        <div class="flex-col gap-8">
+          <h3>Display Only</h3>
+          <ui-rating [rating]="4.5" [showCount]="true" [reviewCount]="234" size="small" />
+          <ui-rating [rating]="4.5" [showCount]="true" [reviewCount]="234" size="medium" />
+          <ui-rating [rating]="4.5" [showCount]="true" [reviewCount]="234" size="large" />
+        </div>
+        
+        <mat-divider />
+        
+        <div class="flex-col gap-8">
+          <h3>Different Ratings</h3>
+          <ui-rating [rating]="5" [showCount]="true" [reviewCount]="1023" />
+          <ui-rating [rating]="4.5" [showCount]="true" [reviewCount]="567" />
+          <ui-rating [rating]="3.5" [showCount]="true" [reviewCount]="89" />
+          <ui-rating [rating]="2" [showCount]="true" [reviewCount]="12" />
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
 
   <!-- ══════════════════════════════════════════════════════════════════════════
        BUTTONS
@@ -83,14 +170,15 @@
        CARDS
        ══════════════════════════════════════════════════════════════════════════ -->
   <section class="showcase-section">
-    <h2>Cards</h2>
+    <h2>Product Cards (Original Examples)</h2>
     <div class="cards-grid">
       <ui-card
-        title="Intel i9-13900K"
-        subtitle="$589.99"
-        imageUrl="https://via.placeholder.com/300x200/1976d2/ffffff?text=Intel+i9"
+        title="NZXT H710i Case"
+        subtitle="$169.99"
+        imageUrl="https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=400&h=300&fit=crop"
         [hasActions]="true">
-        <p>24 Cores, 32 Threads. Base clock 3.0 GHz, boost up to 5.8 GHz.</p>
+        <ui-rating [rating]="4.6" [showCount]="true" [reviewCount]="445" size="small" />
+        <p>Mid-tower ATX case with tempered glass, RGB lighting, and smart device control.</p>
         <div actions>
           <ui-button variant="stroked" label="Details" />
           <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />
@@ -98,11 +186,12 @@
       </ui-card>
 
       <ui-card
-        title="RTX 4090"
-        subtitle="$1,599.99"
-        imageUrl="https://via.placeholder.com/300x200/388e3c/ffffff?text=RTX+4090"
+        title="Corsair RM850x PSU"
+        subtitle="$134.99"
+        imageUrl="https://images.unsplash.com/photo-1591799265444-d66432b91588?w=400&h=300&fit=crop"
         [hasActions]="true">
-        <p>24GB GDDR6X. 16384 CUDA Cores. Boost clock: 2.52 GHz.</p>
+        <ui-rating [rating]="4.9" [showCount]="true" [reviewCount]="678" size="small" />
+        <p>850W 80 PLUS Gold certified fully modular power supply with zero RPM fan mode.</p>
         <div actions>
           <ui-button variant="stroked" label="Details" />
           <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />
@@ -110,11 +199,12 @@
       </ui-card>
 
       <ui-card
-        title="Corsair Vengeance"
-        subtitle="$129.99"
-        imageUrl="https://via.placeholder.com/300x200/d32f2f/ffffff?text=Corsair+RAM"
+        title="AMD Ryzen 9 7950X"
+        subtitle="$549.99"
+        imageUrl="https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=400&h=300&fit=crop"
         [hasActions]="true">
-        <p>32GB DDR5 (2x16GB), 5600 MHz, CL36. RGB lighting.</p>
+        <ui-rating [rating]="4.7" [showCount]="true" [reviewCount]="312" size="small" />
+        <p>16-Core, 32-Thread desktop processor with 5.7 GHz Max Boost, unlocked for overclocking.</p>
         <div actions>
           <ui-button variant="stroked" label="Details" />
           <ui-button variant="primary" label="Add to Cart" icon="shopping_cart" />

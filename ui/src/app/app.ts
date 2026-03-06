@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, signal, ViewChild } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 export interface NavItem {
   label: string;
@@ -28,6 +29,10 @@ export interface NavItem {
   styleUrl: './app.scss',
 })
 export class App {
+  @ViewChild('drawer') drawer!: MatSidenav;
+  
+  isMobile = signal(false);
+  
   readonly navItems: NavItem[] = [
     { label: 'Showcase',  icon: 'palette',       route: '/showcase' },
     // Uncomment as features are built:
@@ -36,4 +41,22 @@ export class App {
     // { label: 'Orders',   icon: 'receipt_long',   route: '/orders'   },
     // { label: 'Login',    icon: 'login',           route: '/auth'     },
   ];
+
+  constructor(private breakpointObserver: BreakpointObserver) {
+    this.breakpointObserver
+      .observe([Breakpoints.Handset, Breakpoints.Tablet])
+      .subscribe(result => {
+        this.isMobile.set(result.matches);
+      });
+  }
+
+  toggleDrawer(): void {
+    this.drawer.toggle();
+  }
+
+  closeDrawerIfMobile(): void {
+    if (this.isMobile()) {
+      this.drawer.close();
+    }
+  }
 }

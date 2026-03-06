@@ -1,0 +1,26 @@
+<div class="ui-rating" [class]="'ui-rating--' + size()">
+  <div class="rating-stars">
+    @for (star of stars; track $index) {
+      <button
+        type="button"
+        class="star-button"
+        [class.interactive]="interactive()"
+        [attr.aria-label]="'Rate ' + ($index + 1) + ' stars'"
+        (click)="onStarClick($index)">
+        @if (star === 'full') {
+          <mat-icon class="star star--filled">star</mat-icon>
+        }
+        @if (star === 'half') {
+          <mat-icon class="star star--half">star_half</mat-icon>
+        }
+        @if (star === 'empty') {
+          <mat-icon class="star star--empty">star_outline</mat-icon>
+        }
+      </button>
+    }
+  </div>
+  
+  @if (showCount() && reviewCount() > 0) {
+    <span class="rating-count">({{ reviewCount() }})</span>
+  }
+</div>

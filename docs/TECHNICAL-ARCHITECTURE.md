@@ -1,23 +1,58 @@
-# Project Plan — Tienda de Armado de PCs (Custom PC Parts Store)
+# Technical Architecture — Custom PC Parts E-Commerce Platform
+
+**Version:** 1.0  
+**Last Updated:** March 4, 2026  
+**Related Documents:**  
+- [Business Requirements](./OVERVIEW.md) — What we're building
+- [Coding Standards](../.github/copilot-instructions.md) — How we write code
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Academic Deliverables](#academic-deliverables)
+3. [Technology Stack & Justifications](#technology-stack--justifications)
+4. [.NET → NestJS Concept Map](#net--nestjs-concept-map)
+5. [Repository Structure](#repository-structure)
+6. [Database Schema](#database-schema)
+7. [API Endpoints](#api-endpoints)
+8. [Implementation Phases](#implementation-phases)
+9. [Key Dependencies](#key-dependencies)
+10. [Generic UI Components](#generic-ui-components)
+11. [Environment Variables](#environment-variables)
+12. [Testing Strategy](#testing-strategy)
+13. [Technical Decisions & Status](#technical-decisions--status)
+14. [Project Structure Summary](#project-structure-summary)
+15. [Next Steps](#next-steps)
+
+---
+
+## Overview
+
+This document defines the **technical architecture, stack decisions, and implementation patterns** for the custom PC parts e-commerce platform. For business requirements, user stories, and feature specifications, see [OVERVIEW.md](./OVERVIEW.md).
+
+**Development Philosophy:** Leverage .NET/C# experience to transition smoothly to Node.js/TypeScript by mapping familiar patterns (DI, ORM, controllers, middleware) to their NestJS/TypeORM equivalents.
+
+---
 
 ## Academic Deliverables
 
 ### 1st Delivery
 - [ ] REST API endpoints implemented and functional
-- [ ] Endpoint documentation (Swagger in-repo or hosted)
+- [ ] Swagger documentation (hosted at `/api/docs`)
 - [ ] Backend code pushed to repository
-- [ ] Test data summary
-- [ ] Demonstrative video of endpoints using Postman or similar
+- [ ] Integration tests passing (test through service layer with real DB)
+- [ ] Bruno API collection for all endpoints
+- [ ] Test data seeded in database
+- [ ] Demonstrative video of endpoints using Bruno/Postman
 
 ### 2nd Delivery
-- [ ] Frontend module code pushed to repository
-- [ ] Oral defense (date TBD per academic calendar)
-
----
-
-## Project Description
-
-An e-commerce store for purchasing computer hardware components oriented toward custom PC builds. Users can browse products by category (CPU, GPU, RAM, Storage, PSU, Case, Motherboard, Cooling), add them to a cart, and place orders.
+- [ ] Frontend Angular application complete
+- [ ] All features from OVERVIEW.md implemented
+- [ ] Frontend code pushed to repository
+- [ ] E2E user flows functional
+- [ ] Oral defense with architecture explanation and demo
 
 ---
 
@@ -247,156 +282,442 @@ didactic-madness/
 
 ---
 
-## Domain Model
+## Database Schema
 
+**Note:** For business entity definitions and constraints, see [OVERVIEW.md](./OVERVIEW.md). This section focuses on technical implementation.
+
+### Core Tables
+
+```sql
+-- users table
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'Customer',
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  account_status VARCHAR(50) NOT NULL DEFAULT 'Active',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- categories table
+CREATE TABLE categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- products table
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  sku VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  price DECIMAL(10, 2) NOT NULL,
+  stock INT NOT NULL DEFAULT 0,
+  brand VARCHAR(100),
+  specifications JSONB,
+  active BOOLEAN DEFAULT true,
+  category_id UUID NOT NULL REFERENCES categories(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- product_images table (1-5 per product)
+CREATE TABLE product_images (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  image_url VARCHAR(500) NOT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- carts table
+CREATE TABLE carts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- cart_items table
+CREATE TABLE cart_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  quantity INT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- orders table
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_number VARCHAR(50) UNIQUE NOT NULL,
+  user_id UUID NOT NULL REFERENCES users(id),
+  status VARCHAR(50) NOT NULL DEFAULT 'Pending Payment',
+  total DECIMAL(10, 2) NOT NULL,
+  shipping_address JSONB NOT NULL,
+  payment_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- order_items table (snapshot prices)
+CREATE TABLE order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- order_status_history table (audit trail)
+CREATE TABLE order_status_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  from_status VARCHAR(50),
+  to_status VARCHAR(50) NOT NULL,
+  changed_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
-Category
-  id          uuid PK
-  name        string
-  slug        string (unique)  — cpu | gpu | ram | storage | psu | case | motherboard | cooling
 
-Product
-  id          uuid PK
-  name        string
-  sku         string (unique)
-  price       decimal
-  stock       int
-  description string
-  imageUrl    string           — public URL returned by Supabase Storage after upload
-  specs       jsonb            — flexible key/value for hardware specs
-  categoryId  uuid FK → Category
+### Indexes
 
-User
-  id          uuid PK
-  email       string (unique)
-  passwordHash string
-  role        enum             — customer | admin
-  createdAt   timestamp
-  updatedAt   timestamp
-
-Cart
-  id          uuid PK
-  userId      uuid FK → User (unique — one cart per user)
-  items       CartItem[]
-
-CartItem
-  id          uuid PK
-  cartId      uuid FK → Cart
-  productId   uuid FK → Product
-  quantity    int
-
-Order
-  id          uuid PK
-  userId      uuid FK → User
-  status      enum             — pending | confirmed | shipped | delivered | cancelled
-  total       decimal
-  createdAt   timestamp
-  items       OrderItem[]
-
-OrderItem
-  id          uuid PK
-  orderId     uuid FK → Order
-  productId   uuid FK → Product
-  quantity    int
-  unitPrice   decimal          — snapshot of price at time of purchase
+```sql
+CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_products_active ON products(active);
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 ```
 
 ---
 
-## API Endpoints (1st Delivery Target)
+## API Endpoints
 
-### Auth
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| POST | `/auth/register` | Create account | Public |
-| POST | `/auth/login` | Login, returns JWT | Public |
+**Note:** For feature requirements and acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md). This section lists the technical API contract.
+
+**Base URL:** `http://localhost:3000/api`  
+**Documentation:** Swagger UI at `/api/docs`
+
+### Authentication
+| Method | Route | Description | Auth | Request | Response |
+|---|---|---|---|---|---|
+| POST | `/auth/register` | Create account | Public | `CreateUserDto` | `{ data: UserResponseDto }` |
+| POST | `/auth/login` | Login, returns JWT | Public | `LoginDto` | `{ data: { token: string, user: UserResponseDto } }` |
+| POST | `/auth/refresh` | Refresh JWT token | Public | `{ refreshToken: string }` | `{ data: { token: string } }` |
+| POST | `/auth/forgot-password` | Request password reset | Public | `{ email: string }` | `{ data: { message: string } }` |
+| POST | `/auth/reset-password` | Reset password | Public | `ResetPasswordDto` | `{ data: { message: string } }` |
 
 ### Categories
 | Method | Route | Description | Auth |
 |---|---|---|---|
 | GET | `/categories` | List all categories | Public |
 | GET | `/categories/:id` | Get one category | Public |
-| POST | `/categories` | Create category | Admin |
-| PUT | `/categories/:id` | Update category | Admin |
-| DELETE | `/categories/:id` | Delete category | Admin |
+| POST | `/categories` | Create category | Manager+ |
+| PUT | `/categories/:id` | Update category | Manager+ |
+| DELETE | `/categories/:id` | Delete category | Super Admin |
 
 ### Products
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| GET | `/products` | List all products (filter by category) | Public |
-| GET | `/products/:id` | Get one product | Public |
-| POST | `/products` | Create product | Admin |
-| PUT | `/products/:id` | Update product | Admin |
-| DELETE | `/products/:id` | Delete product | Admin |
-
-### Cart
+| Method | Route | Description | Auth | Query Params |
+|---|---|---|---|---|
+| GET | `/products` | List products with filters | Public | `?page=1&limit=20&category=uuid&search=text&minPrice=0&maxPrice=999&brand=text&inStock=true&sort=price:asc` |
+| GET | `/products/:id` | Get product details | Public | — |
+| POST | `/products` | Create product | Manager+ | — |
+| PUT | `/products/:id` | Update product | Manager+ | — |
+| PATCH | `/products/:id/stock` | Update stock quantity | Manager+ | — |
+| DELETE | `/products/:id` | Delete product (w/ safeguards) | Super Admin | — |
+| POST | `/products/:id/images` | Upload product image | Manager+ | Multipart form |
+| DELETE | `/products/:id/images/:imageId` **Cart**
 | Method | Route | Description | Auth |
 |---|---|---|---|
 | GET | `/cart` | Get current user's cart | Customer |
 | POST | `/cart/items` | Add item to cart | Customer |
-| PUT | `/cart/items/:itemId` | Update item quantity | Customer |
-| DELETE | `/cart/items/:itemId` | Remove item from cart | Customer |
+| PUT | `/cart/items/:itemId` | Update quantity | Customer |
+| DELETE | `/cart/items/:itemId` | Remove item | Customer |
 | DELETE | `/cart` | Clear cart | Customer |
 
 ### Orders
+| Method | Route | Description | Auth | Query Params |
+|---|---|---|---|---|
+| POST | `/orders` | Place order from cart | Customer | — |
+| GET | `/orders` | List user's orders | Customer | `?page=1&limit=20` |
+| GET | `/orders/:id` | Get order details | Customer/Staff+ | — |
+| PATCH | `/orders/:id/status` | Update order status | Staff+ | — |
+| DELETE | `/orders/:id` | Cancel order | Customer (unpaid), Manager+ (any) | — |
+| GET | `/orders/:id/history` | Get status history | Customer/Staff+ | — |
+
+### Admin - Orders
+| Method | Route | Description | Auth | Query Params |
+|---|---|---|---|---|
+| GET | `/admin/orders` | List all orders | Staff+ | `?page=1&limit=20&status=Shipped&userId=uuid&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` |
+| PATCH | `/admin/orders/:id/assign` | Assign order to staff | Manager+ | — |
+
+### Admin - Users
 | Method | Route | Description | Auth |
 |---|---|---|---|
-| POST | `/orders` | Place order from cart | Customer |
-| GET | `/orders` | List user's orders | Customer |
-| GET | `/orders/:id` | Get order detail | Customer |
-| PUT | `/orders/:id/status` | Update order status | Admin |
+| GET | `/admin/users` | List all users | Manager+ |
+| GET | `/admin/users/:id` | Get user details | Manager+ |
+| PUT | `/admin/users/:id` | Update user | Super Admin |
+| PATCH | `/admin/users/:id/role` | Change user role | Super Admin |
+| PATCH | `/admin/users/:id/status` | Suspend/activate account | Super Admin |
+| DELETE | `/admin/users/:id` | Delete user (w/ safeguards) | Super Admin |
+
+### Admin - Advanced Search Tools
+| Method | Route | Description | Auth |
+|---|---|---|---|
+| POST | `/products/compare` | Compare 2-4 products | Public |
+| POST | `/products/compatibility-check` | Check component compatibility | Public |
+| GET | `/users/:id/filters` | Get saved filters | Customer |
+| POST | `/users/:id/filters` | Save filter | Customer |
+| DELETE | `/users/:id/filters/:filterId` | Delete saved filter | Customer |
 
 ---
 
-## Phased Implementation Plan
+## Implementation Phases
 
-### Phase 1 — Project Bootstrap
-- Initialize NestJS in `api/`
-- Install all dependencies (see below)
-- Configure TypeORM `DataSource` pointing to Supabase via `DATABASE_URL`
-- Register global `ValidationPipe`, `HttpExceptionFilter`, Swagger in `main.ts`
-- Confirm DB connection
+**Note:** For feature-level acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md). This plan focuses on technical buildout.
 
-### Phase 2 — Base Classes (Generic Infrastructure)
-- `BaseEntity` — abstract entity with `id`, `createdAt`, `updatedAt`
-- `BaseRepository<T>` — generic wrapper around TypeORM `Repository<T>` with `findById`, `findAll`, `save`, `remove`
-- All feature repositories extend `BaseRepository<T>` (mirrors the generic EF repository pattern)
+### Phase 1 — Project Bootstrap & Infrastructure
+**Goal:** Establish foundation for both API and UI
 
-### Phase 3 — Entities & Migrations
-- Define all entities with TypeORM decorators
-- Generate and run first migration against Supabase Postgres
-- Seed data script in `database/`
+**API:**
+- Initialize NestJS project in `api/`
+- Install dependencies (see Dependencies section)
+- Configure TypeORM `DataSource` with Supabase connection
+- Register global `ValidationPipe`, `HttpExceptionFilter`, Swagger
+- Verify DB connection and create initial migration
 
-### Phase 4 — Feature Modules (per domain entity)
-Order: `categories` → `products` → `auth` + `users` → `cart` → `orders`
+**UI:**
+- Initialize Angular 17+ standalone project in `ui/`
+- Configure Angular Material 3
+- Setup path aliases in `tsconfig.json`
+- Create generic UI component library (see Generic Components section)
+- Create showcase route for component testing
 
-Each module follows the same pattern:
-1. Entity
-2. DTO (create + update) with `class-validator`
-3. Repository (extends `BaseRepository`)
-4. Service (business logic, injected repository)
-5. Controller (HTTP layer, delegates to service, Swagger decorated)
-6. Module (wires everything, registers TypeORM entity)
-7. Unit tests for service (mocked repository)
-8. Integration test for the key business flow (real DB — see Testing Strategy)
+**Database:**
+- Create `database/` folder for hand-written SQL migrations
+- Write first migration with all tables (see Database Schema)
+- Apply to Supabase via SQL editor
+- Create TypeORM migration wrappers for local dev
 
-### Phase 5 — Auth
-- JWT strategy with `passport-jwt`
-- Global `JwtAuthGuard` — all routes protected by default
-- `@Public()` decorator for open routes
-- `@Roles('admin')` decorator for admin-only routes
+---
 
-### Phase 6 — Swagger Documentation
-- Decorators on all controllers and DTOs
-- `@ApiBearerAuth()` on protected routes
-- Accessible at `/api/docs`
+### Phase 2 — Base Classes & Patterns (DDD Foundation)
+**Goal:** Establish reusable patterns following DDD principles
 
-### Phase 7 — Angular UI (2nd Delivery)
-- `ng new ui` inside `ui/`
-- Feature modules: `ProductsModule`, `CartModule`, `OrdersModule`, `AuthModule`
-- `CoreModule`: `AuthGuard`, `HttpInterceptor` (attaches JWT), `AuthService`
-- `SharedModule`: reusable UI components
-- `HttpClient` services map directly to the API endpoints above
+**API:**
+- `BaseEntity` abstract class (id, createdAt, updatedAt)
+- `BaseRepository<T>` generic wrapper with common methods
+- Domain entity example (User) with:
+  - Private fields + public getters
+  - Factory methods (`create`, `fromPersistence`)
+  - Business logic methods
+  - Mapping methods (`toPersistence`, `toResponseDto`)
+- DTO mapping patterns established
+- Custom error classes (`NotFoundError`, etc.)
+- Global exception filter mapping domain errors to HTTP
+
+**Testing Setup:**
+- Jest configuration for unit tests
+- Jest integration config with `.env.test`
+- Example integration test following service → domain → repository → DB flow
+
+---
+
+### Phase 3 — Authentication & Authorization
+**Goal:** Secure API with JWT and role-based access control
+
+**Implementation Order:**
+1. **Users Module** (domain entity, repository, service)
+2. **Auth Module** (login, register, JWT strategy)
+3. **JWT Guards** (`JwtAuthGuard` global, `RolesGuard`)
+4. **Decorators** (`@Public()`, `@Roles()`, `@CurrentUser()`)
+5. **Password Management** (forgot password, reset)
+6. **Integration Tests** for auth flows
+
+**Deliverables:**
+- All routes protected by default (JWT required)
+- Public routes marked with `@Public()`
+- Role-based access: Customer, Staff, Manager, Super Admin
+- Swagger shows lock icons on protected endpoints
+
+---
+
+### Phase 4 — Core Feature Modules
+**Implementation Order:** Categories → Products → Cart → Orders
+
+**Each Module Follows DDD Pattern:**
+1. **Domain Entity** with business logic
+2. **DTOs** (create, update, response) with validation
+3. **Repository** extending `BaseRepository<T>`
+4. **Service** with business logic, uses domain entities
+5. **Controller** delegates to service, Swagger decorated
+6. **Module** wires everything together
+7. **Integration Tests** for complete flows
+8. **Bruno Collection** entries for all endpoints
+
+**Module-Specific Notes:**
+
+**Categories:**
+- System-defined categories (seeded via migration)
+- CRUD operations for admins
+- Public read access
+
+**Products:**
+- Multiple images (1-5 per product)
+- JSONB specifications field (category-specific)
+- Stock management methods
+- Advanced search/filter endpoints
+- Image upload to Supabase Storage
+
+**Cart:**
+- One cart per authenticated user
+- Cart items with quantity
+- Real-time stock availability checks (warning, not blocking)
+- Cart persists in database
+
+**Orders:**
+- Order placement reserves stock after payment
+- Capture product prices at purchase time
+- Order status management with history tracking
+- Email notifications (order placed, shipped)
+- Complex order lifecycle (10 statuses)
+
+---
+
+### Phase 5 — Advanced Features
+**Goal:** Implement sophisticated user-facing tools
+
+**Product Comparison:**
+- Select 2-4 products from same category
+- Side-by-side comparison view
+- Highlight differences
+
+**Compatibility Checker:**
+- CPU + Motherboard socket matching
+- PSU wattage calculator
+- RAM compatibility validation
+- Warning system for incompatible selections
+
+**Saved Filters:**
+- Authenticated users save filter combinations
+- Quick-apply saved filters
+- CRUD operations on saved filters
+
+---
+
+### Phase 6 — Admin Features
+**Goal:** Management interfaces for all admin roles
+
+**Product Management:**
+- Full CRUD with role checks
+- Image upload/management
+- Bulk operations (stock updates, price changes)
+- Active/inactive toggle
+
+**Order Management:**
+- View all orders with filters
+- Status update workflow
+- Order assignment to staff
+- Cancellation with stock restoration
+
+**User Management:**
+- View all users
+- Role management (Super Admin only)
+- Account suspension
+- Delete with safeguards
+
+---
+
+### Phase 7 — Email & Background Processing
+**Goal:** Automated notifications (v1: synchronous, v2: queue-based)
+
+**v1.0 (Synchronous):**
+- Email service using Supabase Auth or external provider
+- Send emails directly in service methods
+- Order confirmation email
+- Order shipped email
+- Error logging if email fails
+
+**v2.0 (Queue-based - Future):**
+- BullMQ or similar job queue
+- Publish events on status changes
+- Background worker consumes events
+- Automatic retry on failure
+- Email notification triggered by queue
+
+---
+
+### Phase 8 — Frontend Implementation
+**Goal:** Complete Angular app with all features
+
+**Core Features:**
+- Product catalog with advanced search
+- Product detail pages
+- Shopping cart
+- Checkout with mock payment
+- Order history and tracking
+- User authentication (login/register)
+
+**Admin Features:**
+- Product management interface
+- Order management dashboard
+- User management (Super Admin)
+- Role-specific views
+
+**Technical Implementation:**
+- Feature modules for each domain
+- Services for API communication
+- Guards for route protection
+- Interceptors for JWT attachment
+- Signals for state management
+- Generic components composed in features
+
+---
+
+### Phase 9 — Testing & Documentation
+**Goal:** Comprehensive test coverage and API documentation
+
+**Testing:**
+- Integration tests for all critical flows
+- Unit tests for complex business logic
+- Manual testing via Bruno collections
+- E2E smoke tests for frontend
+
+**Documentation:**
+- Complete Swagger documentation
+- Bruno collections committed
+- README with setup instructions
+- Architecture diagrams (optional)
+
+---
+
+### Phase 10 — Academic Delivery Prep
+**Goal:** Finalize for submission
+
+**1st Delivery:**
+- All API endpoints functional
+- Swagger docs complete
+- Integration tests passing
+- Bruno collections
+- Seed data in database
+- Video demonstration
+
+**2nd Delivery:**
+- Frontend complete
+- All features working end-to-end
+- Oral defense preparation
+- Architecture explanation slides
+- Demo script
 
 ---
 
@@ -612,19 +933,138 @@ it('should create an order and reduce stock', async () => {
 
 ---
 
-## Open Decisions / TBD
+## Technical Decisions & Status
 
 ### Resolved
 - [x] Auth: NestJS-only JWT (bcrypt + `@nestjs/jwt`)
 - [x] Image storage: Supabase Storage (primary), Azure Blob (optional extension)
 - [x] Pagination: `?page=1&limit=20` offset-based
-- [x] Angular UI library: Angular Material
-- [x] Testing strategy: unit tests (mocked) + integration tests (real DB, debuggable)
-- [x] Repo structure: single repo, `api/` + `ui/` folders, no Nx
-- [x] ORM: TypeORM connected directly to Supabase Postgres via connection string
+- [x] Angular UI library: Angular Material 3
+- [x] Testing strategy: integration tests (real DB, debuggable) > unit tests (mocked)
+- [x] Repo structure: single repo, `api/` + `ui/` folders, no monorepo tooling
+- [x] ORM: TypeORM connected directly to Supabase Postgres
+- [x] Stock reservation: After payment confirmation (see OVERVIEW.md)
+- [x] Cart persistence: Database-backed for authenticated users, session for anonymous
+- [x] Order statuses: 10 detailed statuses (see OVERVIEW.md)
+- [x] Admin roles: Super Admin, Manager, Staff (see OVERVIEW.md)
+- [x] Email notifications: Order placed + Shipped (see OVERVIEW.md)
+- [x] Payment: Mock payment system for v1.0
+- [x] Background processing: Synchronous for v1.0, queue-based in v2.0
 
-### Still TBD
-- [ ] **Order flow — stock check**: Should placing an order fail if a product has insufficient stock? If yes, does adding to cart also check stock, or only at checkout?
-- [ ] **Admin seeding**: How is the first admin user created? (DB seed script, a one-off migration, or a hidden endpoint that self-destructs after first use?)
-- [ ] **Azure timeline**: At what point in the delivery schedule do we tackle the optional Azure extensions? After 1st delivery or in parallel?
-- [ ] **Image upload endpoint**: Does the API expose a `POST /products/:id/image` upload endpoint, or does the frontend upload directly to Supabase Storage and pass the URL?
+### Technical Backlog (Post-Academic Delivery)
+- [ ] **Background Job Queue**: Implement BullMQ or Kafka for async event processing
+- [ ] **Analytics Dashboard**: Admin reporting and metrics (deferred per OVERVIEW.md)
+- [ ] **Azure Integration**: Key Vault, Blob Storage, App Service deployment
+- [ ] **Real Payment Gateway**: Stripe or PayPal integration
+- [ ] **Email Queue with Retry**: Move email sending to background queue
+- [ ] **Advanced Caching**: Redis for product catalog and cart
+- [ ] **Rate Limiting**: Prevent API abuse
+- [ ] **Logging & Monitoring**: Structured logging with Winston, APM integration
+
+### Implementation Notes
+
+**Admin User Seeding:**
+- First Super Admin created via database seed script in `database/seeds/`
+- Seed runs automatically on first migration
+- Additional admins created via Super Admin UI
+
+**Image Upload Flow:**
+- Admin uploads image via API endpoint (`POST /products/:id/images`)
+- API validates file (size, format)
+- API uploads to Supabase Storage
+- API stores public URL in `product_images` table
+- Frontend displays images via URL
+
+**Stock Management:**
+- Cart does NOT reserve stock (allows browsing without blocking)
+- Stock reserved only after payment confirmation
+- Atomic stock updates using database transactions
+- Concurrent purchase race condition handled by DB constraints
+
+---
+
+## Project Structure Summary
+
+```
+didactic-madness/
+├── .github/
+│   ├── agents/
+│   │   └── product-owner.agent.md
+│   ├── copilot-instructions.md          # Coding standards
+│   └── workflows/
+│       └── ci-develop.yml               # CI pipeline
+│
+├── api/                                  # NestJS backend
+│   ├── src/
+│   │   ├── main.ts
+│   │   ├── app.module.ts
+│   │   ├── common/                      # Cross-cutting (guards, filters, decorators)
+│   │   ├── config/                      # Configuration
+│   │   ├── database/                    # TypeORM base classes
+│   │   └── modules/                     # Feature modules (DDD)
+│   │       ├── auth/
+│   │       ├── users/
+│   │       ├── categories/
+│   │       ├── products/
+│   │       ├── cart/
+│   │       └── orders/
+│   ├── migrations/                      # TypeORM migrations
+│   ├── test/                            # Integration tests
+│   ├── .env.example
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── ui/                                   # Angular standalone app
+│   ├── src/
+│   │   ├── main.ts
+│   │   ├── app/
+│   │   │   ├── app.ts
+│   │   │   ├── app.routes.ts
+│   │   │   ├── shared/                  # Generic components
+│   │   │   ├── showcase/                # Component testing page
+│   │   │   └── features/                # Feature modules
+│   │   │       ├── auth/
+│   │   │       ├── products/
+│   │   │       ├── cart/
+│   │   │       └── orders/
+│   ├── angular.json
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── database/                             # Source of truth
+│   ├── migrations/                      # Hand-written SQL
+│   ├── seeds/                           # Seed data scripts
+│   └── README.md
+│
+├── bruno/                                # API collections
+│   └── api/
+│       ├── auth/
+│       ├── products/
+│       ├── cart/
+│       └── orders/
+│
+├── docs/
+│   ├── OVERVIEW.md                      # Business requirements
+│   └── PLAN.md                          # This file (technical)
+│
+└── README.md
+```
+
+---
+
+## Next Steps
+
+1. **Review OVERVIEW.md** — Ensure all business requirements are clear
+2. **Setup Supabase Project** — Create database, get connection string
+3. **Initialize Projects** — Bootstrap NestJS and Angular
+4. **Create Database Schema** — Write and apply first migration
+5. **Implement Base Classes** — Establish DDD patterns
+6. **Begin Feature Development** — Follow phased implementation plan
+
+---
+
+**For business requirements, user stories, and acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md).**  
+**For coding standards and patterns, see [../.github/copilot-instructions.md](../.github/copilot-instructions.md).**
+
+**Last Updated:** March 4, 2026  
+**Version:** 1.0 - Technical Architecture

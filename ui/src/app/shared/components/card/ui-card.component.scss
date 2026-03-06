@@ -1,14 +1,62 @@
 .ui-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s;
-}
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  background: var(--nzxt-white);
+  border: 1px solid var(--nzxt-gray-200);
+  overflow: hidden;
 
-.ui-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
 }
 
 img {
   object-fit: cover;
-  max-height: 200px;
+  max-height: 240px;
+  width: 100%;
+  display: block;
+  background: var(--nzxt-gray-100);
 }
+
+::ng-deep {
+  .ui-card {
+    .mat-mdc-card-header {
+      padding: var(--spacing-md) var(--spacing-md) 0;
+    }
+
+    .mat-mdc-card-title {
+      font-size: 1.125rem;
+      font-weight: var(--font-weight-semibold);
+      color: var(--nzxt-black);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .mat-mdc-card-subtitle {
+      font-size: 1.25rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--nzxt-primary);
+      margin-bottom: 0;
+    }
+
+    .mat-mdc-card-content {
+      padding: var(--spacing-md);
+      color: var(--nzxt-gray-700);
+      font-size: 0.875rem;
+      line-height: 1.5;
+
+      p {
+        margin: 0;
+      }
+    }
+
+    .mat-mdc-card-actions {
+      padding: var(--spacing-md);
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+    }
+  }
+}
+

@@ -1,12 +1,20 @@
 <mat-sidenav-container class="app-container">
-  <mat-sidenav mode="side" opened class="app-sidenav">
+  <mat-sidenav 
+    #drawer
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()"
+    class="app-sidenav">
     <div class="sidenav-header">
       <mat-icon class="logo-icon">computer</mat-icon>
       <span class="logo-text">PC<strong>Store</strong></span>
     </div>
     <mat-nav-list>
       @for (item of navItems; track item.route) {
-        <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
+        <a 
+          mat-list-item 
+          [routerLink]="item.route" 
+          routerLinkActive="active-link"
+          (click)="closeDrawerIfMobile()">
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
           <span matListItemTitle>{{ item.label }}</span>
         </a>
@@ -14,8 +22,16 @@
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content class="app-content">
-    <mat-toolbar color="primary" class="app-toolbar">
-      <span class="flex-1">PC Parts Store</span>
+    <mat-toolbar class="app-toolbar">
+      <button 
+        mat-icon-button 
+        (click)="toggleDrawer()" 
+        aria-label="Toggle navigation"
+        class="menu-button">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="toolbar-title">PC Parts Store</span>
+      <span class="flex-1"></span>
       <button mat-icon-button aria-label="Notifications">
         <mat-icon>notifications</mat-icon>
       </button>

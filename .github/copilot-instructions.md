@@ -1,8 +1,8 @@
-# GitHub Copilot Instructions — Tienda de Armado de PCs
+# GitHub Copilot Instructions — Technical Standards
 
 ## Project Overview
 
-A full-stack TypeScript application for a custom PC parts e-commerce store. Backend is NestJS + TypeORM + Supabase Postgres. Frontend is Angular 17+ (standalone) + Angular Material 3.
+Full-stack TypeScript application with NestJS backend + TypeORM + Supabase Postgres and Angular 17+ (standalone) + Angular Material 3 frontend.
 
 ---
 
@@ -20,22 +20,22 @@ Code must read like a story. If you need to backtrack to understand logic, refac
 
 **Good:**
 ```typescript
-async getProduct(id: string): Promise<Product> {
-  const product = await this.repository.findById(id);
-  if (!product) throw new ProductNotFoundError(id);
+async getEntity(id: string): Promise<Entity> {
+  const entity = await this.repository.findById(id);
+  if (!entity) throw new NotFoundError('Entity', id);
   
-  return product;
+  return entity;
 }
 ```
 
 **Bad:**
 ```typescript
-async getProduct(id: string): Promise<Product> {
-  const product = await this.repository.findById(id);
-  if (product) {
-    return product;
+async getEntity(id: string): Promise<Entity> {
+  const entity = await this.repository.findById(id);
+  if (entity) {
+    return entity;
   } else {
-    throw new ProductNotFoundError(id);
+    throw new NotFoundError('Entity', id);
   }
 }
 ```
@@ -48,7 +48,7 @@ async getProduct(id: string): Promise<Product> {
 ├── ui/         # Angular 17+ standalone app
 ├── api/        # NestJS backend
 ├── database/   # Source of truth: hand-written SQL migrations, seed scripts, ERD
-└── bruno/      # API collections (folder per module: auth/, products/, cart/, orders/)
+└── bruno/      # API collections (folder per module)
 ```
 
 **The `database/` folder is the source of truth.** All schema changes are hand-written SQL migrations committed here, then wrapped in TypeORM migration files.
@@ -62,17 +62,17 @@ async getProduct(id: string): Promise<Product> {
 - **Every component/feature:** separate `.ts`, `.html`, `.scss` files
 - **NO inline templates or styles**
 - **Naming:** `kebab-case` for files and folders
-  - ✅ `product-card.component.ts`, `user-profile.service.ts`
-  - ❌ `ProductCard.component.ts`, `UserProfileService.ts`
+  - ✅ `item-card.component.ts`, `user-profile.service.ts`
+  - ❌ `ItemCard.component.ts`, `UserProfileService.ts`
 
 ### Folder Depth
 
 **Max 3-4 levels.** If deeper, rethink the structure.
 
 ```
-✅ api/src/modules/products/services/
-✅ ui/src/app/features/products/components/
-❌ api/src/modules/products/services/queries/filters/
+✅ api/src/modules/entities/services/
+✅ ui/src/app/features/items/components/
+❌ api/src/modules/entities/services/queries/filters/
 ```
 
 ### Function Length
@@ -101,9 +101,207 @@ const uploadResult: any = await storage.upload(...);
 
 ```typescript
 ✅ import { UiTableComponent } from '@shared/components/table';
-✅ import { ProductsService } from '@app/modules/products';
+✅ import { EntitiesService } from '@app/modules/entities';
 ❌ import { UiTableComponent } from '../../../shared/components/table';
 ```
+
+---
+
+## Domain-Driven Design (DDD)
+
+### Domain Entities
+
+**Domain entities are rich models with behavior**, not just data containers. They encapsulate business logic and maintain invariants.
+
+```typescript
+// domain/entities/user.entity.ts
+export class User {
+  private constructor(
+    public readonly id: string,
+    private _email: string,
+    private _status: UserStatus,
+    private _createdAt: Date,
+  ) {}
+
+  // Factory method
+  static create(email: string): User {
+    return new User(
+      crypto.randomUUID(),
+      email,
+      UserStatus.ACTIVE,
+      new Date(),
+    );
+  }
+
+  // Reconstruct from database
+  static fromPersistence(data: UserPersistence): User {
+    return new User(
+      data.id,
+      data.email,
+      data.status,
+      data.createdAt,
+    );
+  }
+
+  // Getters (encapsulation)
+  get email(): string {
+    return this._email;
+  }
+
+  get status(): UserStatus {
+    return this._status;
+  }
+
+  // Business logic
+  deactivate(): void {
+    if (this._status === UserStatus.INACTIVE) {
+      throw new AlreadyInactiveError();
+    }
+    this._status = UserStatus.INACTIVE;
+  }
+
+  changeEmail(newEmail: string): void {
+    if (!this.isValidEmail(newEmail)) {
+      throw new InvalidEmailError(newEmail);
+    }
+    this._email = newEmail;
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Map to persistence
+  toPersistence(): UserPersistence {
+    return {
+      id: this.id,
+      email: this._email,
+      status: this._status,
+      createdAt: this._createdAt,
+    };
+  }
+}
+```
+
+### DTO Mapping
+
+**DTOs are for data transfer only**—no business logic. Use explicit mapping methods.
+
+#### Pattern 1: Static Factory Methods (Recommended)
+
+```typescript
+// dtos/create-user.dto.ts
+export class CreateUserDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
+
+// domain/entities/user.entity.ts
+export class User {
+  // ... domain logic ...
+
+  static fromCreateDto(dto: CreateUserDto): User {
+    return User.create(dto.email);
+  }
+
+  toResponseDto(): UserResponseDto {
+    return {
+      id: this.id,
+      email: this.email,
+      status: this.status,
+      createdAt: this.createdAt.toISOString(),
+    };
+  }
+}
+```
+
+#### Pattern 2: Dedicated Mappers (For Complex Mappings)
+
+```typescript
+// mappers/user.mapper.ts
+export class UserMapper {
+  static toDomain(dto: CreateUserDto): User {
+    return User.create(dto.email);
+  }
+
+  static toDto(entity: User): UserResponseDto {
+    return {
+      id: entity.id,
+      email: entity.email,
+      status: entity.status,
+      createdAt: entity.createdAt.toISOString(),
+    };
+  }
+
+  static toDomainFromPersistence(raw: UserPersistence): User {
+    return User.fromPersistence(raw);
+  }
+
+  static toPersistence(entity: User): UserPersistence {
+    return entity.toPersistence();
+  }
+}
+```
+
+### When to Use Each Pattern
+
+**Static Methods on Entity (Simple Cases):**
+- One-to-one mapping
+- Minimal transformation logic
+- Entity owns the mapping logic
+
+**Dedicated Mapper Class (Complex Cases):**
+- Multiple DTOs map to same entity
+- Complex transformation logic
+- Need to inject dependencies (e.g., repositories)
+- Mapping involves multiple entities
+
+### Example: Service Using DDD
+
+```typescript
+// application/services/user.service.ts
+@Injectable()
+export class UserService {
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async createUser(dto: CreateUserDto): Promise<UserResponseDto> {
+    // DTO → Domain
+    const user = User.fromCreateDto(dto);
+
+    // Business logic in domain
+    // (validation already handled by entity factory)
+
+    // Persist
+    const saved = await this.userRepository.save(user);
+
+    // Domain → DTO
+    return saved.toResponseDto();
+  }
+
+  async deactivateUser(id: string): Promise<void> {
+    const user = await this.userRepository.findById(id);
+    if (!user) throw new NotFoundError('User', id);
+
+    // Business logic in domain
+    user.deactivate();
+
+    await this.userRepository.save(user);
+  }
+}
+```
+
+### Key Principles
+
+1. **Rich Domain Models:** Business logic lives in entities, not services
+2. **Encapsulation:** Use private fields with public getters/methods
+3. **Factory Methods:** Prefer `User.create()` over `new User()`
+4. **Explicit Mapping:** Always use named methods (`fromDto`, `toDto`, `toPersistence`)
+5. **Immutability When Possible:** Use `readonly` for IDs and timestamps
+6. **No Anemic Models:** Entities should have behavior, not just getters/setters
 
 ---
 
@@ -114,15 +312,15 @@ const uploadResult: any = await storage.upload(...);
 Use early returns for simple validation:
 
 ```typescript
-async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
+async updateEntity(id: string, dto: UpdateEntityDto): Promise<Entity> {
   if (!id) throw new InvalidIdError();
-  if (dto.stock < 0) throw new InvalidStockError();
+  if (dto.value < 0) throw new InvalidValueError();
   
   // Happy path continues without nesting
-  const product = await this.repository.findById(id);
-  if (!product) throw new ProductNotFoundError(id);
+  const entity = await this.repository.findById(id);
+  if (!entity) throw new NotFoundError('Entity', id);
   
-  return this.repository.save({ ...product, ...dto });
+  return this.repository.save({ ...entity, ...dto });
 }
 ```
 
@@ -131,16 +329,16 @@ async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
 For complex validation (cross-field, async checks, business rules), extract into validator classes:
 
 ```typescript
-// validators/create-order.validator.ts
-export class CreateOrderValidator {
-  async validate(dto: CreateOrderDto): Promise<void> {
-    await this.validateStock(dto.items);
-    await this.validateUserBalance(dto.userId, dto.total);
-    this.validateItemPrices(dto.items);
+// validators/create-resource.validator.ts
+export class CreateResourceValidator {
+  async validate(dto: CreateResourceDto): Promise<void> {
+    await this.validateAvailability(dto.items);
+    await this.validateUserPermissions(dto.userId);
+    this.validateItemValues(dto.items);
   }
   
-  private async validateStock(items: OrderItemDto[]): Promise<void> {
-    // Complex stock check logic
+  private async validateAvailability(items: ItemDto[]): Promise<void> {
+    // Complex availability check logic
   }
 }
 ```
@@ -154,19 +352,19 @@ export class CreateOrderValidator {
 Create custom error classes for each domain error:
 
 ```typescript
-// errors/product-not-found.error.ts
-export class ProductNotFoundError extends Error {
-  constructor(productId: string) {
-    super(`Product with ID ${productId} not found`);
-    this.name = 'ProductNotFoundError';
+// errors/not-found.error.ts
+export class NotFoundError extends Error {
+  constructor(entityName: string, id: string) {
+    super(`${entityName} with ID ${id} not found`);
+    this.name = 'NotFoundError';
   }
 }
 
-// errors/insufficient-stock.error.ts
-export class InsufficientStockError extends Error {
-  constructor(productId: string, requested: number, available: number) {
-    super(`Insufficient stock for product ${productId}. Requested: ${requested}, Available: ${available}`);
-    this.name = 'InsufficientStockError';
+// errors/insufficient-resources.error.ts
+export class InsufficientResourcesError extends Error {
+  constructor(resourceId: string, requested: number, available: number) {
+    super(`Insufficient resources for ${resourceId}. Requested: ${requested}, Available: ${available}`);
+    this.name = 'InsufficientResourcesError';
   }
 }
 ```
@@ -181,7 +379,7 @@ Let NestJS's global exception filter catch and format errors centrally:
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     // Map domain errors to HTTP responses
-    if (exception instanceof ProductNotFoundError) {
+    if (exception instanceof NotFoundError) {
       return new NotFoundException(exception.message);
     }
     // ...
@@ -200,7 +398,7 @@ All successful responses wrapped in an envelope:
 ```typescript
 // Success
 {
-  "data": Product | Product[] | { /* complex object */ },
+  "data": Entity | Entity[] | { /* complex object */ },
   "meta": {           // Optional, for paginated responses
     "page": 1,
     "limit": 20,
@@ -211,7 +409,7 @@ All successful responses wrapped in an envelope:
 // Error (handled by exception filter)
 {
   "statusCode": 404,
-  "message": "Product with ID abc123 not found",
+  "message": "Entity with ID abc123 not found",
   "error": "Not Found"
 }
 ```
@@ -226,38 +424,134 @@ Implement a `ResponseInterceptor` to wrap all controller responses automatically
 
 **Priority: integration tests with real database** (`.env.test` pointing to a test schema in Supabase).
 
+**Test through the service layer** to follow the complete flow of your application logic.
+
 Why:
-- Can set breakpoints and debug full flows
+- Follow the entire flow of an action (DTO → Service → Domain → Repository → DB)
+- Set breakpoints and debug through the full logic path
 - Mirrors real-world usage
 - Catches integration issues early
+- Validates that all layers work together correctly
 
 ```typescript
-// test/modules/products.integration.spec.ts
-describe('Products Integration', () => {
+// test/modules/users.integration.spec.ts
+describe('User Service Integration', () => {
   let app: INestApplication;
-  let productsService: ProductsService;
+  let userService: UserService;
+  let userRepository: UserRepository;
 
   beforeAll(async () => {
     app = await Test.createTestingModule({
-      imports: [AppModule], // Real module, real DB
+      imports: [AppModule], // Real module, all dependencies, real DB
     }).compile();
 
-    productsService = app.get(ProductsService);
+    userService = app.get(UserService);
+    userRepository = app.get(UserRepository);
   });
 
-  it('should create a product and retrieve it', async () => {
-    const created = await productsService.create(mockProductDto);
-    expect(created.id).toBeDefined();
+  afterEach(async () => {
+    // Clean up test data
+    await userRepository.deleteAll();
+  });
 
-    const retrieved = await productsService.findById(created.id);
-    expect(retrieved.name).toBe(mockProductDto.name);
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('createUser', () => {
+    it('should create a user and validate the complete flow', async () => {
+      // Arrange
+      const dto: CreateUserDto = {
+        email: 'test@example.com',
+        password: 'SecurePass123',
+      };
+
+      // Act - Call service (follows full flow: DTO → Domain → Validation → Persistence)
+      const result = await userService.createUser(dto);
+
+      // Assert - Validate response
+      expect(result.id).toBeDefined();
+      expect(result.email).toBe(dto.email);
+      expect(result.status).toBe(UserStatus.ACTIVE);
+
+      // Verify persistence - Ensure data is actually in DB
+      const savedUser = await userRepository.findById(result.id);
+      expect(savedUser).toBeDefined();
+      expect(savedUser.email).toBe(dto.email);
+    });
+
+    it('should throw error when email is invalid', async () => {
+      const dto: CreateUserDto = {
+        email: 'invalid-email',
+        password: 'SecurePass123',
+      };
+
+      await expect(userService.createUser(dto)).rejects.toThrow(
+        InvalidEmailError,
+      );
+    });
+  });
+
+  describe('deactivateUser', () => {
+    it('should deactivate an active user and persist the change', async () => {
+      // Arrange - Create a user first
+      const user = await userService.createUser({
+        email: 'active@example.com',
+        password: 'SecurePass123',
+      });
+
+      // Act - Deactivate
+      await userService.deactivateUser(user.id);
+
+      // Assert - Verify status changed in DB
+      const deactivated = await userRepository.findById(user.id);
+      expect(deactivated.status).toBe(UserStatus.INACTIVE);
+    });
+
+    it('should throw error when user not found', async () => {
+      await expect(
+        userService.deactivateUser('non-existent-id'),
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+});
+```
+
+### Testing Complex Flows
+
+For multi-step business operations, test the entire flow:
+
+```typescript
+describe('Order Processing Flow', () => {
+  it('should handle complete order creation flow', async () => {
+    // Arrange - Set up test data
+    const user = await userService.createUser(mockUserDto);
+    const product = await productService.create(mockProductDto);
+
+    // Act - Create order (tests full flow)
+    const order = await orderService.createOrder({
+      userId: user.id,
+      items: [{ productId: product.id, quantity: 2 }],
+    });
+
+    // Assert - Verify all side effects
+    expect(order.status).toBe(OrderStatus.PENDING);
+    expect(order.items).toHaveLength(1);
+    
+    // Verify inventory was reduced
+    const updatedProduct = await productService.findById(product.id);
+    expect(updatedProduct.stock).toBe(product.stock - 2);
+    
+    // Verify order is in DB
+    const savedOrder = await orderRepository.findById(order.id);
+    expect(savedOrder).toBeDefined();
   });
 });
 ```
 
 ### Unit Tests (Secondary)
 
-Use for isolated logic only (e.g., utility functions, validators):
+Use for isolated logic only (e.g., utility functions, validators, formatters):
 
 ```typescript
 // validators/email.validator.spec.ts
@@ -266,7 +560,24 @@ describe('EmailValidator', () => {
     expect(() => validator.validate('not-an-email')).toThrow();
   });
 });
+
+// utils/price-calculator.spec.ts
+describe('PriceCalculator', () => {
+  it('should calculate total with tax', () => {
+    const result = calculateTotal(100, 0.15);
+    expect(result).toBe(115);
+  });
+});
 ```
+
+### Key Testing Principles
+
+1. **Integration > Unit:** Test through the service layer, not individual methods
+2. **Full Flow:** Follow the complete logic path from input to database
+3. **Real Dependencies:** Use real DB, real services, real repositories
+4. **Debuggable:** You can set breakpoints and step through the entire flow
+5. **Clean Up:** Always clean up test data after each test
+6. **Test Behavior, Not Implementation:** Focus on what the system does, not how
 
 ---
 
@@ -281,18 +592,18 @@ describe('EmailValidator', () => {
 1. **Write SQL migration** in `database/migrations/YYYYMMDD_description.sql`:
 
 ```sql
--- database/migrations/20260303_add_products_table.sql
-CREATE TABLE products (
+-- database/migrations/20260303_add_entities_table.sql
+CREATE TABLE entities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
-  sku VARCHAR(100) UNIQUE NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
-  stock INT NOT NULL DEFAULT 0,
+  code VARCHAR(100) UNIQUE NOT NULL,
+  value DECIMAL(10, 2) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_entities_code ON entities(code);
 ```
 
 2. **Apply to Supabase** via the SQL editor or CLI
@@ -300,14 +611,14 @@ CREATE INDEX idx_products_sku ON products(sku);
 3. **Create TypeORM wrapper** for local dev consistency:
 
 ```typescript
-// api/migrations/20260303_add_products_table.ts
-export class AddProductsTable1234567890 implements MigrationInterface {
+// api/migrations/20260303_add_entities_table.ts
+export class AddEntitiesTable1234567890 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Paste the same SQL here
   }
   
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE products`);
+    await queryRunner.query(`DROP TABLE entities`);
   }
 }
 ```
@@ -321,21 +632,21 @@ export class AddProductsTable1234567890 implements MigrationInterface {
 **Standalone components only.** No `NgModule` boilerplate.
 
 ```typescript
-// product-card.component.ts
+// item-card.component.ts
 import { Component, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { UiButtonComponent } from '@shared/components/button';
 
 @Component({
-  selector: 'product-card',
+  selector: 'item-card',
   standalone: true,
   imports: [MatCardModule, UiButtonComponent],
-  templateUrl: './product-card.component.html',
-  styleUrl: './product-card.component.scss',
+  templateUrl: './item-card.component.html',
+  styleUrl: './item-card.component.scss',
 })
-export class ProductCardComponent {
-  product = input.required<Product>();
-  addToCart = output<Product>();
+export class ItemCardComponent {
+  item = input.required<Item>();
+  onSelect = output<Item>();
 }
 ```
 
@@ -346,15 +657,15 @@ export class ProductCardComponent {
 - **Minimal RxJS** (only where Angular Material or HttpClient requires it)
 
 ```typescript
-// products.service.ts (shared state)
+// entities.service.ts (shared state)
 @Injectable({ providedIn: 'root' })
-export class ProductsService {
-  private productsSignal = signal<Product[]>([]);
-  readonly products = this.productsSignal.asReadonly();
+export class EntitiesService {
+  private entitiesSignal = signal<Entity[]>([]);
+  readonly entities = this.entitiesSignal.asReadonly();
 
-  async loadProducts(): Promise<void> {
-    const data = await this.http.get<ApiResponse<Product[]>>('/api/products');
-    this.productsSignal.set(data.data);
+  async loadEntities(): Promise<void> {
+    const data = await this.http.get<ApiResponse<Entity[]>>('/api/entities');
+    this.entitiesSignal.set(data.data);
   }
 }
 ```
@@ -364,12 +675,12 @@ export class ProductsService {
 Use `inject()` function (modern Angular):
 
 ```typescript
-export class ProductsComponent {
-  private readonly productsService = inject(ProductsService);
+export class EntitiesComponent {
+  private readonly entitiesService = inject(EntitiesService);
   private readonly router = inject(Router);
   
   async ngOnInit() {
-    await this.productsService.loadProducts();
+    await this.entitiesService.loadEntities();
   }
 }
 ```
@@ -385,13 +696,13 @@ export class UiTableComponent<T> {
   columns = input.required<ColumnDef<T>[]>();
 }
 
-// features/products/products-table.component.ts
-export class ProductsTableComponent {
-  products = input.required<Product[]>();
+// features/entities/entities-table.component.ts
+export class EntitiesTableComponent {
+  entities = input.required<Entity[]>();
   
-  columns: ColumnDef<Product>[] = [
-    { key: 'name', header: 'Product', sortable: true },
-    { key: 'price', header: 'Price', formatter: (v) => `$${v}` },
+  columns: ColumnDef<Entity>[] = [
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'value', header: 'Value', formatter: (v) => `$${v}` },
   ];
 }
 ```
@@ -405,12 +716,12 @@ export class ProductsTableComponent {
 ### Conventional Commits
 
 ```
-feat: add product filtering by category
-fix: correct cart total calculation
+feat: add filtering by category
+fix: correct calculation logic
 chore: update dependencies
 docs: add API endpoint documentation
-test: add integration tests for orders
-refactor: simplify product service logic
+test: add integration tests for module
+refactor: simplify service logic
 ```
 
 ### Branch Strategy
@@ -434,33 +745,32 @@ bruno/
     ├── auth/
     │   ├── login.bru
     │   └── register.bru
-    ├── products/
-    │   ├── list-products.bru
-    │   ├── get-product.bru
-    │   ├── create-product.bru
-    │   └── update-product.bru
-    ├── cart/
-    └── orders/
+    ├── entities/
+    │   ├── list-entities.bru
+    │   ├── get-entity.bru
+    │   ├── create-entity.bru
+    │   └── update-entity.bru
+    └── other-modules/
 ```
 
 ### Example `.bru` File
 
 ```
 meta {
-  name: List Products
+  name: List Entities
   type: http
   seq: 1
 }
 
 get {
-  url: {{baseUrl}}/products?page=1&limit=20&category=cpu
+  url: {{baseUrl}}/entities?page=1&limit=20&category=active
   body: none
 }
 
 params:query {
   page: 1
   limit: 20
-  category: cpu
+  category: active
 }
 
 tests {
@@ -476,45 +786,6 @@ tests {
 
 ---
 
-## Spec-Driven Development
-
-For every new feature/requirement:
-
-### 1. Plan
-- What problem are we solving?
-- What's the expected behavior?
-- What are the edge cases?
-
-### 2. Analysis
-- What entities/tables are affected?
-- What's the data flow?
-- What are the dependencies?
-
-### 3. Specify
-- Write acceptance criteria
-- Define API contract (request/response)
-- List database schema changes
-
-### 4. Break Into Tasks
-- Database migration
-- Entity creation
-- Repository methods
-- Service logic
-- Controller endpoint
-- DTO validation
-- Integration tests
-- Bruno collection entry
-- Frontend component (if applicable)
-
-### 5. Implementation
-- Write failing tests first (TDD for complex logic)
-- Implement tasks one by one
-- Verify each task with a meaningful test case
-- Update Bruno collection
-- Manual test via Bruno
-
----
-
 ## Comments and Documentation
 
 **Minimal comments. Code should be self-explanatory.**
@@ -523,8 +794,8 @@ For every new feature/requirement:
 
 ✅ **Complex business logic**
 ```typescript
-// Stock reservation expires after 15 minutes to prevent deadlocks
-// during high-traffic checkout flows
+// Reservation expires after 15 minutes to prevent deadlocks
+// during high-traffic operations
 const RESERVATION_TTL_MS = 15 * 60 * 1000;
 ```
 
@@ -541,8 +812,8 @@ const RESERVATION_TTL_MS = 15 * 60 * 1000;
 
 ❌ **Don't comment the obvious**
 ```typescript
-// Get product by ID
-async getProduct(id: string): Promise<Product> { ... }
+// Get entity by ID
+async getEntity(id: string): Promise<Entity> { ... }
 ```
 
 ---
@@ -575,11 +846,11 @@ if (!user.hasPermission('admin')) throw new ForbiddenError();
 
 ```typescript
 // BAD
-if (stock < 5) { ... }
+if (quantity < 5) { ... }
 
 // GOOD
-const LOW_STOCK_THRESHOLD = 5;
-if (stock < LOW_STOCK_THRESHOLD) { ... }
+const LOW_QUANTITY_THRESHOLD = 5;
+if (quantity < LOW_QUANTITY_THRESHOLD) { ... }
 ```
 
 ### ❌ God Classes
@@ -587,8 +858,8 @@ if (stock < LOW_STOCK_THRESHOLD) { ... }
 If a service has >10 methods or >200 lines, split it.
 
 ```typescript
-// BAD: ProductsService doing too much
-class ProductsService {
+// BAD: EntitiesService doing too much
+class EntitiesService {
   create() { ... }
   update() { ... }
   delete() { ... }
@@ -601,15 +872,15 @@ class ProductsService {
 }
 
 // GOOD: Split responsibilities
-class ProductsService {
+class EntitiesService {
   create() { ... }
   update() { ... }
   findById() { ... }
 }
 
-class ProductsSearchService { ... }
-class ProductsExportService { ... }
-class ProductsReportService { ... }
+class EntitiesSearchService { ... }
+class EntitiesExportService { ... }
+class EntitiesReportService { ... }
 ```
 
 ### ❌ Boilerplate
@@ -620,13 +891,14 @@ Don't add code that doesn't solve a problem. If a class/function/abstraction isn
 
 ## Final Reminders
 
-1. **Keep frontend simple** — I'm not a frontend dev. Prefer straightforward Angular patterns over clever hacks.
-2. **Database is source of truth** — All schema changes start in `database/`, not in TypeORM entities.
-3. **Integration tests > unit tests** — I want to debug real flows.
-4. **Bruno first** — Every endpoint needs a `.bru` file before it's considered "done".
-5. **Extract on 2nd use** — Not before, not after.
-6. **Max 20-30 lines per function.**
-7. **Code reads like a story** — No backtracking to understand logic.
+1. **Domain-Driven Design** — Business logic lives in domain entities. Use explicit mapping methods (`fromDto`, `toDto`, `toPersistence`).
+2. **Keep frontend simple** — I'm not a frontend dev. Prefer straightforward Angular patterns over clever hacks.
+3. **Database is source of truth** — All schema changes start in `database/`, not in TypeORM entities.
+4. **Integration tests > unit tests** — I want to debug real flows. Test through the service layer to follow the complete logic path.
+5. **Bruno first** — Every endpoint needs a `.bru` file before it's considered "done".
+6. **Extract on 2nd use** — Not before, not after.
+7. **Max 20-30 lines per function.**
+8. **Code reads like a story** — No backtracking to understand logic.
 
 ---
 

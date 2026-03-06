@@ -1,0 +1,87 @@
+.ui-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+
+  &.interactive {
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.star {
+  user-select: none;
+  
+  &--filled {
+    color: #ffa000;
+  }
+
+  &--half {
+    color: #ffa000;
+  }
+
+  &--empty {
+    color: var(--nzxt-gray-300);
+  }
+}
+
+// ─── Size Variants ──────────────────────────────────────────────────────────
+.ui-rating--small {
+  .star {
+    font-size: 16px;
+  }
+  
+  .rating-count {
+    font-size: 0.75rem;
+  }
+}
+
+.ui-rating--medium {
+  .star {
+    font-size: 20px;
+  }
+  
+  .rating-count {
+    font-size: 0.875rem;
+  }
+}
+
+.ui-rating--large {
+  .star {
+    font-size: 24px;
+  }
+  
+  .rating-count {
+    font-size: 1rem;
+  }
+}
+
+.rating-count {
+  color: var(--nzxt-gray-600);
+  font-weight: var(--font-weight-normal);
+  white-space: nowrap;
+}
