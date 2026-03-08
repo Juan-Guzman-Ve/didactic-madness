@@ -1,0 +1,28 @@
+<div class="products-container">
+  <aside class="filters">
+    <h3>Filters</h3>
+    <!-- TODO: Add filter controls -->
+  </aside>
+
+  <main class="products-grid">
+    <h1>Products</h1>
+    
+    @if (loading()) {
+      <div class="loading">Loading products...</div>
+    }
+
+    @if (!loading() && products().length === 0) {
+      <div class="empty-state">No products found</div>
+    }
+
+    <div class="grid">
+      @for (product of products(); track product.id) {
+        <div class="product-card">
+          <!-- TODO: Replace with product card component -->
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.price | currency }}</p>
+        </div>
+      }
+    </div>
+  </main>
+</div>

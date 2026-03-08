@@ -1,9 +1,10 @@
 # Technical Architecture — Custom PC Parts E-Commerce Platform
 
 **Version:** 1.0  
-**Last Updated:** March 4, 2026  
+**Last Updated:** March 6, 2026  
 **Related Documents:**  
-- [Business Requirements](./OVERVIEW.md) — What we're building
+- [Business Requirements](./SYSTEM-OVERVIEW.md) — What we're building
+- [Database Design](./DATABASE-DESIGN.md) — Database schema and RBAC
 - [Coding Standards](../.github/copilot-instructions.md) — How we write code
 
 ---
@@ -30,7 +31,11 @@
 
 ## Overview
 
-This document defines the **technical architecture, stack decisions, and implementation patterns** for the custom PC parts e-commerce platform. For business requirements, user stories, and feature specifications, see [OVERVIEW.md](./OVERVIEW.md).
+This document defines the **technical architecture, stack decisions, and implementation patterns** for the custom PC parts e-commerce platform. For business requirements, user stories, and feature specifications, see [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md).
+
+**Project Context:** This is a **university class project** designed to demonstrate full-stack development skills with clean architecture principles. The focus is on learning and applying best practices rather than production-scale features.
+
+**Architecture Pattern:** Clean Architecture with Domain-Driven Design (DDD) principles. Business logic lives in domain entities, services orchestrate use cases, and controllers use Result Pattern for consistent response handling.
 
 **Development Philosophy:** Leverage .NET/C# experience to transition smoothly to Node.js/TypeScript by mapping familiar patterns (DI, ORM, controllers, middleware) to their NestJS/TypeORM equivalents.
 
@@ -65,30 +70,18 @@ This document defines the **technical architecture, stack decisions, and impleme
 | **Database** | Supabase (hosted PostgreSQL) | Managed Postgres with a free tier. The API connects via TypeORM using a direct connection string — no Supabase client SDK needed for data access. |
 | **UI Framework** | Angular | The most structured and opinionated frontend framework; matches the developer's preference for organized, OOP-style code with DI, modules, and services — similar to how .NET structures application layers. |
 | **Language** | TypeScript (both API and UI) | Provides type safety, interfaces, abstract classes, and decorator support — all familiar from C# and required by NestJS and Angular. |
-| **Repo Structure** | Single repo, two top-level folders (`api/`, `ui/`) | Equivalent to a .NET solution file with multiple projects. No monorepo tooling (Nx) to keep initial complexity low. |
+| **Repo Structure** | Monorepo for development | Single repository with `api/` and `ui/` top-level folders. No monorepo tooling. Deployed separately to Vercel. |
 | **Auth** | NestJS-only JWT (`@nestjs/jwt` + `passport-jwt` + `bcrypt`) | Full auth implemented in the API: register, login, password hashing, JWT issuance and validation. Supabase is purely the database host. Keeps the auth flow fully under our control, identical to how you would build it in ASP.NET Core with `[Authorize]`. |
-| **Image Storage** | Supabase Storage (primary) | Product images uploaded via API to a Supabase Storage bucket; the resulting public URL is stored on the `Product` entity. Simple, free tier included, no extra infra. |
-| **Image Storage (optional)** | Azure Blob Storage | If time allows: replace or extend the storage service to upload to Azure Blob. The service is abstracted behind an `IStorageService` interface so the implementation can be swapped without touching controllers or business logic. |
+| **Image Storage** | Supabase Storage | Product images uploaded via API to a Supabase Storage bucket; the resulting public URL is stored on the `Product` entity. Simple, free tier included, no extra infra. |
 | **UI Library** | Angular Material | Official Google component library. Strict design system, well-documented, large community. Appropriate for a structured data-driven store UI. |
+| **Response Pattern** | Result Pattern | Controllers return structured responses with metadata and data: `{ data: T, meta?: { ... } }`. Keeps response format consistent across all endpoints. |
+| **Deployment** | Vercel | Deploy both API and UI to Vercel. Separate projects for backend and frontend. Simple deployment, free tier, automatic SSL. |
+| **CI/CD** | GitHub Actions | Automated testing and deployment pipeline. Build, test, and deploy on push to main branch. |
 | **Pagination** | `page` + `limit` query params | Offset-based pagination (`?page=1&limit=20`). Standard, simple to implement and test. Sufficient for this project's data volume. |
 | **Testing (API)** | Jest + `@nestjs/testing` + real TypeORM DataSource | Two-level strategy: unit tests (mocked repos) and integration tests (real DB). See Testing Strategy section below. |
 | **Validation** | `class-validator` + `class-transformer` + global `ValidationPipe` | Equivalent to Data Annotations + `ModelState` validation in ASP.NET. Applied globally in `main.ts`. |
 | **API Docs** | `@nestjs/swagger` | Equivalent to Swashbuckle. Decorator-driven on controllers and DTOs (`@ApiProperty()`, `@ApiTags()`, etc.). |
 | **Config** | `@nestjs/config` (`ConfigService`) | Equivalent to `IConfiguration` / `appsettings.json`. Reads `.env` and provides a typed config service via DI. |
-
----
-
-## Optional Cloud Extensions (Azure)
-
-These are **not required** for academic delivery but are planned if time allows, and reflect real-world production patterns.
-
-| Feature | Service | Notes |
-|---|---|---|
-| **Secrets management** | Azure Key Vault | Replace `.env` secrets (DB password, JWT secret) with Key Vault references. Retrieved at startup via `@azure/keyvault-secrets` + managed identity or a service principal. Equivalent to ASP.NET Core's `AddAzureKeyVault()`. |
-| **API hosting** | Azure App Service or Azure Container Apps | Deploy the NestJS API as a Docker container. `Dockerfile` added to `api/`. |
-| **UI hosting** | Azure Static Web Apps | Deploy the built Angular app. Built-in CDN and custom domain support. |
-| **CI/CD** | GitHub Actions | Workflows in `github/` — build, test, and deploy on push to `main`. |
-| **Image Storage (alt)** | Azure Blob Storage | Alternative to Supabase Storage. Abstracted behind `IStorageService` so the swap is isolated to one file. |
 
 ---
 
@@ -103,8 +96,8 @@ These are **not required** for academic delivery but are planned if time allows,
 | EF Entity class + `IEntityTypeConfiguration` | `@Entity()` decorated class with column/relation decorators |
 | `DbContext.OnModelCreating()` | TypeORM decorators on entity properties (`@Column`, `@ManyToOne`, etc.) |
 | Generic `Repository<T>` | TypeORM built-in `Repository<T>` wrapped in a custom `BaseRepository<T>` |
-| `dotnet ef migrations add` | `typeorm migration:generate` |
-| `dotnet ef database update` | `typeorm migration:run` |
+| `dotnet ef migrations add` | Hand-written SQL scripts in `database/migrations/` |
+| `dotnet ef database update` | Apply SQL scripts manually via Supabase SQL editor |
 | Controller + Route attributes | `@Controller('route')` + `@Get()`, `@Post()`, `@Put()`, `@Delete()` |
 | `IActionResult` / `ActionResult<T>` | Controller method return type / NestJS serialization via interceptor |
 | `ActionFilter` / global exception handler | `ExceptionFilter` + `@Catch()` registered globally |
@@ -122,288 +115,300 @@ These are **not required** for academic delivery but are planned if time allows,
 
 ## Repository Structure
 
+**Note:** API and UI are developed in a single monorepo for local development but will be deployed separately to Vercel.
+
+### API Repository Structure (NestJS)
+
 ```
-didactic-madness/
-├── api/                                  # NestJS application
-│   ├── src/
-│   │   ├── main.ts                       # Bootstrap: global pipes, filters, swagger, CORS
-│   │   ├── app.module.ts                 # Root module — imports all feature modules
-│   │   │
-│   │   ├── config/                       # Typed config (wraps @nestjs/config)
-│   │   │   └── database.config.ts
-│   │   │
-│   │   ├── database/                     # TypeORM setup + base classes
-│   │   │   ├── database.module.ts        # TypeORM forRoot() wired to ConfigService
-│   │   │   ├── base.entity.ts            # Abstract: id (uuid), createdAt, updatedAt
-│   │   │   └── base.repository.ts        # Generic BaseRepository<T extends BaseEntity>
-│   │   │
-│   │   ├── common/                       # Cross-cutting concerns (no business logic)
-│   │   │   ├── filters/
-│   │   │   │   └── http-exception.filter.ts    # Global exception handler
-│   │   │   ├── guards/
-│   │   │   │   └── jwt-auth.guard.ts           # Global JWT guard
-│   │   │   ├── interceptors/
-│   │   │   │   └── response-transform.interceptor.ts
-│   │   │   ├── decorators/
-│   │   │   │   ├── public.decorator.ts         # @Public() — skip auth
-│   │   │   │   └── current-user.decorator.ts   # @CurrentUser()
-│   │   │   └── pipes/
-│   │   │       └── parse-uuid.pipe.ts
-│   │   │
-│   │   └── modules/                      # Feature modules (one per domain entity)
-│   │       ├── auth/
-│   │       │   ├── auth.module.ts
-│   │       │   ├── auth.controller.ts    # POST /auth/login, POST /auth/register
-│   │       │   ├── auth.service.ts
-│   │       │   └── dto/
-│   │       │       ├── login.dto.ts
-│   │       │       └── register.dto.ts
-│   │       │
-│   │       ├── users/
-│   │       │   ├── entities/user.entity.ts
-│   │       │   ├── users.repository.ts
-│   │       │   ├── users.service.ts
-│   │       │   ├── users.controller.ts
-│   │       │   ├── users.module.ts
-│   │       │   └── dto/
-│   │       │
-│   │       ├── categories/
-│   │       │   ├── entities/category.entity.ts
-│   │       │   ├── categories.repository.ts
-│   │       │   ├── categories.service.ts
-│   │       │   ├── categories.controller.ts
-│   │       │   ├── categories.module.ts
-│   │       │   └── dto/
-│   │       │
-│   │       ├── products/
-│   │       │   ├── entities/product.entity.ts
-│   │       │   ├── products.repository.ts
-│   │       │   ├── products.service.ts
-│   │       │   ├── products.controller.ts
-│   │       │   ├── products.module.ts
-│   │       │   └── dto/
-│   │       │       ├── create-product.dto.ts
-│   │       │       └── update-product.dto.ts
-│   │       │
-│   │       ├── cart/
-│   │       │   ├── entities/
-│   │       │   │   ├── cart.entity.ts
-│   │       │   │   └── cart-item.entity.ts
-│   │       │   ├── cart.repository.ts
-│   │       │   ├── cart.service.ts
-│   │       │   ├── cart.controller.ts
-│   │       │   ├── cart.module.ts
-│   │       │   └── dto/
-│   │       │
-│   │       └── orders/
-│   │           ├── entities/
-│   │           │   ├── order.entity.ts
-│   │           │   └── order-item.entity.ts
-│   │           ├── orders.repository.ts
-│   │           ├── orders.service.ts
-│   │           ├── orders.controller.ts
-│   │           ├── orders.module.ts
-│   │           └── dto/
+api/
+├── src/
+│   ├── main.ts                           # Bootstrap: global pipes, filters, swagger, CORS
+│   ├── app.module.ts                     # Root module — imports all feature modules
 │   │
-│   ├── migrations/                       # TypeORM generated migration files
-│   ├── test/
-│   │   ├── jest-integration.json         # Separate Jest config for integration tests
-│   │   ├── setup.ts                      # Global test setup: spin up NestJS app module with real DB
-│   │   └── modules/
-│   │       ├── products.integration.spec.ts
-│   │       ├── cart.integration.spec.ts
-│   │       └── orders.integration.spec.ts
-│   ├── .env                              # Local env vars (gitignored)
-│   ├── .env.example                      # Committed env template
-│   ├── tsconfig.json
-│   ├── tsconfig.build.json
-│   ├── nest-cli.json
-│   └── package.json
-│
-├── ui/                                   # Angular 17+ standalone application
-│   ├── src/
-│   │   ├── main.ts
-│   │   ├── index.html
-│   │   ├── styles.scss                   # Global Material 3 theme + layout utilities
-│   │   │
-│   │   └── app/
-│   │       ├── app.ts                    # Root component with sidenav shell
-│   │       ├── app.html                  # Material sidenav + toolbar layout
-│   │       ├── app.scss                  # App shell styles
-│   │       ├── app.config.ts             # Providers: router, animations, HTTP
-│   │       ├── app.routes.ts             # Lazy-loaded routes
-│   │       │
-│   │       ├── shared/                   # Generic reusable UI components
-│   │       │   └── components/
-│   │       │       ├── button/
-│   │       │       │   └── ui-button.component.ts        # UiButtonComponent: variant, loading, icon
-│   │       │       ├── table/
-│   │       │       │   └── ui-table.component.ts         # UiTableComponent<T>: sortable, paginated, generic columns
-│   │       │       ├── input/
-│   │       │       │   └── ui-input.component.ts         # UiInputComponent: works with FormControl, validation
-│   │       │       ├── select/
-│   │       │       │   └── ui-select.component.ts        # UiSelectComponent: typed options, binds to FormControl
-│   │       │       ├── card/
-│   │       │       │   └── ui-card.component.ts          # UiCardComponent: title, subtitle, image, actions slot
-│   │       │       ├── dialog/
-│   │       │       │   └── ui-dialog.component.ts        # UiDialogComponent: modal overlay with actions
-│   │       │       ├── checkbox/
-│   │       │       │   └── ui-checkbox.component.ts      # UiCheckboxComponent
-│   │       │       ├── chip/
-│   │       │       │   └── ui-chip.component.ts          # UiChipComponent: tags / badges
-│   │       │       ├── spinner/
-│   │       │       │   └── ui-spinner.component.ts       # UiSpinnerComponent: loading overlay
-│   │       │       └── empty-state/
-│   │       │           └── ui-empty-state.component.ts   # UiEmptyStateComponent: icon + message placeholder
-│   │       │
-│   │       ├── showcase/                 # Component showcase (visual testing during build phase)
-│   │       │   ├── showcase.component.ts
-│   │       │   ├── showcase.component.html
-│   │       │   └── showcase.component.scss
-│   │       │
-│   │       └── features/                 # Feature modules (to be built in later phases)
-│   │           ├── products/             # Browse & product detail
-│   │           ├── cart/                 # Shopping cart
-│   │           ├── orders/               # Order history & confirmation
-│   │           └── auth/                 # Login / Register
+│   ├── config/                           # Typed config (wraps @nestjs/config)
+│   │   └── database.config.ts
 │   │
-│   ├── angular.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── .prettierrc
+│   ├── database/                         # TypeORM setup + base classes
+│   │   ├── database.module.ts            # TypeORM forRoot() wired to ConfigService
+│   │   ├── base.entity.ts                # Abstract: id (uuid), createdAt, updatedAt
+│   │   └── base.repository.ts            # Generic BaseRepository<T extends BaseEntity>
+│   │
+│   ├── common/                           # Cross-cutting concerns (no business logic)
+│   │   ├── filters/
+│   │   │   └── http-exception.filter.ts  # Global exception handler
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts         # Global JWT guard
+│   │   │   └── policy.guard.ts           # Policy-based authorization guard
+│   │   ├── interceptors/
+│   │   │   └── response-transform.interceptor.ts  # Result pattern wrapper
+│   │   ├── decorators/
+│   │   │   ├── public.decorator.ts       # @Public() — skip auth
+│   │   │   ├── current-user.decorator.ts # @CurrentUser()
+│   │   │   └── require-policy.decorator.ts  # @RequirePolicy('resource:action')
+│   │   └── pipes/
+│   │       └── parse-uuid.pipe.ts
+│   │
+│   └── modules/                          # Feature modules (one per domain)
+│       ├── auth/
+│       │   ├── auth.module.ts
+│       │   ├── auth.controller.ts        # POST /auth/login, /auth/register
+│       │   ├── auth.service.ts
+│       │   └── dto/
+│       │       ├── login.dto.ts
+│       │       └── register.dto.ts
+│       │
+│       ├── users/
+│       │   ├── domain/
+│       │   │   └── user.entity.ts        # Domain entity with business logic
+│       │   ├── users.repository.ts
+│       │   ├── users.service.ts          # Application service (use cases)
+│       │   ├── users.controller.ts       # Controller with Result pattern
+│       │   ├── users.module.ts
+│       │   └── dto/
+│       │       ├── create-user.dto.ts
+│       │       ├── update-user.dto.ts
+│       │       └── user-response.dto.ts
+│       │
+│       ├── roles/
+│       │   ├── domain/role.entity.ts
+│       │   ├── roles.repository.ts
+│       │   ├── roles.service.ts
+│       │   ├── roles.controller.ts
+│       │   └── roles.module.ts
+│       │
+│       ├── policies/
+│       │   ├── domain/policy.entity.ts
+│       │   ├── policies.repository.ts
+│       │   ├── policies.service.ts
+│       │   ├── policies.controller.ts
+│       │   └── policies.module.ts
+│       │
+│       ├── categories/
+│       │   ├── domain/category.entity.ts
+│       │   ├── categories.repository.ts
+│       │   ├── categories.service.ts
+│       │   ├── categories.controller.ts
+│       │   ├── categories.module.ts
+│       │   └── dto/
+│       │
+│       ├── products/
+│       │   ├── domain/
+│       │   │   ├── product.entity.ts
+│       │   │   └── product-image.entity.ts
+│       │   ├── products.repository.ts
+│       │   ├── products.service.ts
+│       │   ├── products.controller.ts
+│       │   ├── products.module.ts
+│       │   └── dto/
+│       │       ├── create-product.dto.ts
+│       │       ├── update-product.dto.ts
+│       │       └── product-response.dto.ts
+│       │
+│       ├── cart/
+│       │   ├── domain/
+│       │   │   ├── cart.entity.ts
+│       │   │   └── cart-item.entity.ts
+│       │   ├── cart.repository.ts
+│       │   ├── cart.service.ts
+│       │   ├── cart.controller.ts
+│       │   ├── cart.module.ts
+│       │   └── dto/
+│       │
+│       └── orders/
+│           ├── domain/
+│           │   ├── order.entity.ts
+│           │   ├── order-item.entity.ts
+│           │   └── order-status-history.entity.ts
+│           ├── orders.repository.ts
+│           ├── orders.service.ts
+│           ├── orders.controller.ts
+│           ├── orders.module.ts
+│           └── dto/
 │
-├── database/                             # SQL seed scripts, ERD, migration notes
-├── tests/                                # Cross-cutting / integration test assets
-├── github/                               # GitHub Actions workflows (CI/CD)
-├── docs/
-│   └── PLAN.md                           # This file
+├── test/
+│   ├── jest-integration.json             # Integration test config
+│   ├── setup.ts                          # Global test setup: NestJS app + real DB
+│   └── modules/
+│       ├── auth.integration.spec.ts
+│       ├── products.integration.spec.ts
+│       ├── cart.integration.spec.ts
+│       └── orders.integration.spec.ts
+│
+├── .env                                  # Local env vars (gitignored)
+├── .env.example                          # Committed env template
+├── .env.test                             # Test database configuration
+├── tsconfig.json
+├── tsconfig.build.json
+├── nest-cli.json
+├── package.json
+├── vercel.json                           # Vercel deployment config
 └── README.md
+```
+
+### UI Repository Structure (Angular)
+
+```
+ui/
+├── src/
+│   ├── main.ts
+│   ├── index.html
+│   ├── styles.scss                       # Global Material 3 theme + layout utilities
+│   │
+│   └── app/
+│       ├── app.ts                        # Root component with sidenav shell
+│       ├── app.html                      # Material sidenav + toolbar layout
+│       ├── app.scss                      # App shell styles
+│       ├── app.config.ts                 # Providers: router, animations, HTTP
+│       ├── app.routes.ts                 # Lazy-loaded routes
+│       │
+│       ├── core/                         # Singleton services & guards
+│       │   ├── services/
+│       │   │   ├── auth.service.ts       # Authentication & JWT management
+│       │   │   └── api.service.ts        # HTTP client wrapper
+│       │   └── guards/
+│       │       ├── auth.guard.ts         # Route protection
+│       │       └── role.guard.ts         # Role-based route access
+│       │
+│       ├── shared/                       # Generic reusable UI components
+│       │   ├── components/
+│       │   │   ├── button/
+│       │   │   │   ├── ui-button.component.ts
+│       │   │   │   ├── ui-button.component.html
+│       │   │   │   └── ui-button.component.scss
+│       │   │   ├── table/
+│       │   │   │   ├── ui-table.component.ts
+│       │   │   │   ├── ui-table.component.html
+│       │   │   │   └── ui-table.component.scss
+│       │   │   ├── input/
+│       │   │   │   ├── ui-input.component.ts
+│       │   │   │   ├── ui-input.component.html
+│       │   │   │   └── ui-input.component.scss
+│       │   │   ├── select/
+│       │   │   │   ├── ui-select.component.ts
+│       │   │   │   ├── ui-select.component.html
+│       │   │   │   └── ui-select.component.scss
+│       │   │   ├── card/
+│       │   │   │   ├── ui-card.component.ts
+│       │   │   │   ├── ui-card.component.html
+│       │   │   │   └── ui-card.component.scss
+│       │   │   ├── dialog/
+│       │   │   │   ├── ui-dialog.component.ts
+│       │   │   │   ├── ui-dialog.component.html
+│       │   │   │   └── ui-dialog.component.scss
+│       │   │   ├── checkbox/
+│       │   │   │   └── ui-checkbox.component.ts
+│       │   │   ├── chip/
+│       │   │   │   └── ui-chip.component.ts
+│       │   │   ├── spinner/
+│       │   │   │   └── ui-spinner.component.ts
+│       │   │   └── empty-state/
+│       │   │       └── ui-empty-state.component.ts
+│       │   └── models/
+│       │       └── api-response.model.ts # Result pattern types
+│       │
+│       ├── showcase/                     # Component showcase (development only)
+│       │   ├── showcase.component.ts
+│       │   ├── showcase.component.html
+│       │   └── showcase.component.scss
+│       │
+│       └── features/                     # Feature modules (lazy-loaded)
+│           ├── auth/
+│           │   ├── login/
+│           │   ├── register/
+│           │   └── auth.routes.ts
+│           │
+│           ├── products/
+│           │   ├── product-list/
+│           │   ├── product-detail/
+│           │   ├── product-form/         # Admin only
+│           │   ├── services/
+│           │   │   └── products.service.ts
+│           │   └── products.routes.ts
+│           │
+│           ├── cart/
+│           │   ├── cart-view/
+│           │   ├── services/
+│           │   │   └── cart.service.ts
+│           │   └── cart.routes.ts
+│           │
+│           ├── orders/
+│           │   ├── order-list/
+│           │   ├── order-detail/
+│           │   ├── checkout/
+│           │   ├── services/
+│           │   │   └── orders.service.ts
+│           │   └── orders.routes.ts
+│           │
+│           └── admin/
+│               ├── dashboard/
+│               ├── product-management/
+│               ├── order-management/
+│               ├── user-management/
+│               └── admin.routes.ts
+│
+├── public/                               # Static assets
+│   └── favicon.ico
+│
+├── angular.json
+├── package.json
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.spec.json
+├── vercel.json                           # Vercel deployment config
+└── README.md
+```
+
+### Shared Resources
+
+```
+database/                                 # Source of truth (separate repo or folder)
+├── migrations/                           # Hand-written SQL scripts
+│   └── 001_initial_schema.sql
+├── seeds/                                # Seed data scripts
+│   ├── 001_roles.sql
+│   ├── 002_policies.sql
+│   ├── 003_role_policies.sql
+│   ├── 004_categories.sql
+│   └── 005_admin_user.sql
+└── README.md                             # Migration instructions
+
+bruno/                                    # API testing collections
+└── api/
+    ├── auth/
+    ├── products/
+    ├── cart/
+    ├── orders/
+    └── admin/
+
+docs/
+├── SYSTEM-OVERVIEW.md                    # Business requirements
+├── DATABASE-DESIGN.md                    # Database schema & RBAC
+└── TECHNICAL-ARCHITECTURE.md             # This file
+
+.github/
+└── workflows/
+    ├── api-ci.yml                        # API: test + deploy
+    └── ui-ci.yml                         # UI: build + deploy
 ```
 
 ---
 
 ## Database Schema
 
-**Note:** For business entity definitions and constraints, see [OVERVIEW.md](./OVERVIEW.md). This section focuses on technical implementation.
+**Complete database design available in [DATABASE-DESIGN.md](./DATABASE-DESIGN.md)** — including ER diagram, field descriptions, RBAC implementation, constraints, and indexes.
 
-### Core Tables
-
-```sql
--- users table
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(50) NOT NULL DEFAULT 'Customer',
-  name VARCHAR(255) NOT NULL,
-  phone VARCHAR(50),
-  account_status VARCHAR(50) NOT NULL DEFAULT 'Active',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- categories table
-CREATE TABLE categories (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(100) UNIQUE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- products table
-CREATE TABLE products (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  sku VARCHAR(100) UNIQUE NOT NULL,
-  description TEXT,
-  price DECIMAL(10, 2) NOT NULL,
-  stock INT NOT NULL DEFAULT 0,
-  brand VARCHAR(100),
-  specifications JSONB,
-  active BOOLEAN DEFAULT true,
-  category_id UUID NOT NULL REFERENCES categories(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- product_images table (1-5 per product)
-CREATE TABLE product_images (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  image_url VARCHAR(500) NOT NULL,
-  display_order INT NOT NULL DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- carts table
-CREATE TABLE carts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- cart_items table
-CREATE TABLE cart_items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
-  product_id UUID NOT NULL REFERENCES products(id),
-  quantity INT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- orders table
-CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_number VARCHAR(50) UNIQUE NOT NULL,
-  user_id UUID NOT NULL REFERENCES users(id),
-  status VARCHAR(50) NOT NULL DEFAULT 'Pending Payment',
-  total DECIMAL(10, 2) NOT NULL,
-  shipping_address JSONB NOT NULL,
-  payment_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- order_items table (snapshot prices)
-CREATE TABLE order_items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  product_id UUID NOT NULL REFERENCES products(id),
-  quantity INT NOT NULL,
-  unit_price DECIMAL(10, 2) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- order_status_history table (audit trail)
-CREATE TABLE order_status_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  from_status VARCHAR(50),
-  to_status VARCHAR(50) NOT NULL,
-  changed_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### Indexes
-
-```sql
-CREATE INDEX idx_products_category ON products(category_id);
-CREATE INDEX idx_products_sku ON products(sku);
-CREATE INDEX idx_products_active ON products(active);
-CREATE INDEX idx_orders_user ON orders(user_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_order_items_order ON order_items(order_id);
-CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
-```
+**Migration Strategy:**
+- All database changes are hand-written SQL scripts stored in `database/migrations/`
+- Scripts are applied manually to Supabase via the SQL editor
+- **No TypeORM migrations** — the database schema is the source of truth
+- TypeORM entities are mapped to existing tables (decorators match database structure)
+- Seed data scripts stored in `database/seeds/` and applied manually
 
 ---
 
 ## API Endpoints
 
-**Note:** For feature requirements and acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md). This section lists the technical API contract.
+**Note:** For feature requirements and acceptance criteria, see [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md). This section lists the technical API contract.
 
 **Base URL:** `http://localhost:3000/api`  
 **Documentation:** Swagger UI at `/api/docs`
@@ -418,58 +423,72 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 | POST | `/auth/reset-password` | Reset password | Public | `ResetPasswordDto` | `{ data: { message: string } }` |
 
 ### Categories
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| GET | `/categories` | List all categories | Public |
-| GET | `/categories/:id` | Get one category | Public |
-| POST | `/categories` | Create category | Manager+ |
-| PUT | `/categories/:id` | Update category | Manager+ |
-| DELETE | `/categories/:id` | Delete category | Super Admin |
+| Method | Route | Description | Auth | Required Policy |
+|---|---|---|---|---|
+| GET | `/categories` | List all categories | Public | — |
+| GET | `/categories/:id` | Get one category | Public | — |
+| POST | `/categories` | Create category | Manager+ | `categories:create` |
+| PUT | `/categories/:id` | Update category | Manager+ | `categories:update` |
+| DELETE | `/categories/:id` | Delete category | Super Admin | `categories:delete` |
 
 ### Products
-| Method | Route | Description | Auth | Query Params |
+| Method | Route | Description | Auth | Required Policy | Query Params |
+|---|---|---|---|---|---|
+| GET | `/products` | List products with filters | Public | — | `?page=1&limit=20&category=uuid&search=text&minPrice=0&maxPrice=999&brand=text&inStock=true&sort=price:asc` |
+| GET | `/products/:id` | Get product details | Public | — | — |
+| POST | `/products` | Create product | Manager+ | `products:create` | — |
+| PUT | `/products/:id` | Update product | Manager+ | `products:update` | — |
+| PATCH | `/products/:id/stock` | Update stock quantity | Manager+ | `products:update` | — |
+| DELETE | `/products/:id` | Delete product (w/ safeguards) | Super Admin | `products:delete` | — |
+| POST | `/products/:id/images` | Upload product image | Manager+ | `products:update` | Multipart form |
+| DELETE | `/products/:id/images/:imageId` | Delete image | Manager+ | `products:update` | — |### Cart
+| Method | Route | Description | Auth | Required Policy |
 |---|---|---|---|---|
-| GET | `/products` | List products with filters | Public | `?page=1&limit=20&category=uuid&search=text&minPrice=0&maxPrice=999&brand=text&inStock=true&sort=price:asc` |
-| GET | `/products/:id` | Get product details | Public | — |
-| POST | `/products` | Create product | Manager+ | — |
-| PUT | `/products/:id` | Update product | Manager+ | — |
-| PATCH | `/products/:id/stock` | Update stock quantity | Manager+ | — |
-| DELETE | `/products/:id` | Delete product (w/ safeguards) | Super Admin | — |
-| POST | `/products/:id/images` | Upload product image | Manager+ | Multipart form |
-| DELETE | `/products/:id/images/:imageId` **Cart**
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| GET | `/cart` | Get current user's cart | Customer |
-| POST | `/cart/items` | Add item to cart | Customer |
-| PUT | `/cart/items/:itemId` | Update quantity | Customer |
-| DELETE | `/cart/items/:itemId` | Remove item | Customer |
-| DELETE | `/cart` | Clear cart | Customer |
+| GET | `/cart` | Get current user's cart | Customer | `cart:manage` |
+| POST | `/cart/items` | Add item to cart | Customer | `cart:manage` |
+| PUT | `/cart/items/:itemId` | Update quantity | Customer | `cart:manage` |
+| DELETE | `/cart/items/:itemId` | Remove item | Customer | `cart:manage` |
+| DELETE | `/cart` | Clear cart | Customer | `cart:manage` |
 
 ### Orders
-| Method | Route | Description | Auth | Query Params |
-|---|---|---|---|---|
-| POST | `/orders` | Place order from cart | Customer | — |
-| GET | `/orders` | List user's orders | Customer | `?page=1&limit=20` |
-| GET | `/orders/:id` | Get order details | Customer/Staff+ | — |
-| PATCH | `/orders/:id/status` | Update order status | Staff+ | — |
-| DELETE | `/orders/:id` | Cancel order | Customer (unpaid), Manager+ (any) | — |
-| GET | `/orders/:id/history` | Get status history | Customer/Staff+ | — |
+| Method | Route | Description | Auth | Required Policy | Query Params |
+|---|---|---|---|---|---|
+| POST | `/orders` | Place order from cart | Customer | `orders:create` | — |
+| GET | `/orders` | List user's orders | Customer | `orders:read` | `?page=1&limit=20` |
+| GET | `/orders/:id` | Get order details | Customer/Staff+ | `orders:read` | — |
+| PATCH | `/orders/:id/status` | Update order status | Staff+ | `orders:update` | — |
+| DELETE | `/orders/:id` | Cancel order | Customer/Manager+ | `orders:cancel` | — |
+| GET | `/orders/:id/history` | Get status history | Customer/Staff+ | `orders:read` | — |
 
 ### Admin - Orders
-| Method | Route | Description | Auth | Query Params |
-|---|---|---|---|---|
-| GET | `/admin/orders` | List all orders | Staff+ | `?page=1&limit=20&status=Shipped&userId=uuid&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` |
-| PATCH | `/admin/orders/:id/assign` | Assign order to staff | Manager+ | — |
+| Method | Route | Description | Auth | Required Policy | Query Params |
+|---|---|---|---|---|---|
+| GET | `/admin/orders` | List all orders | Staff+ | `orders:list` | `?page=1&limit=20&status=Shipped&userId=uuid&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` |
+| PATCH | `/admin/orders/:id/assign` | Assign order to staff | Manager+ | `orders:update` | — |
 
 ### Admin - Users
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| GET | `/admin/users` | List all users | Manager+ |
-| GET | `/admin/users/:id` | Get user details | Manager+ |
-| PUT | `/admin/users/:id` | Update user | Super Admin |
-| PATCH | `/admin/users/:id/role` | Change user role | Super Admin |
-| PATCH | `/admin/users/:id/status` | Suspend/activate account | Super Admin |
-| DELETE | `/admin/users/:id` | Delete user (w/ safeguards) | Super Admin |
+| Method | Route | Description | Auth | Required Policy |
+|---|---|---|---|---|
+| GET | `/admin/users` | List all users | Manager+ | `users:read` |
+| GET | `/admin/users/:id` | Get user details | Manager+ | `users:read` |
+| PUT | `/admin/users/:id` | Update user | Super Admin | `users:update` |
+| PATCH | `/admin/users/:id/role` | Change user role | Super Admin | `users:update` |
+| PATCH | `/admin/users/:id/status` | Suspend/activate account | Super Admin | `users:update` |
+| DELETE | `/admin/users/:id` | Delete user (w/ safeguards) | Super Admin | `users:delete` |
+
+### Admin - Roles & Policies
+| Method | Route | Description | Auth | Required Policy |
+|---|---|---|---|---|
+| GET | `/admin/roles` | List all roles | Super Admin | `roles:manage` |
+| POST | `/admin/roles` | Create role | Super Admin | `roles:manage` |
+| PUT | `/admin/roles/:id` | Update role | Super Admin | `roles:manage` |
+| DELETE | `/admin/roles/:id` | Delete role | Super Admin | `roles:manage` |
+| GET | `/admin/policies` | List all policies | Super Admin | `policies:manage` |
+| POST | `/admin/policies` | Create policy | Super Admin | `policies:manage` |
+| PUT | `/admin/policies/:id` | Update policy | Super Admin | `policies:manage` |
+| DELETE | `/admin/policies/:id` | Delete policy | Super Admin | `policies:manage` |
+| POST | `/admin/roles/:id/policies` | Assign policy to role | Super Admin | `roles:manage` |
+| DELETE | `/admin/roles/:id/policies/:policyId` | Remove policy from role | Super Admin | `roles:manage` |
 
 ### Admin - Advanced Search Tools
 | Method | Route | Description | Auth |
@@ -484,7 +503,7 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 
 ## Implementation Phases
 
-**Note:** For feature-level acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md). This plan focuses on technical buildout.
+**Note:** For feature-level acceptance criteria, see [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md). This plan focuses on technical buildout. Features marked as optional in SYSTEM-OVERVIEW.md should be implemented only after completing mandatory requirements.
 
 ### Phase 1 — Project Bootstrap & Infrastructure
 **Goal:** Establish foundation for both API and UI
@@ -494,7 +513,7 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 - Install dependencies (see Dependencies section)
 - Configure TypeORM `DataSource` with Supabase connection
 - Register global `ValidationPipe`, `HttpExceptionFilter`, Swagger
-- Verify DB connection and create initial migration
+- Verify DB connection (simple query test)
 
 **UI:**
 - Initialize Angular 17+ standalone project in `ui/`
@@ -504,10 +523,11 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 - Create showcase route for component testing
 
 **Database:**
-- Create `database/` folder for hand-written SQL migrations
-- Write first migration with all tables (see Database Schema)
-- Apply to Supabase via SQL editor
-- Create TypeORM migration wrappers for local dev
+- Create `database/` folder for hand-written SQL scripts
+- Write SQL schema with all tables (see DATABASE-DESIGN.md)
+- Apply schema to Supabase via SQL editor
+- Create seed data scripts for roles, policies, categories, test products
+- Apply seed scripts manually via SQL editor
 
 ---
 
@@ -533,22 +553,32 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 
 ---
 
-### Phase 3 — Authentication & Authorization
-**Goal:** Secure API with JWT and role-based access control
+### Phase 3 — Authentication & Authorization (RBAC)
+**Goal:** Secure API with JWT and policy-based access control
 
 **Implementation Order:**
-1. **Users Module** (domain entity, repository, service)
-2. **Auth Module** (login, register, JWT strategy)
-3. **JWT Guards** (`JwtAuthGuard` global, `RolesGuard`)
-4. **Decorators** (`@Public()`, `@Roles()`, `@CurrentUser()`)
-5. **Password Management** (forgot password, reset)
-6. **Integration Tests** for auth flows
+1. **Roles Module** (seed default roles: Customer, Staff, Manager, SuperAdmin)
+2. **Policies Module** (seed policies: products:create, orders:update, etc.)
+3. **RolePolicy Junction** (seed role-policy mappings)
+4. **Users Module** (domain entity with role_id FK, repository, service)
+5. **Auth Module** (login, register, JWT strategy with role_id in payload)
+6. **JWT Guards** (`JwtAuthGuard` global, `PolicyGuard`)
+7. **Decorators** (`@Public()`, `@RequirePolicy()`, `@CurrentUser()`)
+8. **Password Management** (forgot password, reset)
+9. **Integration Tests** for auth flows and policy enforcement
+
+**Authorization Flow:**
+- JWT payload includes `user_id` and `role_id`
+- `PolicyGuard` queries user's policies via role
+- `@RequirePolicy('products:create')` decorator on endpoints
+- Guard checks if user's role has required policy
 
 **Deliverables:**
 - All routes protected by default (JWT required)
 - Public routes marked with `@Public()`
-- Role-based access: Customer, Staff, Manager, Super Admin
+- Policy-based access: endpoints require specific policies
 - Swagger shows lock icons on protected endpoints
+- Admin endpoints for managing roles and policies
 
 ---
 
@@ -568,7 +598,7 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 **Module-Specific Notes:**
 
 **Categories:**
-- System-defined categories (seeded via migration)
+- System-defined categories (seeded via SQL script)
 - CRUD operations for admins
 - Public read access
 
@@ -594,24 +624,39 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 
 ---
 
-### Phase 5 — Advanced Features
-**Goal:** Implement sophisticated user-facing tools
+### Phase 5 — Optional Features (If Time Permits)
+**Goal:** Implement optional features after completing mandatory requirements
 
-**Product Comparison:**
-- Select 2-4 products from same category
-- Side-by-side comparison view
-- Highlight differences
+**Note:** These features are marked as "Out of Scope / Optional" in [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md). Implement only after all mandatory features are complete.
 
-**Compatibility Checker:**
-- CPU + Motherboard socket matching
-- PSU wattage calculator
-- RAM compatibility validation
-- Warning system for incompatible selections
+**1. Product Reviews and Ratings:**
+- Customer reviews with star ratings
+- Review submission form
+- Display average rating on product cards
+- Filter/sort by rating
 
-**Saved Filters:**
-- Authenticated users save filter combinations
-- Quick-apply saved filters
-- CRUD operations on saved filters
+**2. Wishlists:**
+- Save products for later
+- Add/remove from wishlist
+- View saved products
+- Share wishlist (optional)
+
+**3. Discounts / Promotions:**
+- Coupon code system
+- Percentage or fixed amount discounts
+- Apply at checkout
+- Admin management interface
+
+**4. Low Stock Alerts:**
+- Email notifications when inventory falls below threshold
+- Admin configurable thresholds per product
+- Automatic alert system
+
+**5. AI Product Recommendations (Gemini API):**
+- Personalized product suggestions
+- Based on customer selections and budget
+- Uses current inventory data
+- Integrated with Gemini API
 
 ---
 
@@ -638,22 +683,16 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 
 ---
 
-### Phase 7 — Email & Background Processing
-**Goal:** Automated notifications (v1: synchronous, v2: queue-based)
+### Phase 7 — Email Notifications
+**Goal:** Simple email notifications for order events
 
-**v1.0 (Synchronous):**
-- Email service using Supabase Auth or external provider
-- Send emails directly in service methods
-- Order confirmation email
-- Order shipped email
-- Error logging if email fails
-
-**v2.0 (Queue-based - Future):**
-- BullMQ or similar job queue
-- Publish events on status changes
-- Background worker consumes events
-- Automatic retry on failure
-- Email notification triggered by queue
+**Implementation (Synchronous - Academic Project):**
+- Email service using Supabase Auth or simple email provider (e.g., SendGrid free tier)
+- Send emails directly in service methods after order events
+- Order confirmation email (payment confirmed)
+- Order shipped notification
+- Simple error logging if email fails
+- **Note:** Email queue with retry logic is out of scope for this academic project
 
 ---
 
@@ -698,6 +737,157 @@ CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
 - Bruno collections committed
 - README with setup instructions
 - Architecture diagrams (optional)
+
+---
+
+## Entity Architecture
+
+**Clean Architecture + DDD Pattern:** This project separates concerns across three types of entities:
+
+### 1. Domain Entities (Business Logic)
+- **Location:** `src/modules/{module}/domain/`
+- **Purpose:** Rich domain models with business logic and invariants
+- **Examples:** `User`, `Product`, `Order`
+- **Characteristics:**
+  - Private fields with public getters (encapsulation)
+  - Factory methods: `create()`, `fromPersistence()`
+  - Business logic methods: `deactivate()`, `addToCart()`, `cancelOrder()`
+  - Validation and business rules enforcement
+  - No database/framework dependencies
+
+```typescript
+// Example: domain/user.entity.ts
+export class User {
+  private constructor(
+    public readonly id: string,
+    private _email: string,
+    private _status: UserStatus,
+  ) {}
+
+  static create(email: string): User {
+    if (!User.isValidEmail(email)) throw new InvalidEmailError();
+    return new User(uuid(), email, UserStatus.ACTIVE);
+  }
+
+  static fromPersistence(data: UserDbEntity): User {
+    return new User(data.id, data.email, data.status);
+  }
+
+  deactivate(): void {
+    if (this._status === UserStatus.INACTIVE) {
+      throw new AlreadyInactiveError();
+    }
+    this._status = UserStatus.INACTIVE;
+  }
+
+  toPersistence(): UserDbEntity {
+    return { id: this.id, email: this._email, status: this._status };
+  }
+}
+```
+
+### 2. Database Entities (TypeORM Persistence)
+- **Location:** `src/modules/{module}/entities/` or `src/modules/{module}/persistence/`
+- **Purpose:** TypeORM entities that map to database tables
+- **Examples:** `UserEntity`, `ProductEntity`, `OrderEntity`
+- **Characteristics:**
+  - Decorated with TypeORM decorators: `@Entity()`, `@Column()`, `@ManyToOne()`
+  - Match database schema exactly
+  - No business logic (anemic models)
+  - Used only by repositories for persistence
+
+```typescript
+// Example: entities/user.entity.ts
+@Entity('users')
+export class UserEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ name: 'password_hash' })
+  passwordHash: string;
+
+  @Column({ name: 'role_id' })
+  roleId: string;
+
+  @Column()
+  status: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @ManyToOne(() => RoleEntity)
+  @JoinColumn({ name: 'role_id' })
+  role: RoleEntity;
+}
+```
+
+### 3. DTOs (Data Transfer Objects)
+- **Location:** `src/modules/{module}/dto/`
+- **Purpose:** API request/response contracts
+- **Examples:** `CreateUserDto`, `UpdateProductDto`, `UserResponseDto`
+- **Characteristics:**
+  - Decorated with validation: `@IsEmail()`, `@IsString()`, `@Min()`
+  - Used for API inputs and outputs
+  - No business logic
+  - Swagger documentation: `@ApiProperty()`
+
+```typescript
+// Example: dto/create-user.dto.ts
+export class CreateUserDto {
+  @IsEmail()
+  @ApiProperty({ example: 'user@example.com' })
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  @ApiProperty({ example: 'SecurePass123' })
+  password: string;
+}
+
+// Example: dto/user-response.dto.ts
+export class UserResponseDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  status: string;
+
+  @ApiProperty()
+  createdAt: string;
+}
+```
+
+### Data Flow
+
+```
+Controller → DTO → Domain Entity → Repository → DB Entity → Database
+                ↓                                    ↑
+              Service                            TypeORM
+```
+
+**Example Flow (Create User):**
+1. **Controller** receives `CreateUserDto` from API request
+2. **Service** converts DTO to **Domain Entity**: `User.create(dto.email)`
+3. **Domain Entity** validates business rules and encapsulates logic
+4. **Service** calls **Repository** with domain entity
+5. **Repository** converts Domain → **DB Entity** (TypeORM): `entity.toPersistence()`
+6. **TypeORM** persists DB Entity to database
+7. **Repository** converts DB Entity → Domain Entity
+8. **Service** converts Domain → **Response DTO**
+9. **Controller** returns DTO wrapped in Result Pattern: `{ data: UserResponseDto }`
+
+**Benefits:**
+- **Separation of Concerns:** Business logic isolated from persistence and API
+- **Testability:** Domain entities testable without database
+- **Flexibility:** Can swap ORM or database without changing business logic
+- **Type Safety:** Strong typing across all layers
+- **Clean Architecture:** Dependencies point inward (domain has no external dependencies)
 
 ---
 
@@ -748,10 +938,6 @@ npm install @supabase/supabase-js
 
 # Testing (dev)
 npm install -D jest @nestjs/testing ts-jest @types/jest jest-mock-extended supertest @types/supertest dotenv-cli
-
-# Optional — Azure
-npm install @azure/keyvault-secrets @azure/identity   # Key Vault
-npm install @azure/storage-blob                       # Blob Storage (image alt)
 ```
 
 ---
@@ -848,11 +1034,6 @@ SUPABASE_STORAGE_BUCKET=product-images
 # App
 PORT=3000
 NODE_ENV=development
-
-# --- Optional: Azure ---
-# AZURE_KEYVAULT_URL=https://[VAULT_NAME].vault.azure.net
-# AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
-# AZURE_STORAGE_CONTAINER=product-images
 ```
 
 > `.env.test` mirrors this file but points `DATABASE_URL` to the test schema in Supabase.
@@ -936,44 +1117,69 @@ it('should create an order and reduce stock', async () => {
 ## Technical Decisions & Status
 
 ### Resolved
-- [x] Auth: NestJS-only JWT (bcrypt + `@nestjs/jwt`)
-- [x] Image storage: Supabase Storage (primary), Azure Blob (optional extension)
-- [x] Pagination: `?page=1&limit=20` offset-based
-- [x] Angular UI library: Angular Material 3
-- [x] Testing strategy: integration tests (real DB, debuggable) > unit tests (mocked)
-- [x] Repo structure: single repo, `api/` + `ui/` folders, no monorepo tooling
-- [x] ORM: TypeORM connected directly to Supabase Postgres
-- [x] Stock reservation: After payment confirmation (see OVERVIEW.md)
-- [x] Cart persistence: Database-backed for authenticated users, session for anonymous
-- [x] Order statuses: 10 detailed statuses (see OVERVIEW.md)
-- [x] Admin roles: Super Admin, Manager, Staff (see OVERVIEW.md)
-- [x] Email notifications: Order placed + Shipped (see OVERVIEW.md)
-- [x] Payment: Mock payment system for v1.0
-- [x] Background processing: Synchronous for v1.0, queue-based in v2.0
+- [x] **Architecture**: Clean Architecture with DDD — business logic in domain entities
+- [x] **Response Pattern**: Result Pattern — consistent `{ data: T, meta?: {...} }` responses
+- [x] **Auth**: NestJS-only JWT (bcrypt + `@nestjs/jwt`)
+- [x] **Image Storage**: Supabase Storage
+- [x] **Deployment**: Vercel for both API and UI (separate projects)
+- [x] **CI/CD**: GitHub Actions for automated testing and deployment
+- [x] **Migrations**: Manual SQL scripts (no TypeORM migrations)
+- [x] **Environment Variables**: Simple `.env` files (no Key Vault)
+- [x] **Pagination**: `?page=1&limit=20` offset-based
+- [x] **UI Library**: Angular Material 3
+- [x] **Testing Strategy**: Integration tests (real DB, debuggable) > unit tests (mocked)
+- [x] **Repo Structure**: Monorepo for development (`api/` + `ui/` folders), deploy separately to Vercel
+- [x] **ORM**: TypeORM connected directly to Supabase Postgres
+- [x] **Stock Reservation**: After payment confirmation
+- [x] **Cart Persistence**: Database-backed for authenticated users
+- [x] **Order Statuses**: 7 detailed statuses (see DATABASE-DESIGN.md)
+- [x] **Admin Roles**: Super Admin, Manager, Staff, Customer (RBAC via policies)
+- [x] **Email Notifications**: Order confirmation + Shipped
+- [x] **Payment**: Mock payment system for academic project
+- [x] **Background Processing**: Synchronous for v1.0
 
-### Technical Backlog (Post-Academic Delivery)
-- [ ] **Background Job Queue**: Implement BullMQ or Kafka for async event processing
-- [ ] **Analytics Dashboard**: Admin reporting and metrics (deferred per OVERVIEW.md)
-- [ ] **Azure Integration**: Key Vault, Blob Storage, App Service deployment
-- [ ] **Real Payment Gateway**: Stripe or PayPal integration
-- [ ] **Email Queue with Retry**: Move email sending to background queue
-- [ ] **Advanced Caching**: Redis for product catalog and cart
-- [ ] **Rate Limiting**: Prevent API abuse
-- [ ] **Logging & Monitoring**: Structured logging with Winston, APM integration
+### Optional Features Backlog (Post-Mandatory Requirements)
+**Note:** These are marked as optional in [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md) and should only be implemented after all mandatory features are complete.
+
+- [ ] **Product Reviews and Ratings**: Customer review system with star ratings
+- [ ] **Wishlists**: Save products for later purchase
+- [ ] **Discounts / Promotions**: Coupon code system and promotional pricing
+- [ ] **Low Stock Alerts**: Email notifications when inventory is low
+- [ ] **AI Product Recommendations**: Gemini API integration for personalized suggestions
+
+### Out of Scope (Not Required for Academic Project)
+**Note:** This is a university class project. The following production-level features are intentionally excluded to keep the scope manageable:
+
+- ❌ **Background Job Queues** (BullMQ, Kafka) — Synchronous processing is sufficient
+- ❌ **Real Payment Gateway** (Stripe, PayPal) — Mock payment for academic purposes
+- ❌ **Email Queues with Retry** — Direct email sending is adequate
+- ❌ **Advanced Caching** (Redis) — Database performance sufficient for project scale
+- ❌ **Rate Limiting** — Not needed for controlled academic environment
+- ❌ **Database Connection Pooling** (PgBouncer) — Supabase handles this
+- ❌ **Advanced Monitoring/APM** — Simple logging is sufficient
+
+**Focus:** Core e-commerce functionality with clean architecture patterns for learning purposes.
 
 ### Implementation Notes
 
 **Admin User Seeding:**
-- First Super Admin created via database seed script in `database/seeds/`
-- Seed runs automatically on first migration
+- First Super Admin created via SQL seed script in `database/seeds/`
+- Seed script applied manually to Supabase via SQL editor
 - Additional admins created via Super Admin UI
 
 **Image Upload Flow:**
 - Admin uploads image via API endpoint (`POST /products/:id/images`)
 - API validates file (size, format)
-- API uploads to Supabase Storage
+- API uploads to Supabase Storage bucket
 - API stores public URL in `product_images` table
-- Frontend displays images via URL
+- Frontend displays images via public URL
+
+**Result Pattern Implementation:**
+- All controller methods return structured responses
+- Success: `{ data: T }` or `{ data: T, meta: { page, limit, total } }`
+- Errors handled by global exception filter
+- Consistent response shape across all endpoints
+- Simplifies frontend API client implementation
 
 **Stock Management:**
 - Cart does NOT reserve stock (allows browsing without blocking)
@@ -985,86 +1191,104 @@ it('should create an order and reduce stock', async () => {
 
 ## Project Structure Summary
 
+**Note:** API and UI can be developed in a monorepo for convenience but will be deployed separately to Vercel.
+
 ```
-didactic-madness/
-├── .github/
-│   ├── agents/
-│   │   └── product-owner.agent.md
-│   ├── copilot-instructions.md          # Coding standards
-│   └── workflows/
-│       └── ci-develop.yml               # CI pipeline
-│
-├── api/                                  # NestJS backend
-│   ├── src/
-│   │   ├── main.ts
-│   │   ├── app.module.ts
-│   │   ├── common/                      # Cross-cutting (guards, filters, decorators)
-│   │   ├── config/                      # Configuration
-│   │   ├── database/                    # TypeORM base classes
-│   │   └── modules/                     # Feature modules (DDD)
-│   │       ├── auth/
-│   │       ├── users/
-│   │       ├── categories/
-│   │       ├── products/
-│   │       ├── cart/
-│   │       └── orders/
-│   ├── migrations/                      # TypeORM migrations
-│   ├── test/                            # Integration tests
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── ui/                                   # Angular standalone app
-│   ├── src/
-│   │   ├── main.ts
-│   │   ├── app/
-│   │   │   ├── app.ts
-│   │   │   ├── app.routes.ts
-│   │   │   ├── shared/                  # Generic components
-│   │   │   ├── showcase/                # Component testing page
-│   │   │   └── features/                # Feature modules
-│   │   │       ├── auth/
-│   │   │       ├── products/
-│   │   │       ├── cart/
-│   │   │       └── orders/
-│   ├── angular.json
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── database/                             # Source of truth
-│   ├── migrations/                      # Hand-written SQL
-│   ├── seeds/                           # Seed data scripts
-│   └── README.md
-│
-├── bruno/                                # API collections
-│   └── api/
+api/                                      # NestJS backend
+├── src/
+│   ├── main.ts                           # Bootstrap with global config
+│   ├── app.module.ts                     # Root module
+│   ├── common/                           # Cross-cutting concerns
+│   │   ├── filters/                      # Exception handlers
+│   │   ├── guards/                       # Auth & policy guards
+│   │   ├── interceptors/                 # Result pattern wrapper
+│   │   ├── decorators/                   # Custom decorators
+│   │   └── pipes/                        # Validation pipes
+│   ├── config/                           # Configuration
+│   ├── database/                         # TypeORM base classes
+│   └── modules/                          # Feature modules (Clean Architecture + DDD)
 │       ├── auth/
+│       ├── users/                        # domain/, repository, service, controller
+│       ├── roles/
+│       ├── policies/
+│       ├── categories/
 │       ├── products/
 │       ├── cart/
 │       └── orders/
-│
-├── docs/
-│   ├── OVERVIEW.md                      # Business requirements
-│   └── PLAN.md                          # This file (technical)
-│
+├── test/                                 # Integration tests
+├── .env.example
+├── vercel.json
+└── package.json
+
+ui/                                       # Angular standalone app
+├── src/
+│   ├── main.ts
+│   ├── app/
+│   │   ├── app.ts                        # Root component
+│   │   ├── app.routes.ts                 # Route configuration
+│   │   ├── core/                         # Singleton services
+│   │   │   ├── services/                 # Auth, API clients
+│   │   │   └── guards/                   # Route guards
+│   │   ├── shared/                       # Generic components
+│   │   │   ├── components/               # Reusable UI components
+│   │   │   └── models/                   # Shared types
+│   │   ├── showcase/                     # Component testing page
+│   │   └── features/                     # Lazy-loaded feature modules
+│   │       ├── auth/
+│   │       ├── products/
+│   │       ├── cart/
+│   │       ├── orders/
+│   │       └── admin/
+│   └── styles.scss
+├── angular.json
+├── vercel.json
+└── package.json
+
+database/                                 # Source of truth
+├── migrations/                           # Hand-written SQL scripts
+│   └── 001_initial_schema.sql
+├── seeds/                                # Seed data scripts
+│   ├── 001_roles.sql
+│   ├── 002_policies.sql
+│   └── 003_categories.sql
 └── README.md
+
+bruno/                                    # API testing collections
+└── api/
+    ├── auth/
+    ├── products/
+    ├── cart/
+    └── orders/
+
+docs/
+├── SYSTEM-OVERVIEW.md                    # Business requirements
+├── DATABASE-DESIGN.md                    # Database schema & RBAC
+└── TECHNICAL-ARCHITECTURE.md             # This file
+
+.github/
+├── copilot-instructions.md               # Coding standards
+└── workflows/
+    ├── api-ci.yml                        # API deployment
+    └── ui-ci.yml                         # UI deployment
 ```
 
 ---
 
 ## Next Steps
 
-1. **Review OVERVIEW.md** — Ensure all business requirements are clear
-2. **Setup Supabase Project** — Create database, get connection string
-3. **Initialize Projects** — Bootstrap NestJS and Angular
-4. **Create Database Schema** — Write and apply first migration
-5. **Implement Base Classes** — Establish DDD patterns
-6. **Begin Feature Development** — Follow phased implementation plan
+1. **Review SYSTEM-OVERVIEW.md** — Ensure all business requirements are clear
+2. **Review DATABASE-DESIGN.md** — Understand database schema and RBAC
+3. **Setup Supabase Project** — Create database, get connection string
+4. **Initialize Projects** — Bootstrap NestJS and Angular
+5. **Create Database Schema** — Write and apply first migration from DATABASE-DESIGN.md
+6. **Implement Base Classes** — Establish DDD patterns
+7. **Begin Feature Development** — Follow phased implementation plan (focus on mandatory first)
 
 ---
 
-**For business requirements, user stories, and acceptance criteria, see [OVERVIEW.md](./OVERVIEW.md).**  
+**For business requirements and acceptance criteria, see [SYSTEM-OVERVIEW.md](./SYSTEM-OVERVIEW.md).**  
+**For database schema and RBAC design, see [DATABASE-DESIGN.md](./DATABASE-DESIGN.md).**  
 **For coding standards and patterns, see [../.github/copilot-instructions.md](../.github/copilot-instructions.md).**
 
-**Last Updated:** March 4, 2026  
+**Last Updated:** March 6, 2026  
 **Version:** 1.0 - Technical Architecture

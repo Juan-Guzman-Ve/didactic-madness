@@ -34,12 +34,12 @@ export class App {
   isMobile = signal(false);
   
   readonly navItems: NavItem[] = [
-    { label: 'Showcase',  icon: 'palette',       route: '/showcase' },
-    // Uncomment as features are built:
-    // { label: 'Products', icon: 'inventory_2',   route: '/products' },
-    // { label: 'Cart',     icon: 'shopping_cart',  route: '/cart'     },
-    // { label: 'Orders',   icon: 'receipt_long',   route: '/orders'   },
-    // { label: 'Login',    icon: 'login',           route: '/auth'     },
+    { label: 'Home',     icon: 'home',          route: '/' },
+    { label: 'Products', icon: 'inventory_2',   route: '/products' },
+    { label: 'Cart',     icon: 'shopping_cart', route: '/cart' },
+    { label: 'Orders',   icon: 'receipt_long',  route: '/orders' },
+    { label: 'Admin',    icon: 'admin_panel_settings', route: '/admin' },
+    { label: 'Showcase', icon: 'palette',       route: '/showcase' },
   ];
 
   constructor(private breakpointObserver: BreakpointObserver) {

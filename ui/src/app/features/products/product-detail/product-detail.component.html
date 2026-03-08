@@ -1,0 +1,59 @@
+<div class="product-detail-container">
+  @if (loading()) {
+    <div class="loading">Loading product...</div>
+  }
+
+  @if (product(); as p) {
+    <div class="product-layout">
+      <!-- Image Gallery -->
+      <div class="image-section">
+        <div class="main-image">
+          @if (p.images && p.images.length > 0) {
+            <img [src]="p.images[selectedImage()].url" [alt]="p.name">
+          }
+        </div>
+        <div class="thumbnail-strip">
+          @for (image of p.images; track image.id; let i = $index) {
+            <img 
+              [src]="image.url" 
+              [alt]="p.name"
+              [class.active]="selectedImage() === i"
+              (click)="selectedImage.set(i)">
+          }
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="info-section">
+        <h1>{{ p.name }}</h1>
+        <div class="brand">{{ p.brand }} {{ p.model }}</div>
+        <div class="price">{{ p.price | currency }}</div>
+        
+        <div class="stock-info">
+          @if (p.stock > 0) {
+            <span class="in-stock">In Stock ({{ p.stock }} available)</span>
+          } @else {
+            <span class="out-of-stock">Out of Stock</span>
+          }
+        </div>
+
+        <button 
+          class="add-to-cart-btn"
+          [disabled]="p.stock === 0"
+          (click)="addToCart()">
+          Add to Cart
+        </button>
+
+        <div class="description">
+          <h3>Description</h3>
+          <p>{{ p.description }}</p>
+        </div>
+
+        <div class="specifications">
+          <h3>Specifications</h3>
+          <!-- TODO: Render specifications -->
+        </div>
+      </div>
+    </div>
+  }
+</div>
