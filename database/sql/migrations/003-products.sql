@@ -70,13 +70,3 @@ COMMENT ON COLUMN product_images.url IS 'Image URL from storage service';
 COMMENT ON COLUMN product_images.display_order IS 'Sort order for display (0 = primary image)';
 
 CREATE INDEX idx_product_images_product_id ON product_images(product_id);
-
--- Apply triggers
-CREATE TRIGGER trg_categories_updated_at BEFORE UPDATE ON categories
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_products_updated_at BEFORE UPDATE ON products
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_product_images_updated_at BEFORE UPDATE ON product_images
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

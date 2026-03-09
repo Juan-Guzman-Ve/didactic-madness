@@ -82,10 +82,3 @@ COMMENT ON TABLE order_status_history IS 'Audit trail of order status changes';
 COMMENT ON COLUMN order_status_history.changed_by_user_id IS 'User who changed the status (nullable for system changes)';
 
 CREATE INDEX idx_order_status_history_order_id ON order_status_history(order_id);
-
--- Apply triggers
-CREATE TRIGGER trg_orders_updated_at BEFORE UPDATE ON orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_order_items_updated_at BEFORE UPDATE ON order_items
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

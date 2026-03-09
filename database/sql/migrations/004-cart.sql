@@ -37,10 +37,3 @@ COMMENT ON TABLE cart_items IS 'Items in shopping carts';
 
 CREATE INDEX idx_cart_items_cart_id ON cart_items(cart_id);
 CREATE INDEX idx_cart_items_product_id ON cart_items(product_id);
-
--- Apply triggers
-CREATE TRIGGER trg_carts_updated_at BEFORE UPDATE ON carts
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_cart_items_updated_at BEFORE UPDATE ON cart_items
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

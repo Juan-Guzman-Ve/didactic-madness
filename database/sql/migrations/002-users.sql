@@ -51,10 +51,3 @@ COMMENT ON TABLE addresses IS 'User shipping addresses';
 COMMENT ON COLUMN addresses.is_default IS 'Flag for default shipping address';
 
 CREATE INDEX idx_addresses_user_id ON addresses(user_id);
-
--- Apply triggers
-CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_addresses_updated_at BEFORE UPDATE ON addresses
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

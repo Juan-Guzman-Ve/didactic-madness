@@ -54,22 +54,3 @@ COMMENT ON TABLE role_policies IS 'Maps policies to roles (many-to-many relation
 
 CREATE INDEX idx_role_policies_role_id ON role_policies(role_id);
 CREATE INDEX idx_role_policies_policy_id ON role_policies(policy_id);
-
--- Trigger function for updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Apply triggers
-CREATE TRIGGER trg_roles_updated_at BEFORE UPDATE ON roles
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_policies_updated_at BEFORE UPDATE ON policies
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER trg_role_policies_updated_at BEFORE UPDATE ON role_policies
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
