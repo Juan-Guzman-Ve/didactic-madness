@@ -1,0 +1,38 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has status field", function() {
+    expect(res.body.status).to.equal('ok');
+  });
+  
+  test("Response has timestamp", function() {
+    expect(res.body.timestamp).to.be.a('string');
+  });
+  
+  test("Response has environment", function() {
+    expect(res.body.environment).to.be.a('string');
+  });
+}
+
+docs {
+  Basic health check endpoint to verify the API is running.
+  
+  Returns:
+  - status: "ok" if service is healthy
+  - timestamp: Current ISO 8601 timestamp
+  - environment: Current environment (development, production, etc.)
+}

@@ -1,35 +1,61 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import databaseConfig from './config/database.config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
-import { HealthModule } from './modules/health/health.module';
+
+// Infrastructure
+import { DatabaseModule } from './infra/database';
+import { configurations, validationSchema } from './infra/config';
+
+// Application Services
+import {
+  AuthService,
+  ProductsService,
+  CategoriesService,
+  CartService,
+  OrdersService,
+} from './application/services';
+
+// Presentation Controllers
+import {
+  AuthController,
+  ProductsController,
+  CategoriesController,
+  CartController,
+  OrdersController,
+  HealthController,
+} from './presentation/controllers';
 
 @Module({
   imports: [
     // ─── Configuration ─────────────────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
       envFilePath: '.env',
-    }),
-
-    // ─── Database ──────────────────────────────────────────────────────────
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const dbConfig = configService.get('database');
-        if (!dbConfig) {
-          throw new Error('Database configuration not found');
-        }
-        return dbConfig;
+      load: configurations,
+      validationSchema: validationSchema,
+      validationOptions: {
+        abortEarly: true,
       },
     }),
 
-    // ─── Feature Modules ───────────────────────────────────────────────────
-    HealthModule,
+    // ─── Infrastructure ────────────────────────────────────────────────────
+    DatabaseModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    HealthController,
+    AuthController,
+    ProductsController,
+    CategoriesController,
+    CartController,
+    OrdersController,
+  ],
+  providers: [
+    AuthService,
+    ProductsService,
+    CategoriesService,
+    CartService,
+    OrdersService,
+  ],
 })
 export class AppModule {}

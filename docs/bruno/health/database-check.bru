@@ -1,0 +1,35 @@
+meta {
+  name: Database Health Check
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/health/db
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has status field", function() {
+    expect(res.body.status).to.equal('ok');
+  });
+  
+  test("Database is connected", function() {
+    expect(res.body.database).to.equal('connected');
+  });
+}
+
+docs {
+  Database connectivity health check endpoint.
+  
+  Returns:
+  - status: "ok" if database connection is healthy
+  - database: "connected" if TypeORM connection is active
+  
+  This endpoint will fail if the database connection cannot be established.
+}
