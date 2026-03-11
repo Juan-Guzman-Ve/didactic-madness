@@ -1,0 +1,8 @@
+# Test Directory
+
+All test files belong here, organized by type:
+- integration/ - functional tests with real database
+- unit/ - isolated unit tests
+- e2e/ - end-to-end API tests (future)
+
+NO test files in src/ folder!

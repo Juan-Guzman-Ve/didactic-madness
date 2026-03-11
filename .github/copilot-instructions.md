@@ -6,6 +6,61 @@ Full-stack TypeScript application with NestJS backend + TypeORM + Supabase Postg
 
 ---
 
+## Dependency Management
+
+### Exact Versions Only
+
+**ALWAYS use exact versions in package.json** - never use `^` or `~` prefixes.
+
+**Why:**
+- Avoid peer dependency warnings completely
+- Ensure reproducible builds across all environments
+- No surprises from automatic version bumps
+- Lock down the exact versions that work together
+
+### package.json Format
+
+```json
+{
+  "dependencies": {
+    "@nestjs/common": "11.1.16",        // ✅ CORRECT - exact version
+    "@nestjs/core": "11.1.16",          // ✅ CORRECT
+    "class-validator": "0.14.1"         // ✅ CORRECT
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",              // ✅ CORRECT
+    "jest": "29.7.0"                    // ✅ CORRECT
+  }
+}
+```
+
+**NEVER:**
+```json
+{
+  "dependencies": {
+    "@nestjs/common": "^11.1.16",       // ❌ WRONG - semver range
+    "class-validator": "~0.14.1"        // ❌ WRONG - tilde range  
+  }
+}
+```
+
+### Installation
+
+- Use `npm install --legacy-peer-deps` to bypass peer dependency checks
+- Never install packages with `--save` or `--save-exact` manually - edit package.json directly
+- Delete `package-lock.json` and `node_modules/` before major dependency updates
+- Test after any dependency change: `npm run build && npm test`
+
+### Adding New Dependencies
+
+1. Check compatibility with current NestJS version
+2. Add to `package.json` with **exact version** (no `^` or `~`)
+3. Run `npm install --legacy-peer-deps`
+4. Run `npm run build` to verify
+5. Commit `package.json` and `package-lock.json` together
+
+---
+
 ## Core Development Principles
 
 ### SOLID, DRY, KISS

@@ -1,5 +1,3 @@
-import { ObjectLiteral } from 'typeorm';
-
 export interface PaginationQuery {
   page?: number;
   limit?: number;
@@ -19,23 +17,23 @@ export interface PaginatedResponse<T> {
 }
 
 export interface IBaseService<
-  TEntity extends ObjectLiteral,
+  TDomain,
   TCreateDto,
   TUpdateDto,
 > {
-  findById(id: string): Promise<TEntity | null>;
+  findById(id: string): Promise<TDomain | null>;
   
-  findAll(query: PaginationQuery): Promise<PaginatedResponse<TEntity>>;
+  findAll(query: PaginationQuery): Promise<PaginatedResponse<TDomain>>;
   
-  create(dto: TCreateDto): Promise<TEntity>;
+  create(dto: TCreateDto): Promise<TDomain>;
   
-  update(id: string, dto: TUpdateDto): Promise<TEntity>;
+  update(id: string, dto: TUpdateDto): Promise<TDomain>;
   
   delete(id: string): Promise<void>;
   
   deleteMany(ids: string[]): Promise<void>;
   
-  createMany(dtos: TCreateDto[]): Promise<TEntity[]>;
+  createMany(dtos: TCreateDto[]): Promise<TDomain[]>;
   
-  updateMany(updates: Array<{ id: string; dto: TUpdateDto }>): Promise<TEntity[]>;
+  updateMany(updates: Array<{ id: string; dto: TUpdateDto }>): Promise<TDomain[]>;
 }

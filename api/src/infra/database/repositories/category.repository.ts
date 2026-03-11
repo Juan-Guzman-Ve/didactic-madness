@@ -6,9 +6,7 @@ import { ICategoryRepository } from '../../../application/contracts/repositories
 import { Category } from '../../../domain/entities';
 import { CategoryEntity } from '../entities/category.entity';
 
-/**
- * Category repository implementation
- */
+
 @Injectable()
 export class CategoryRepository extends BaseRepository<Category, CategoryEntity> implements ICategoryRepository {
   constructor(

@@ -14,21 +14,9 @@ import { PaginationParams, PaginatedResult } from '../../../../application/contr
 export abstract class BaseRepository<TDomain, TEntity extends ObjectLiteral> implements IRepository<TDomain> {
   constructor(protected readonly repository: Repository<TEntity>) {}
 
-  /**
-   * Map TypeORM entity to domain entity
-   * Must be implemented by derived classes
-   */
   protected abstract toDomain(entity: TEntity): TDomain;
-
-  /**
-   * Map domain entity to TypeORM entity
-   * Must be implemented by derived classes
-   */
   protected abstract toEntity(domain: Partial<TDomain>): Partial<TEntity>;
-
-  /**
-   * Map multiple TypeORM entities to domain entities
-   */
+  
   protected toDomainMany(entities: TEntity[]): TDomain[] {
     return entities.map((entity) => this.toDomain(entity));
   }

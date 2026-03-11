@@ -1,73 +1,78 @@
 import { NotFoundException } from '@nestjs/common';
-import { Repository, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 import {
   IBaseService,
   PaginationQuery,
   PaginatedResponse,
   PaginationMeta,
 } from '../contracts/base/base-service.interface';
+import {
+  IRepository
+} from '../contracts/repositories/base/repository.interface';
+import { PaginationParams } from '../contracts/common/pagination.types';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
 /**
- * Base service implementation using TypeORM Repository
+ * Base service implementation using IRepository pattern
  * 
- * NOTE: This is a legacy implementation that directly uses TypeORM Repository.
- * In Clean Architecture, services should use IRepository interfaces instead.
+ * Provides common CRUD operations for all services following Clean Architecture.
+ * Services work with domain entities and communicate through repository interfaces.
  * 
- * TODO: Refactor to use IRepository pattern for better separation of concerns
+ * @typeParam TDomain - Domain entity interface (from domain/entities)
+ * @typeParam TCreateDto - DTO for creating entities
+ * @typeParam TUpdateDto - DTO for updating entities
  */
 export abstract class BaseService<
-  TEntity extends ObjectLiteral,
+  TDomain,
   TCreateDto,
   TUpdateDto,
-> implements IBaseService<TEntity, TCreateDto, TUpdateDto>
+> implements IBaseService<TDomain, TCreateDto, TUpdateDto>
 {
   constructor(
-    protected readonly repository: Repository<TEntity>,
+    protected readonly repository: IRepository<TDomain>,
     protected readonly entityName: string,
   ) {}
 
-  protected abstract mapCreateDtoToEntity(dto: TCreateDto): TEntity;
-  protected abstract mapUpdateDtoToEntity(dto: TUpdateDto, entity: TEntity): TEntity;
+  protected abstract mapCreateDtoToEntity(dto: TCreateDto): TDomain;
+  protected abstract mapUpdateDtoToEntity(dto: TUpdateDto, entity: TDomain): TDomain;
 
-  async findById(id: string): Promise<TEntity | null> {
-    return this.repository.findOne({
-      where: { id } as unknown as FindOptionsWhere<TEntity>,
-    });
+  async findById(id: string): Promise<TDomain | null> {
+    return this.repository.findById(id);
   }
 
-  async findAll(query: PaginationQuery): Promise<PaginatedResponse<TEntity>> {
+  async findAll(query: PaginationQuery): Promise<PaginatedResponse<TDomain>> {
     const page = Math.max(query.page || DEFAULT_PAGE, 1);
     const limit = Math.min(query.limit || DEFAULT_LIMIT, MAX_LIMIT);
-    const skip = (page - 1) * limit;
 
-    const sortOrder = this.parseSort(query.sort);
+    const { sortBy, sortOrder } = this.parseSort(query.sort);
 
-    const [data, total] = await this.repository.findAndCount({
-      skip,
-      take: limit,
-      ...(Object.keys(sortOrder).length > 0 && { order: sortOrder as unknown as any }),
-    });
-
-    const meta: PaginationMeta = {
+    const params: PaginationParams = {
       page,
       limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      sortBy,
+      sortOrder,
     };
 
-    return { data, meta };
+    const result = await this.repository.findPaginated(params);
+
+    const meta: PaginationMeta = {
+      page: result.meta.page,
+      limit: result.meta.limit,
+      total: result.meta.total,
+      totalPages: result.meta.totalPages,
+    };
+
+    return { data: result.data, meta };
   }
 
-  async create(dto: TCreateDto): Promise<TEntity> {
+  async create(dto: TCreateDto): Promise<TDomain> {
     const entity = this.mapCreateDtoToEntity(dto);
-    return this.repository.save(entity);
+    return this.repository.create(entity);
   }
 
-  async update(id: string, dto: TUpdateDto): Promise<TEntity> {
+  async update(id: string, dto: TUpdateDto): Promise<TDomain> {
     const entity = await this.findById(id);
 
     if (!entity) {
@@ -75,17 +80,17 @@ export abstract class BaseService<
     }
 
     const updatedEntity = this.mapUpdateDtoToEntity(dto, entity);
-    return this.repository.save(updatedEntity);
+    return this.repository.updateById(id, updatedEntity);
   }
 
   async delete(id: string): Promise<void> {
-    const entity = await this.findById(id);
+    const exists = await this.repository.exists(id);
 
-    if (!entity) {
+    if (!exists) {
       throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
     }
 
-    await this.repository.remove(entity);
+    await this.repository.deleteById(id);
   }
 
   async deleteMany(ids: string[]): Promise<void> {
@@ -93,26 +98,26 @@ export abstract class BaseService<
       return;
     }
 
-    await this.repository.delete(ids);
+    await this.repository.deleteByIds(ids);
   }
 
-  async createMany(dtos: TCreateDto[]): Promise<TEntity[]> {
+  async createMany(dtos: TCreateDto[]): Promise<TDomain[]> {
     if (dtos.length === 0) {
       return [];
     }
 
     const entities = dtos.map((dto) => this.mapCreateDtoToEntity(dto));
-    return this.repository.save(entities);
+    return this.repository.createMany(entities);
   }
 
   async updateMany(
     updates: Array<{ id: string; dto: TUpdateDto }>,
-  ): Promise<TEntity[]> {
+  ): Promise<TDomain[]> {
     if (updates.length === 0) {
       return [];
     }
 
-    const entities = await Promise.all(
+    const results = await Promise.all(
       updates.map(async ({ id, dto }) => {
         const entity = await this.findById(id);
 
@@ -120,22 +125,23 @@ export abstract class BaseService<
           throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
         }
 
-        return this.mapUpdateDtoToEntity(dto, entity);
+        const updatedEntity = this.mapUpdateDtoToEntity(dto, entity);
+        return this.repository.updateById(id, updatedEntity);
       }),
     );
 
-    return this.repository.save(entities);
+    return results;
   }
 
-  private parseSort(sort?: string): Record<string, 'ASC' | 'DESC'> {
+  private parseSort(sort?: string): { sortBy?: string; sortOrder?: 'ASC' | 'DESC' } {
     if (!sort) {
       return {};
     }
 
     const parts = sort.split(':');
-    const field = parts[0];
-    const order = parts[1]?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    const sortBy = parts[0];
+    const sortOrder = parts[1]?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-    return { [field]: order };
+    return { sortBy, sortOrder };
   }
 }
