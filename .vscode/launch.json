@@ -1,0 +1,126 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "🚀 Debug NestJS API",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug"],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/api/dist/**/*.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "🧪 Debug Jest Tests (Current File)",
+      "program": "${workspaceFolder}/api/node_modules/.bin/jest",
+      "args": [
+        "${relativeFile}",
+        "--config",
+        "${workspaceFolder}/api/jest.config.ts",
+        "--runInBand",
+        "--detectOpenHandles"
+      ],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "windows": {
+        "program": "${workspaceFolder}/api/node_modules/jest/bin/jest"
+      },
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "🧪 Debug Jest Tests (All)",
+      "program": "${workspaceFolder}/api/node_modules/.bin/jest",
+      "args": [
+        "--config",
+        "${workspaceFolder}/api/jest.config.ts",
+        "--runInBand",
+        "--detectOpenHandles"
+      ],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "windows": {
+        "program": "${workspaceFolder}/api/node_modules/jest/bin/jest"
+      },
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "🧪 Debug Jest Tests (Watch Mode)",
+      "program": "${workspaceFolder}/api/node_modules/.bin/jest",
+      "args": ["--watch", "--config", "${workspaceFolder}/api/jest.config.ts"],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "windows": {
+        "program": "${workspaceFolder}/api/node_modules/jest/bin/jest"
+      },
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "🧪 Debug UserRepository Tests",
+      "program": "${workspaceFolder}/api/node_modules/.bin/jest",
+      "args": [
+        "user-repository",
+        "--config",
+        "${workspaceFolder}/api/jest.config.ts",
+        "--runInBand",
+        "--detectOpenHandles"
+      ],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "windows": {
+        "program": "${workspaceFolder}/api/node_modules/jest/bin/jest"
+      },
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "🔗 Attach to NestJS Process",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/api/dist/**/*.js"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🎯 Debug API + Watch Tests",
+      "configurations": [
+        "🚀 Debug NestJS API",
+        "🧪 Debug Jest Tests (Watch Mode)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
