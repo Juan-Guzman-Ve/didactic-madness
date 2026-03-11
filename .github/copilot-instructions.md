@@ -238,15 +238,19 @@ export class User {
 }
 ```
 
-### DTO Mapping
+### Commands/Queries and Mapping (Use Case Pattern)
 
-**DTOs are for data transfer only**—no business logic. Use explicit mapping methods.
+**Commands and Queries replace input DTOs**. They include validations and are received directly by controllers.
 
-#### Pattern 1: Static Factory Methods (Recommended)
+**Mapping happens in handlers:**
+- Command/Query → Domain Entity (before repository call)
+- Domain Entity → Response DTO (after repository returns)
+
+#### Command Example (Write Operation)
 
 ```typescript
-// dtos/create-user.dto.ts
-export class CreateUserDto {
+// use-cases/commands/create-user.command.ts
+export class CreateUserCommand implements ICommand {
   @IsEmail()
   email: string;
 
@@ -255,35 +259,98 @@ export class CreateUserDto {
   password: string;
 }
 
-// domain/entities/user.entity.ts
-export class User {
-  // ... domain logic ...
+// use-cases/commands/create-user.handler.ts
+export class CreateUserHandler implements ICommandHandler<CreateUserCommand, UserResponseDto> {
+  constructor(private readonly repository: UserRepository) {}
 
-  static fromCreateDto(dto: CreateUserDto): User {
-    return User.create(dto.email);
+  async execute(command: CreateUserCommand): Promise<UserResponseDto> {
+    // 1. Command → Domain
+    const user = User.create(command.email, command.password);
+
+    // 2. Save
+    const saved = await this.repository.save(user);
+
+    // 3. Domain → Response DTO
+    return UserMapper.toResponseDto(saved);
   }
+}
 
-  toResponseDto(): UserResponseDto {
+// Controller receives Command directly
+@Post()
+async create(@Body() command: CreateUserCommand) {
+  return this.service.createUser(command);
+}
+```
+
+#### Query Example (Read Operation)
+
+```typescript
+// use-cases/queries/list-users.query.ts
+export class ListUsersQuery implements IQuery<PaginatedResponse<UserResponseDto>> {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
+}
+
+// use-cases/queries/list-users.handler.ts
+export class ListUsersHandler implements IQueryHandler<ListUsersQuery, PaginatedResponse<UserResponseDto>> {
+  constructor(private readonly repository: UserRepository) {}
+
+  async execute(query: ListUsersQuery): Promise<PaginatedResponse<UserResponseDto>> {
+    const [users, total] = await this.repository.findPaginated(query);
+    
     return {
-      id: this.id,
-      email: this.email,
-      status: this.status,
-      createdAt: this.createdAt.toISOString(),
+      data: users.map(user => UserMapper.toResponseDto(user)),
+      meta: {
+        page: query.page,
+        limit: query.limit,
+        total,
+      },
     };
   }
 }
 ```
 
-#### Pattern 2: Dedicated Mappers (For Complex Mappings)
+#### Response DTO (Only for outputs)
+
+```typescript
+// dtos/user-response.dto.ts
+export class UserResponseDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  status: string;
+
+  @ApiProperty()
+  createdAt: string;
+}
+```
+
+#### Dedicated Mapper Class (Recommended for Use Case Pattern)
 
 ```typescript
 // mappers/user.mapper.ts
 export class UserMapper {
-  static toDomain(dto: CreateUserDto): User {
-    return User.create(dto.email);
+  static toDomain(command: CreateUserCommand): User {
+    return User.create(command.email, command.password);
   }
 
-  static toDto(entity: User): UserResponseDto {
+  static toResponseDto(entity: User): UserResponseDto {
     return {
       id: entity.id,
       email: entity.email,
@@ -302,30 +369,25 @@ export class UserMapper {
 }
 ```
 
-### When to Use Each Pattern
+### When to Use Mappers
 
-**Static Methods on Entity (Simple Cases):**
-- One-to-one mapping
-- Minimal transformation logic
-- Entity owns the mapping logic
+**Use Dedicated Mapper Classes:**
+- Clean separation of concerns
+- Handler doesn't need to know Domain Entity internals
+- Reusable across multiple handlers
+- Easy to test mapping logic independently
+- Preferred for Use Case Pattern
 
-**Dedicated Mapper Class (Complex Cases):**
-- Multiple DTOs map to same entity
-- Complex transformation logic
-- Need to inject dependencies (e.g., repositories)
-- Mapping involves multiple entities
-
-### Example: Service Using DDD
+### Example: Handler Using Use Case Pattern
 
 ```typescript
-// application/services/user.service.ts
-@Injectable()
-export class UserService {
+// use-cases/commands/create-user.handler.ts
+export class CreateUserHandler implements ICommandHandler<CreateUserCommand, UserResponseDto> {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async createUser(dto: CreateUserDto): Promise<UserResponseDto> {
-    // DTO → Domain
-    const user = User.fromCreateDto(dto);
+  async execute(command: CreateUserCommand): Promise<UserResponseDto> {
+    // Command → Domain
+    const user = UserMapper.toDomain(command);
 
     // Business logic in domain
     // (validation already handled by entity factory)
@@ -333,30 +395,57 @@ export class UserService {
     // Persist
     const saved = await this.userRepository.save(user);
 
-    // Domain → DTO
-    return saved.toResponseDto();
+    // Domain → Response DTO
+    return UserMapper.toResponseDto(saved);
+  }
+}
+
+// Service coordinates handlers
+export class UserService {
+  constructor(
+    private readonly createUserHandler: CreateUserHandler,
+    private readonly getUserHandler: GetUserByIdHandler,
+  ) {}
+
+  async createUser(command: CreateUserCommand): Promise<UserResponseDto> {
+    return this.createUserHandler.execute(command);
   }
 
-  async deactivateUser(id: string): Promise<void> {
-    const user = await this.userRepository.findById(id);
-    if (!user) throw new NotFoundError('User', id);
+  async getUserById(query: GetUserByIdQuery): Promise<UserResponseDto> {
+    return this.getUserHandler.execute(query);
+  }
+}
 
-    // Business logic in domain
-    user.deactivate();
+// Controller receives Command directly
+@Controller('users')
+export class UsersController {
+  constructor(private readonly service: UserService) {}
 
-    await this.userRepository.save(user);
+  @Post()
+  async create(@Body() command: CreateUserCommand) {
+    return this.service.createUser(command);
+  }
+
+  @Get(':id')
+  async getById(@Param('id', ParseUUIDPipe) id: string) {
+    const query = new GetUserByIdQuery(id);
+    return this.service.getUserById(query);
   }
 }
 ```
 
 ### Key Principles
 
-1. **Rich Domain Models:** Business logic lives in entities, not services
-2. **Encapsulation:** Use private fields with public getters/methods
-3. **Factory Methods:** Prefer `User.create()` over `new User()`
-4. **Explicit Mapping:** Always use named methods (`fromDto`, `toDto`, `toPersistence`)
-5. **Immutability When Possible:** Use `readonly` for IDs and timestamps
-6. **No Anemic Models:** Entities should have behavior, not just getters/setters
+1. **Rich Domain Models:** Business logic lives in entities, not services or handlers
+2. **Use Case Pattern:** Commands/Queries replace input DTOs, handlers own the mapping logic
+3. **Encapsulation:** Use private fields with public getters/methods
+4. **Factory Methods:** Prefer `User.create()` over `new User()`
+5. **Explicit Mapping:** Always use mapper classes (`UserMapper.toDomain()`, `UserMapper.toResponseDto()`)
+6. **Only Response DTOs:** Commands/Queries handle input, DTOs only for output
+7. **Immutability When Possible:** Use `readonly` for IDs and timestamps
+8. **No Anemic Models:** Entities should have behavior, not just getters/setters
+9. **Thin Controllers:** Only receive Commands/Queries and delegate to services
+10. **Handlers Own Logic:** Mapping and business orchestration in handlers
 
 ---
 
@@ -482,7 +571,7 @@ Implement a `ResponseInterceptor` to wrap all controller responses automatically
 **Test through the service layer** to follow the complete flow of your application logic.
 
 Why:
-- Follow the entire flow of an action (DTO → Service → Domain → Repository → DB)
+- Follow the entire flow of an action (Command/Query → Service → Handler → Domain → Repository → DB)
 - Set breakpoints and debug through the full logic path
 - Mirrors real-world usage
 - Catches integration issues early
@@ -516,32 +605,32 @@ describe('User Service Integration', () => {
   describe('createUser', () => {
     it('should create a user and validate the complete flow', async () => {
       // Arrange
-      const dto: CreateUserDto = {
+      const command: CreateUserCommand = {
         email: 'test@example.com',
         password: 'SecurePass123',
       };
 
-      // Act - Call service (follows full flow: DTO → Domain → Validation → Persistence)
-      const result = await userService.createUser(dto);
+      // Act - Call service (follows full flow: Command → Handler → Domain → Validation → Persistence)
+      const result = await userService.createUser(command);
 
       // Assert - Validate response
       expect(result.id).toBeDefined();
-      expect(result.email).toBe(dto.email);
+      expect(result.email).toBe(command.email);
       expect(result.status).toBe(UserStatus.ACTIVE);
 
       // Verify persistence - Ensure data is actually in DB
       const savedUser = await userRepository.findById(result.id);
       expect(savedUser).toBeDefined();
-      expect(savedUser.email).toBe(dto.email);
+      expect(savedUser.email).toBe(command.email);
     });
 
     it('should throw error when email is invalid', async () => {
-      const dto: CreateUserDto = {
+      const command: CreateUserCommand = {
         email: 'invalid-email',
         password: 'SecurePass123',
       };
 
-      await expect(userService.createUser(dto)).rejects.toThrow(
+      await expect(userService.createUser(command)).rejects.toThrow(
         InvalidEmailError,
       );
     });

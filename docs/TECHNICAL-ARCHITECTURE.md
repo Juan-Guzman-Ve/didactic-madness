@@ -1,7 +1,7 @@
 # Technical Architecture — Custom PC Parts E-Commerce Platform
 
-**Version:** 1.0  
-**Last Updated:** March 6, 2026  
+**Version:** 1.1  
+**Last Updated:** March 11, 2026  
 **Related Documents:**  
 - [Business Requirements](./SYSTEM-OVERVIEW.md) — What we're building
 - [Database Design](./DATABASE-DESIGN.md) — Database schema and RBAC
@@ -35,9 +35,9 @@ This document defines the **technical architecture, stack decisions, and impleme
 
 **Project Context:** This is a **university class project** designed to demonstrate full-stack development skills with clean architecture principles. The focus is on learning and applying best practices rather than production-scale features.
 
-**Architecture Pattern:** Clean Architecture with Domain-Driven Design (DDD) principles. Business logic lives in domain entities, services orchestrate use cases, and controllers use Result Pattern for consistent response handling.
+**Architecture Pattern:** Clean Architecture with Domain-Driven Design (DDD) and Use Case Pattern (CQRS Light). Business logic lives in domain entities, use case handlers (Commands/Queries) orchestrate specific operations, services coordinate handlers, and controllers use Result Pattern for consistent response handling.
 
-**Development Philosophy:** Leverage .NET/C# experience to transition smoothly to Node.js/TypeScript by mapping familiar patterns (DI, ORM, controllers, middleware) to their NestJS/TypeORM equivalents.
+**Development Philosophy:** Leverage .NET/C# experience to transition smoothly to Node.js/TypeScript by mapping familiar patterns (DI, ORM, controllers, middleware, CQRS) to their NestJS/TypeORM equivalents.
 
 ---
 
@@ -113,6 +113,167 @@ This document defines the **technical architecture, stack decisions, and impleme
 
 ---
 
+## Use Case Pattern (CQRS Light)
+
+The project implements a lightweight CQRS (Command Query Responsibility Segregation) pattern. **Commands and Queries replace input DTOs** — controllers receive them directly with validations.
+
+### Structure
+
+**Base Interfaces:**
+```typescript
+// application/contracts/base/command.interface.ts
+export interface ICommand {}
+
+// application/contracts/base/query.interface.ts
+export interface IQuery<TResult> {}
+
+// application/contracts/base/command-handler.interface.ts
+export interface ICommandHandler<TCommand extends ICommand, TResult = void> {
+  execute(command: TCommand): Promise<TResult>;
+}
+
+// application/contracts/base/query-handler.interface.ts
+export interface IQueryHandler<TQuery extends IQuery<TResult>, TResult> {
+  execute(query: TQuery): Promise<TResult>;
+}
+```
+
+**Command Example (replaces input DTO):**
+```typescript
+// create-product.command.ts
+export class CreateProductCommand implements ICommand {
+  @IsString()
+  @MinLength(3)
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  sku: string;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  @IsInt()
+  @Min(0)
+  stock: number;
+}
+
+// create-product.handler.ts
+export class CreateProductHandler implements ICommandHandler<CreateProductCommand, ProductResponseDto> {
+  constructor(private readonly repository: ProductsRepository) {}
+
+  async execute(command: CreateProductCommand): Promise<ProductResponseDto> {
+    // 1. Command → Domain Entity
+    const product = Product.create(
+      command.name,
+      command.sku,
+      command.price,
+      command.stock,
+    );
+
+    // 2. Save via repository
+    const saved = await this.repository.save(product);
+
+    // 3. Domain Entity → Response DTO
+    return ProductMapper.toResponseDto(saved);
+  }
+}
+```
+
+**Query Example:**
+```typescript
+// list-products.query.ts
+export class ListProductsQuery implements IQuery<PaginatedResponse<ProductResponseDto>> {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+}
+```
+
+**Generic Controller:**
+```typescript
+// products.controller.ts
+@Controller('products')
+export class ProductsController {
+  constructor(private readonly service: ProductsService) {}
+
+  @Post()
+  async create(@Body() command: CreateProductCommand) {
+    // Controller only delegates — Command has validations
+    return this.service.createProduct(command);
+  }
+
+  @Get()
+  async list(@Query() query: ListProductsQuery) {
+    return this.service.listProducts(query);
+  }
+}
+```
+
+**Service orchestrates handlers:**
+```typescript
+// products.service.ts
+export class ProductsService {
+  constructor(
+    private readonly createHandler: CreateProductHandler,
+    private readonly listHandler: ListProductsHandler,
+  ) {}
+
+  async createProduct(command: CreateProductCommand): Promise<ProductResponseDto> {
+    return this.createHandler.execute(command);
+  }
+
+  async listProducts(query: ListProductsQuery): Promise<PaginatedResponse<ProductResponseDto>> {
+    return this.listHandler.execute(query);
+  }
+}
+```
+
+### Benefits
+
+- **Single Responsibility:** Each use case has its own command/query and handler
+- **No Redundancy:** Commands/Queries replace input DTOs (only Response DTOs needed)
+- **Generic Controllers:** Controllers are thin and reusable
+- **Clear Validation:** Validations live in Commands/Queries with `class-validator`
+- **Testability:** Handlers can be tested independently with mocked repositories
+- **Maintainability:** Easy to add new use cases without modifying existing code
+- **Clear Intent:** Command/Query names explicitly state what the operation does
+
+### Folder Structure
+
+```
+products/
+  ├── domain/
+  │   └── product.entity.ts           # Domain entity
+  ├── use-cases/
+  │   ├── commands/
+  │   │   ├── create-product.command.ts   # Command with validations
+  │   │   └── create-product.handler.ts   # Maps Command → Domain → Response DTO
+  │   └── queries/
+  │       ├── list-products.query.ts      # Query with filter validations
+  │       └── list-products.handler.ts    # Queries and maps Domain → Response DTO
+  ├── dtos/                           # Only response DTOs
+  │   └── product-response.dto.ts
+  ├── products.repository.ts
+  ├── products.service.ts              # Thin — only coordinates handlers
+  ├── products.controller.ts           # Generic — receives Commands/Queries
+  └── products.module.ts
+```
+
+---
+
 ## Repository Structure
 
 **Note:** API and UI are developed in a single monorepo for local development but will be deployed separately to Vercel.
@@ -160,13 +321,22 @@ api/
 │       ├── users/
 │       │   ├── domain/
 │       │   │   └── user.entity.ts        # Domain entity with business logic
+│       │   ├── use-cases/
+│       │   │   ├── commands/
+│       │   │   │   ├── create-user.command.ts      # Command with @IsEmail(), etc.
+│       │   │   │   ├── create-user.handler.ts      # Maps Command → Domain → Response
+│       │   │   │   ├── update-user.command.ts
+│       │   │   │   └── update-user.handler.ts
+│       │   │   └── queries/
+│       │   │       ├── get-user-by-id.query.ts     # Query with @IsUUID()
+│       │   │       ├── get-user-by-id.handler.ts   # Queries and maps Domain → Response
+│       │   │       ├── list-users.query.ts
+│       │   │       └── list-users.handler.ts
 │       │   ├── users.repository.ts
-│       │   ├── users.service.ts          # Application service (use cases)
-│       │   ├── users.controller.ts       # Controller with Result pattern
+│       │   ├── users.service.ts          # Coordinates use case handlers
+│       │   ├── users.controller.ts       # Generic — receives Commands/Queries
 │       │   ├── users.module.ts
-│       │   └── dto/
-│       │       ├── create-user.dto.ts
-│       │       ├── update-user.dto.ts
+│       │   └── dtos/                     # Only response DTOs
 │       │       └── user-response.dto.ts
 │       │
 │       ├── roles/
@@ -195,13 +365,26 @@ api/
 │       │   ├── domain/
 │       │   │   ├── product.entity.ts
 │       │   │   └── product-image.entity.ts
+│       │   ├── use-cases/
+│       │   │   ├── commands/
+│       │   │   │   ├── create-product.command.ts   # Command with validations
+│       │   │   │   ├── create-product.handler.ts
+│       │   │   │   ├── update-product.command.ts
+│       │   │   │   ├── update-product.handler.ts
+│       │   │   │   ├── delete-product.command.ts
+│       │   │   │   └── delete-product.handler.ts
+│       │   │   └── queries/
+│       │   │       ├── get-product-by-id.query.ts
+│       │   │       ├── get-product-by-id.handler.ts
+│       │   │       ├── list-products.query.ts       # Query with filter validations
+│       │   │       ├── list-products.handler.ts
+│       │   │       ├── search-products.query.ts
+│       │   │       └── search-products.handler.ts
 │       │   ├── products.repository.ts
 │       │   ├── products.service.ts
 │       │   ├── products.controller.ts
 │       │   ├── products.module.ts
-│       │   └── dto/
-│       │       ├── create-product.dto.ts
-│       │       ├── update-product.dto.ts
+│       │   └── dtos/                       # Only response DTOs
 │       │       └── product-response.dto.ts
 │       │
 │       ├── cart/
@@ -531,12 +714,18 @@ docs/
 
 ---
 
-### Phase 2 — Base Classes & Patterns (DDD Foundation)
-**Goal:** Establish reusable patterns following DDD principles
+### Phase 2 — Base Classes & Patterns (DDD + Use Case Foundation)
+**Goal:** Establish reusable patterns following DDD and Use Case principles
 
 **API:**
 - `BaseEntity` abstract class (id, createdAt, updatedAt)
 - `BaseRepository<T>` generic wrapper with common methods
+- Use Case infrastructure:
+  - `ICommand` interface for write operations
+  - `IQuery<TResult>` interface for read operations
+  - `CommandHandler<TCommand>` base class
+  - `QueryHandler<TQuery, TResult>` base class
+  - Folder structure: `application/use-cases/{module}/commands/` and `queries/`
 - Domain entity example (User) with:
   - Private fields + public getters
   - Factory methods (`create`, `fromPersistence`)
@@ -585,15 +774,25 @@ docs/
 ### Phase 4 — Core Feature Modules
 **Implementation Order:** Categories → Products → Cart → Orders
 
-**Each Module Follows DDD Pattern:**
+**Each Module Follows DDD + Use Case Pattern:**
 1. **Domain Entity** with business logic
-2. **DTOs** (create, update, response) with validation
+2. **Response DTOs** with `@ApiProperty()` decorators for Swagger
 3. **Repository** extending `BaseRepository<T>`
-4. **Service** with business logic, uses domain entities
-5. **Controller** delegates to service, Swagger decorated
-6. **Module** wires everything together
-7. **Integration Tests** for complete flows
-8. **Bruno Collection** entries for all endpoints
+4. **Use Cases:**
+   - **Commands** for write operations (e.g., `CreateProductCommand`, `UpdateCartCommand`)
+     - Include `class-validator` decorations (`@IsString()`, `@IsEmail()`, etc.)
+     - Replace input DTOs
+   - **Queries** for read operations (e.g., `GetProductByIdQuery`, `ListProductsQuery`)
+     - Include validation decorators for filters and pagination
+   - **Handlers** execute business logic for each use case
+     - Map Command/Query → Domain Entity
+     - Call Repository
+     - Map Domain Entity → Response DTO
+5. **Service** coordinates handlers (thin orchestration layer)
+6. **Controller** delegates to service (generic, receives Commands/Queries directly)
+7. **Module** wires everything together
+8. **Integration Tests** for complete flows (test through service → handler → domain → repository)
+9. **Bruno Collection** entries for all endpoints
 
 **Module-Specific Notes:**
 
@@ -866,28 +1065,41 @@ export class UserResponseDto {
 ### Data Flow
 
 ```
-Controller → DTO → Domain Entity → Repository → DB Entity → Database
-                ↓                                    ↑
-              Service                            TypeORM
+Controller receives Command/Query (@Body/@Query with validations) →
+Service.execute(command/query) →
+Handler:
+  1. Command/Query → Domain Entity (mapping)
+  2. Repository.save/find(domainEntity) → DB
+  3. Repository returns Domain Entity
+  4. Domain Entity → Response DTO (mapping)
+  5. Return Response DTO
+Controller wraps in Result Pattern: { data: ResponseDto }
 ```
 
-**Example Flow (Create User):**
-1. **Controller** receives `CreateUserDto` from API request
-2. **Service** converts DTO to **Domain Entity**: `User.create(dto.email)`
-3. **Domain Entity** validates business rules and encapsulates logic
-4. **Service** calls **Repository** with domain entity
-5. **Repository** converts Domain → **DB Entity** (TypeORM): `entity.toPersistence()`
-6. **TypeORM** persists DB Entity to database
-7. **Repository** converts DB Entity → Domain Entity
-8. **Service** converts Domain → **Response DTO**
-9. **Controller** returns DTO wrapped in Result Pattern: `{ data: UserResponseDto }`
+**Example Flow (Create Product with Use Case Pattern):**
+
+1. **Controller** receives `CreateProductCommand` from API request body
+   - Validation happens automatically via `ValidationPipe` (`@IsString()`, `@Min()`, etc.)
+2. **Controller** calls **Service**: `service.createProduct(command)`
+3. **Service** delegates to **Handler**: `createProductHandler.execute(command)`
+4. **Handler** maps **Command → Domain Entity**: `Product.create(command.name, command.sku, command.price)`
+5. **Domain Entity** validates business rules internally
+6. **Handler** calls **Repository**: `repository.save(productEntity)`
+7. **Repository** converts **Domain → DB Entity** (TypeORM): `entity.toPersistence()`
+8. **TypeORM** persists DB Entity to database
+9. **Repository** converts **DB Entity → Domain Entity** and returns it
+10. **Handler** maps **Domain → Response DTO**: `ProductMapper.toResponseDto(saved)`
+11. **Handler** returns Response DTO to Service
+12. **Service** returns Response DTO to Controller
+13. **Controller** wraps in Result Pattern: `{ data: ProductResponseDto }`
 
 **Benefits:**
-- **Separation of Concerns:** Business logic isolated from persistence and API
-- **Testability:** Domain entities testable without database
-- **Flexibility:** Can swap ORM or database without changing business logic
-- **Type Safety:** Strong typing across all layers
-- **Clean Architecture:** Dependencies point inward (domain has no external dependencies)
+- **Controllers are generic** — only receive and delegate, no mapping logic
+- **Handlers own the mapping** — Command → Domain → Response DTO
+- **No input DTO redundancy** — Commands/Queries are the input DTOs
+- **Separation of Concerns** — Business logic isolated in handlers and domain
+- **Type Safety** — Strong typing across all layers
+- **Clean Architecture** — Dependencies point inward
 
 ---
 
