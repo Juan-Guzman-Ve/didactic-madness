@@ -3,27 +3,14 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 
 // Infrastructure
-import { DatabaseModule } from './infra/database';
 import { configurations, validationSchema } from './infra/config';
+import { DatabaseModule } from './infra/database';
 
 // Application Services
-import {
-  AuthService,
-  ProductsService,
-  CategoriesService,
-  CartService,
-  OrdersService,
-} from './application/services';
+//import {} from './application/services';
 
 // Presentation Controllers
-import {
-  AuthController,
-  ProductsController,
-  CategoriesController,
-  CartController,
-  OrdersController,
-  HealthController,
-} from './presentation/controllers';
+import { HealthController } from './presentation/controllers';
 
 @Module({
   imports: [
@@ -41,21 +28,7 @@ import {
     // ─── Infrastructure ────────────────────────────────────────────────────
     DatabaseModule,
   ],
-  controllers: [
-    AppController,
-    HealthController,
-    AuthController,
-    ProductsController,
-    CategoriesController,
-    CartController,
-    OrdersController,
-  ],
-  providers: [
-    AuthService,
-    ProductsService,
-    CategoriesService,
-    CartService,
-    OrdersService,
-  ],
+  controllers: [AppController, HealthController],
+  providers: [HealthController],
 })
 export class AppModule {}

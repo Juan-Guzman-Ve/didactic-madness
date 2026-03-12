@@ -2,28 +2,115 @@
 
 **Project:** PC Parts E-Commerce Platform  
 **Focus:** Backend API (NestJS + TypeORM + Supabase)  
-**Last Updated:** March 9, 2026  
+**Last Updated:** March 11, 2026  
 **Status:** Planning Phase
 
 ---
 
 ## Table of Contents
 
-1. [Current Status](#current-status)
-2. [Phase 1: Foundation & Infrastructure](#phase-1-foundation--infrastructure)
-3. [Phase 2: Authentication & Authorization (RBAC)](#phase-2-authentication--authorization-rbac)
-4. [Phase 3: Core Modules - Categories & Products](#phase-3-core-modules---categories--products)
-5. [Phase 4: Shopping Cart](#phase-4-shopping-cart)
-6. [Phase 5: Orders & Checkout](#phase-5-orders--checkout)
-7. [Phase 6: Admin Features](#phase-6-admin-features)
-8. [Phase 7: Testing & Documentation](#phase-7-testing--documentation)
-9. [Phase 8: Deployment](#phase-8-deployment)
+1. [API Backlog](#api-backlog)
+2. [Current Status](#current-status)
+3. [Phase 1: Foundation & Infrastructure](#phase-1-foundation--infrastructure)
+4. [Phase 2: Authentication & Authorization (RBAC)](#phase-2-authentication--authorization-rbac)
+5. [Phase 3: Core Modules - Categories & Products](#phase-3-core-modules---categories--products)
+6. [Phase 4: Shopping Cart](#phase-4-shopping-cart)
+7. [Phase 5: Orders & Checkout](#phase-5-orders--checkout)
+8. [Phase 6: Admin Features](#phase-6-admin-features)
+9. [Phase 7: Testing & Documentation](#phase-7-testing--documentation)
+10. [Phase 8: Deployment](#phase-8-deployment)
+
+---
+
+## API Backlog
+
+**Legend:** ☐ Not Started | ✓ Completed
+
+| #   | Task                                                               | Phase   | Priority    | Done |
+| --- | ------------------------------------------------------------------ | ------- | ----------- | ---- |
+| 1   | Apply all SQL migrations to Supabase                               | Phase 1 | 🔴 Critical | ✓    |
+| 2   | Apply seed data (roles, users, products)                           | Phase 1 | 🔴 Critical | ✓    |
+| 3   | Configure TypeORM DataSource and test connection                   | Phase 1 | 🔴 Critical | ✓    |
+| 4   | Configure Swagger documentation                                    | Phase 1 | 🟡 High     | ☐    |
+| 5   | Create Use Case base interfaces (ICommand, IQuery, handlers)       | Phase 1 | 🔴 Critical | ☐    |
+| 6   | Create use-cases folder structure (commands/queries per module)    | Phase 1 | 🔴 Critical | ☐    |
+| 7   | Implement example Command + Handler with validations               | Phase 1 | 🔴 Critical | ☐    |
+| 8   | Configure JWT authentication with @nestjs/jwt                      | Phase 2 | 🔴 Critical | ☐    |
+| 9   | Implement JWT Strategy with Passport                               | Phase 2 | 🔴 Critical | ☐    |
+| 10  | Create JwtAuthGuard (global guard)                                 | Phase 2 | 🔴 Critical | ☐    |
+| 11  | Create PolicyGuard for RBAC enforcement                            | Phase 2 | 🔴 Critical | ☐    |
+| 12  | Create decorators (@Public, @RequirePolicy, @CurrentUser)          | Phase 2 | 🔴 Critical | ☐    |
+| 13  | Implement RegisterCommand + Handler (password hashing with bcrypt) | Phase 2 | 🔴 Critical | ☐    |
+| 14  | Implement LoginCommand + Handler (JWT token generation)            | Phase 2 | 🔴 Critical | ☐    |
+| 15  | Create AuthResponseDto                                             | Phase 2 | 🔴 Critical | ☐    |
+| 16  | Implement AuthController (register, login endpoints)               | Phase 2 | 🔴 Critical | ☐    |
+| 17  | Write integration tests for auth flow                              | Phase 2 | 🟡 High     | ☐    |
+| 18  | Create Bruno collection for auth endpoints                         | Phase 2 | 🟡 High     | ☐    |
+| 19  | Implement RoleService (admin CRUD for roles)                       | Phase 2 | 🟢 Medium   | ☐    |
+| 20  | Implement PolicyService (admin CRUD for policies)                  | Phase 2 | 🟢 Medium   | ☐    |
+| 21  | Implement GetAllCategoriesQuery + Handler                          | Phase 3 | 🔴 Critical | ☐    |
+| 22  | Implement GetCategoryByIdQuery + Handler                           | Phase 3 | 🔴 Critical | ☐    |
+| 23  | Create CategoryResponseDto                                         | Phase 3 | 🔴 Critical | ☐    |
+| 24  | Implement CategoriesController                                     | Phase 3 | 🔴 Critical | ☐    |
+| 25  | Write integration tests for categories                             | Phase 3 | 🟡 High     | ☐    |
+| 26  | Create Bruno collection for categories                             | Phase 3 | 🟡 High     | ☐    |
+| 27  | Implement CreateProductCommand + Handler                           | Phase 3 | 🔴 Critical | ☐    |
+| 28  | Implement UpdateProductCommand + Handler                           | Phase 3 | 🔴 Critical | ☐    |
+| 29  | Implement DeleteProductCommand + Handler                           | Phase 3 | 🔴 Critical | ☐    |
+| 30  | Implement GetProductByIdQuery + Handler                            | Phase 3 | 🔴 Critical | ☐    |
+| 31  | Implement ListProductsQuery + Handler (with filters)               | Phase 3 | 🔴 Critical | ☐    |
+| 32  | Implement SearchProductsQuery + Handler                            | Phase 3 | 🔴 Critical | ☐    |
+| 33  | Create ProductResponseDto                                          | Phase 3 | 🔴 Critical | ☐    |
+| 34  | Implement image upload to Supabase Storage                         | Phase 3 | 🟡 High     | ☐    |
+| 35  | Implement ProductsController with @RequirePolicy guards            | Phase 3 | 🔴 Critical | ☐    |
+| 36  | Write integration tests for products module                        | Phase 3 | 🟡 High     | ☐    |
+| 37  | Create Bruno collection for products endpoints                     | Phase 3 | 🟡 High     | ☐    |
+| 38  | Implement GetCartQuery + Handler                                   | Phase 4 | 🔴 Critical | ☐    |
+| 39  | Implement AddItemToCartCommand + Handler                           | Phase 4 | 🔴 Critical | ☐    |
+| 40  | Implement UpdateCartItemCommand + Handler                          | Phase 4 | 🔴 Critical | ☐    |
+| 41  | Implement RemoveCartItemCommand + Handler                          | Phase 4 | 🔴 Critical | ☐    |
+| 42  | Implement ClearCartCommand + Handler                               | Phase 4 | 🔴 Critical | ☐    |
+| 43  | Implement stock validation in cart handlers                        | Phase 4 | 🔴 Critical | ☐    |
+| 44  | Create CartResponseDto                                             | Phase 4 | 🔴 Critical | ☐    |
+| 45  | Implement CartController                                           | Phase 4 | 🔴 Critical | ☐    |
+| 46  | Write integration tests for cart module                            | Phase 4 | 🟡 High     | ☐    |
+| 47  | Create Bruno collection for cart endpoints                         | Phase 4 | 🟡 High     | ☐    |
+| 48  | Implement CreateOrderCommand + Handler (with address)              | Phase 5 | 🔴 Critical | ☐    |
+| 49  | Implement UpdateOrderStatusCommand + Handler                       | Phase 5 | 🔴 Critical | ☐    |
+| 50  | Implement CancelOrderCommand + Handler                             | Phase 5 | 🔴 Critical | ☐    |
+| 51  | Implement GetOrderByIdQuery + Handler                              | Phase 5 | 🔴 Critical | ☐    |
+| 52  | Implement ListOrdersQuery + Handler (with filters)                 | Phase 5 | 🔴 Critical | ☐    |
+| 53  | Implement GetOrderHistoryQuery + Handler                           | Phase 5 | 🔴 Critical | ☐    |
+| 54  | Implement order state workflow (Pending → Delivered)               | Phase 5 | 🔴 Critical | ☐    |
+| 55  | Implement OrderStatusHistory tracking                              | Phase 5 | 🔴 Critical | ☐    |
+| 56  | Implement stock reservation on PaymentConfirmed                    | Phase 5 | 🔴 Critical | ☐    |
+| 57  | Create OrderResponseDto                                            | Phase 5 | 🔴 Critical | ☐    |
+| 58  | Implement OrdersController with RBAC                               | Phase 5 | 🔴 Critical | ☐    |
+| 59  | Write integration tests for orders module                          | Phase 5 | 🟡 High     | ☐    |
+| 60  | Create Bruno collection for orders endpoints                       | Phase 5 | 🟡 High     | ☐    |
+| 61  | Implement UserService for admin user management                    | Phase 6 | 🟢 Medium   | ☐    |
+| 62  | Implement UsersController with SuperAdmin guards                   | Phase 6 | 🟢 Medium   | ☐    |
+| 63  | Complete all Swagger decorators on Commands/Queries                | Phase 7 | 🟡 High     | ☐    |
+| 64  | Add Swagger examples to all endpoints                              | Phase 7 | 🟡 High     | ☐    |
+| 65  | Complete all Bruno collections (all endpoints)                     | Phase 7 | 🟡 High     | ☐    |
+| 66  | Write integration tests for all missing modules                    | Phase 7 | 🟡 High     | ☐    |
+| 67  | Validate all endpoints with Bruno test scripts                     | Phase 7 | 🟡 High     | ☐    |
+| 68  | Achieve >80% test coverage                                         | Phase 7 | 🟡 High     | ☐    |
+| 69  | Configure Vercel project for API deployment                        | Phase 8 | 🟡 High     | ☐    |
+| 70  | Configure environment variables in Vercel                          | Phase 8 | 🟡 High     | ☐    |
+| 71  | Deploy API to production                                           | Phase 8 | 🟡 High     | ☐    |
+| 72  | Configure GitHub Actions for CI/CD                                 | Phase 8 | 🟢 Medium   | ☐    |
+| 73  | Test all endpoints in production                                   | Phase 8 | 🟡 High     | ☐    |
+| 74  | Document production URLs and access                                | Phase 8 | 🟡 High     | ☐    |
+
+**Progress:** 3/74 tasks completed (4%)
 
 ---
 
 ## Current Status
 
 ### ✅ Completed
+
 - [x] Repository structure established
 - [x] Database schema designed (migrations written in `/database/sql/migrations/`)
 - [x] All domain entities created (`domain/entities/`)
@@ -35,13 +122,17 @@
 - [x] Configuration centralized (`infra/config/schemas/`)
 
 ### 🚧 In Progress
+
 - [ ] Service implementations (all show TODO comments)
 - [ ] Controller implementations (exist but not wired to services)
-- [ ] DTOs need to be created for most modules
+- [ ] Use Case infrastructure (Commands, Queries, Handlers)
 
 ### ❌ Not Started
+
 - [ ] Authentication & JWT implementation
 - [ ] Authorization guards & policy enforcement
+- [ ] Use Cases (Commands/Queries) for each module
+- [ ] Response DTOs for each module
 - [ ] Business logic in domain entities
 - [ ] Integration tests
 - [ ] Bruno API collection
@@ -52,6 +143,7 @@
 ## Phase 1: Foundation & Infrastructure
 
 ### 1.1 Database Setup ✅
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 2 hours
 
@@ -62,7 +154,6 @@
   - [x] Run `004-cart.sql`
   - [x] Run `005-orders.sql`
   - [x] Verify all tables created correctly
-  
 - [x] **1.1.2** Apply seed data
   - [x] Run `001-rbac.sql` (seed roles: Customer, Staff, Manager, SuperAdmin)
   - [x] Run `002-test-users.sql` (create test users for each role)
@@ -70,6 +161,7 @@
   - [x] Verify seed data via Supabase dashboard
 
 **Acceptance Criteria:** ✅ COMPLETE
+
 - All 13 tables exist in Supabase
 - Roles, policies, and role_policies tables populated
 - 4 test users created (one per role)
@@ -79,6 +171,7 @@
 ---
 
 ### 1.2 Application Configuration
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 1 hour
 
@@ -90,6 +183,7 @@
   - [x] **Created 33 functional tests - all passing**
 
 **Acceptance Criteria:** ✅ COMPLETE
+
 - Application starts without errors
 - Database connection verified on startup
 - All 13 entities registered with TypeORM
@@ -109,6 +203,7 @@
   - [ ] Verify Swagger UI at `/api/docs`
 
 **Acceptance Criteria:**
+
 - Application starts without errors
 - Swagger UI accessible at `http://localhost:3000/api/docs`
 - Database connection verified on startup
@@ -116,54 +211,55 @@
 
 ---
 
-### 1.3 DTO Creation
-**Priority:** 🟡 High  
-**Estimated Time:** 3 hours
+### 1.3 Use Case Pattern Infrastructure
 
-Create DTOs for all modules with `class-validator` decorators:
+**Priority:** 🔴 Critical  
+**Estimated Time:** 4 hours
 
-- [ ] **1.3.1** Auth DTOs
-  - [ ] `LoginDto` (email, password)
-  - [ ] `RegisterDto` (email, password, firstName, lastName, phone?)
-  - [ ] `AuthResponseDto` (token, user)
-  
-- [ ] **1.3.2** Category DTOs
-  - [ ] `CreateCategoryDto` (name, description, slug)
-  - [ ] `UpdateCategoryDto` (partial of CreateCategoryDto)
-  - [ ] `CategoryResponseDto`
-  
-- [ ] **1.3.3** Product DTOs
-  - [ ] `CreateProductDto` (sku, categoryId, name, description, brand, model?, price, stock, specifications?, status)
-  - [ ] `UpdateProductDto` (partial of CreateProductDto)
-  - [ ] `ProductResponseDto`
-  - [ ] `ProductFilterDto` (search, categoryId, minPrice, maxPrice, brand, inStock, sort)
-  
-- [ ] **1.3.4** Cart DTOs
-  - [ ] `AddToCartDto` (productId, quantity)
-  - [ ] `UpdateCartItemDto` (quantity)
-  - [ ] `CartResponseDto`
-  
-- [ ] **1.3.5** Order DTOs
-  - [ ] `CreateOrderDto` (addressId)
-  - [ ] `UpdateOrderStatusDto` (status, notes?)
-  - [ ] `OrderResponseDto`
-  - [ ] `OrderFilterDto` (status, dateFrom, dateTo, page, limit)
+Implement base infrastructure for Use Case Pattern (CQRS Light):
+
+- [ ] **1.3.1** Base Interfaces
+  - [ ] `ICommand` interface
+  - [ ] `IQuery<TResult>` interface
+  - [ ] `ICommandHandler<TCommand, TResult>` interface
+  - [ ] `IQueryHandler<TQuery, TResult>` interface
+
+- [ ] **1.3.2** Folder Structure
+  - [ ] Create `application/use-cases/` folder
+  - [ ] Create subfolders per module (auth, products, categories, cart, orders)
+  - [ ] Create `commands/` and `queries/` subfolders per module
+
+- [ ] **1.3.3** Example Implementation
+  - [ ] Create example Command with validations
+  - [ ] Create example CommandHandler
+  - [ ] Create example Query with validations
+  - [ ] Create example QueryHandler
+  - [ ] Update service to coordinate handlers
+  - [ ] Update controller to receive Command/Query directly
 
 **Acceptance Criteria:**
-- All DTOs have validation decorators (`@IsString()`, `@IsNumber()`, etc.)
-- All DTOs have Swagger decorators (`@ApiProperty()`)
-- Response DTOs match domain entity structure
-- Filter DTOs have optional parameters
+
+- Base interfaces created and exported
+- Folder structure established
+- Example implementation demonstrates full flow
+- Commands/Queries have `class-validator` decorators
+- Commands/Queries have `@ApiProperty()` decorators for Swagger
+- Handlers map Command/Query → Domain → Response DTO
+- Controllers are generic (only receive and delegate)
+
+**Note:** Commands and Queries replace input DTOs. Only Response DTOs will be created separately.
 
 ---
 
 ## Phase 2: Authentication & Authorization (RBAC)
 
 ### 2.1 JWT Setup
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 3 hours
 
 - [ ] **2.1.1** Install dependencies
+
   ```bash
   npm install @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt
   npm install -D @types/passport-jwt @types/bcrypt
@@ -181,6 +277,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Return user object for request
 
 **Acceptance Criteria:**
+
 - JWT secret loaded from environment
 - Strategy validates JWT and attaches user to request
 - Invalid tokens return 401 Unauthorized
@@ -188,6 +285,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 2.2 Auth Service Implementation
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 4 hours
 
@@ -205,6 +303,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Add Swagger documentation
 
 **Acceptance Criteria:**
+
 - Register creates user with hashed password
 - Login returns JWT token
 - Invalid credentials return 401
@@ -213,6 +312,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 2.3 Authorization Guards
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 3 hours
 
@@ -235,6 +335,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] `@RequirePolicy(resource:action)` - mark required policy
 
 **Acceptance Criteria:**
+
 - All routes require authentication by default
 - Public routes skip authentication
 - Policy-protected routes check user permissions
@@ -243,6 +344,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 2.4 Role & Policy Services
+
 **Priority:** 🟡 High  
 **Estimated Time:** 2 hours
 
@@ -262,6 +364,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] `delete(id)` - delete policy (check not assigned to roles)
 
 **Acceptance Criteria:**
+
 - SuperAdmin can manage roles and policies
 - Roles can have multiple policies
 - Cannot delete role with assigned users
@@ -272,6 +375,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ## Phase 3: Core Modules - Categories & Products
 
 ### 3.1 Categories Module
+
 **Priority:** 🟡 High  
 **Estimated Time:** 2 hours
 
@@ -292,6 +396,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Add Swagger documentation
 
 **Acceptance Criteria:**
+
 - Public can view all categories
 - Managers can create/update categories
 - Cannot delete category with products
@@ -300,6 +405,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 3.2 Products Module
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 6 hours
 
@@ -332,6 +438,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Add Swagger documentation with filter examples
 
 **Acceptance Criteria:**
+
 - Products paginated (20 per page)
 - Filters work: search, category, price range, brand, inStock
 - Sort by: price, name, createdAt
@@ -341,6 +448,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 3.3 Product Images (Optional - Phase 6)
+
 **Priority:** 🟢 Low  
 **Estimated Time:** 3 hours
 
@@ -355,6 +463,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Validate: max 5 images per product, file type (jpg, png), size < 5MB
 
 **Acceptance Criteria:**
+
 - Managers can upload product images
 - Images stored in Supabase Storage
 - Public URLs saved in `product_images` table
@@ -365,6 +474,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ## Phase 4: Shopping Cart
 
 ### 4.1 Cart Module
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 4 hours
 
@@ -393,6 +503,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Add Swagger documentation
 
 **Acceptance Criteria:**
+
 - One cart per authenticated user
 - Cannot add more than available stock
 - Cart persists across sessions
@@ -404,6 +515,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ## Phase 5: Orders & Checkout
 
 ### 5.1 Order Domain Logic
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 3 hours
 
@@ -420,6 +532,7 @@ Create DTOs for all modules with `class-validator` decorators:
     - [ ] `recordStatusChange(status, userId, notes)` - add to history
 
 **Acceptance Criteria:**
+
 - Order status transitions follow defined flow
 - Status history tracked for audit
 - Business rules enforced (e.g., can't ship cancelled order)
@@ -427,6 +540,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 5.2 Orders Service
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 5 hours
 
@@ -441,7 +555,6 @@ Create DTOs for all modules with `class-validator` decorators:
     - [ ] Generate unique order number
     - [ ] Clear cart after order creation
     - [ ] Create initial status history entry
-  
   - [ ] `findUserOrders(userId, filterDto)` - paginated user orders
   - [ ] `findById(id)` - order details with items and history
   - [ ] `updateStatus(id, status, userId, notes)` - change order status
@@ -458,6 +571,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Add Swagger documentation
 
 **Acceptance Criteria:**
+
 - Order created from cart
 - Stock reserved on order creation
 - Stock restored on cancellation
@@ -470,6 +584,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ## Phase 6: Admin Features
 
 ### 6.1 Admin Orders Management
+
 **Priority:** 🟡 High  
 **Estimated Time:** 3 hours
 
@@ -480,6 +595,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] Sort by: createdAt, totalAmount
 
 **Acceptance Criteria:**
+
 - Staff can view all orders
 - Managers can assign orders to staff
 - Filters work correctly
@@ -488,6 +604,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ---
 
 ### 6.2 Admin User Management
+
 **Priority:** 🟡 High  
 **Estimated Time:** 3 hours
 
@@ -499,6 +616,7 @@ Create DTOs for all modules with `class-validator` decorators:
   - [ ] `DELETE /admin/users/:id` - delete user (SuperAdmin, cannot delete if has orders)
 
 **Acceptance Criteria:**
+
 - Managers can view all users
 - SuperAdmin can change roles
 - SuperAdmin can suspend accounts
@@ -509,6 +627,7 @@ Create DTOs for all modules with `class-validator` decorators:
 ## Phase 7: Testing & Documentation
 
 ### 7.1 Integration Tests
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 8 hours
 
@@ -540,6 +659,7 @@ Create integration tests for each module following the service → repository �
   - [ ] Status transitions
 
 **Acceptance Criteria:**
+
 - All tests use `.env.test` database
 - Tests clean up after themselves
 - Tests follow Given-When-Then pattern
@@ -548,6 +668,7 @@ Create integration tests for each module following the service → repository �
 ---
 
 ### 7.2 Bruno API Collection
+
 **Priority:** 🔴 Critical  
 **Estimated Time:** 4 hours
 
@@ -566,6 +687,7 @@ Create `.bru` files for all endpoints:
   - [ ] Admin (users, roles, policies, orders management)
 
 **Acceptance Criteria:**
+
 - All endpoints documented
 - Examples include request/response
 - Authentication flows work
@@ -574,6 +696,7 @@ Create `.bru` files for all endpoints:
 ---
 
 ### 7.3 Swagger Documentation
+
 **Priority:** 🟡 High  
 **Estimated Time:** 2 hours
 
@@ -589,6 +712,7 @@ Create `.bru` files for all endpoints:
   - [ ] `@ApiResponse()` for success/error cases
 
 **Acceptance Criteria:**
+
 - Swagger UI shows all endpoints
 - Lock icons on protected routes
 - Request/response examples visible
@@ -599,6 +723,7 @@ Create `.bru` files for all endpoints:
 ## Phase 8: Deployment
 
 ### 8.1 Environment Configuration
+
 **Priority:** 🟡 High  
 **Estimated Time:** 1 hour
 
@@ -609,6 +734,7 @@ Create `.bru` files for all endpoints:
   - [ ] Configure CORS for production frontend URL
 
 **Acceptance Criteria:**
+
 - Environment variables set in Vercel
 - Database connection works in production
 - CORS allows frontend domain
@@ -616,6 +742,7 @@ Create `.bru` files for all endpoints:
 ---
 
 ### 8.2 Vercel Deployment
+
 **Priority:** 🟡 High  
 **Estimated Time:** 2 hours
 
@@ -626,6 +753,7 @@ Create `.bru` files for all endpoints:
   - [ ] Test all endpoints in production
 
 **Acceptance Criteria:**
+
 - API deployed to Vercel
 - All endpoints functional
 - Swagger accessible
@@ -636,6 +764,7 @@ Create `.bru` files for all endpoints:
 ## Next Steps After Completion
 
 Once the API is complete:
+
 1. ✅ **Video Demo** - Record demonstration of all endpoints using Bruno
 2. 🎯 **Frontend Development** - Start Angular UI implementation
 3. 📝 **Documentation** - Final review of code comments and docs

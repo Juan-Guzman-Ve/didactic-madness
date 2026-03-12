@@ -1,15 +1,9 @@
-import { Module, Global } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database.config';
 import * as entities from './entities';
-import { 
-  UserRepository, 
-  ProductRepository, 
-  CategoryRepository, 
-  OrderRepository,
-} from './repositories';
-import { AuditSubscriber } from './subscribers';
+import { UserRepository } from './repositories';
 
 @Global()
 @Module({
@@ -21,19 +15,7 @@ import { AuditSubscriber } from './subscribers';
     }),
     TypeOrmModule.forFeature(Object.values(entities)),
   ],
-  providers: [
-    UserRepository,
-    ProductRepository,
-    CategoryRepository,
-    OrderRepository,
-    AuditSubscriber,
-  ],
-  exports: [
-    TypeOrmModule,
-    UserRepository,
-    ProductRepository,
-    CategoryRepository,
-    OrderRepository,
-  ],
+  providers: [UserRepository],
+  exports: [TypeOrmModule, UserRepository],
 })
 export class DatabaseModule {}
