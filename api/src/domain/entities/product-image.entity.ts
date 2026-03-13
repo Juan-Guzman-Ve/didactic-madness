@@ -1,7 +1,12 @@
 import { AuditableEntity } from './base';
 
-export interface ProductImage extends AuditableEntity {
-  productId: string;
-  url: string;
-  displayOrder: number;
+export class ProductImage implements AuditableEntity {
+  id!: string;
+  createdAt!: Date;
+  updatedAt!: Date;
+  createdBy!: string;
+  updatedBy!: string;
+  productId!: string;
+  url!: string;
+  displayOrder!: number;
 }

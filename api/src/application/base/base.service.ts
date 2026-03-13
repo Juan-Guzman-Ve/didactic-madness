@@ -4,7 +4,7 @@ import {
   PaginationQuery,
   PaginatedResponse,
   PaginationMeta,
-} from '../contracts/base/base-service.interface';
+} from '../contracts/base/base.service.interface';
 import {
   IRepository
 } from '../contracts/repositories/base/repository.interface';

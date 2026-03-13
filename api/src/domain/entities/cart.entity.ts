@@ -1,5 +1,10 @@
 import { AuditableEntity } from './base';
 
-export interface Cart extends AuditableEntity {
-  userId: string;
+export class Cart implements AuditableEntity {
+  id!: string;
+  createdAt!: Date;
+  updatedAt!: Date;
+  createdBy!: string;
+  updatedBy!: string;
+  userId!: string;
 }

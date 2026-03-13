@@ -1,6 +1,11 @@
 import { AuditableEntity } from './base';
 
-export interface RolePolicy extends AuditableEntity {
-  roleId: string;
-  policyId: string;
+export class RolePolicy implements AuditableEntity {
+  id!: string;
+  createdAt!: Date;
+  updatedAt!: Date;
+  createdBy!: string;
+  updatedBy!: string;
+  roleId!: string;
+  policyId!: string;
 }

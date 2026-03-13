@@ -8,87 +8,62 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  NotFoundException,
 } from '@nestjs/common';
-import { ObjectLiteral } from 'typeorm';
-import { IBaseService, PaginationQuery } from '../../application/contracts/base/base-service.interface';
+import {
+  ICommand,
+  ICommandHandler,
+  IQuery,
+  IQueryHandler,
+  IResponse,
+} from '@app/application/contracts/base';
 
 export abstract class BaseController<
-  TEntity extends ObjectLiteral,
-  TCreateDto,
-  TUpdateDto,
-  TResponseDto,
+  TCreateCommand extends ICommand,
+  TUpdateCommand extends ICommand & { id: string },
+  TDeleteCommand extends ICommand & { id: string },
+  TGetByIdQuery extends IQuery<TResponse> & { id: string },
+  TListQuery extends IQuery<TListResponse>,
+  TResponse extends IResponse,
+  TListResponse extends IResponse,
 > {
   constructor(
-    protected readonly service: IBaseService<TEntity, TCreateDto, TUpdateDto>,
-    protected readonly entityName: string,
+    protected readonly createHandler: ICommandHandler<TCreateCommand, TResponse>,
+    protected readonly updateHandler: ICommandHandler<TUpdateCommand, TResponse>,
+    protected readonly deleteHandler: ICommandHandler<TDeleteCommand, void>,
+    protected readonly getByIdHandler: IQueryHandler<TGetByIdQuery, TResponse>,
+    protected readonly listHandler: IQueryHandler<TListQuery, TListResponse>,
   ) {}
 
-  protected abstract toResponseDto(entity: TEntity): TResponseDto;
-  protected abstract toResponseDtoList(entities: TEntity[]): TResponseDto[];
-
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<TResponseDto> {
-    const entity = await this.service.findById(id);
-    
-    if (!entity) {
-      throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
-    }
-
-    return this.toResponseDto(entity);
+  async findById(@Param('id') id: string): Promise<TResponse> {
+    const query = { id } as TGetByIdQuery;
+    return this.getByIdHandler.execute(query);
   }
 
   @Get()
-  async findAll(@Query() query: PaginationQuery) {
-    const result = await this.service.findAll(query);
-    
-    return {
-      data: this.toResponseDtoList(result.data),
-      meta: result.meta,
-    };
+  async findAll(@Query() query: TListQuery): Promise<TListResponse> {
+    return this.listHandler.execute(query);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: TCreateDto): Promise<TResponseDto> {
-    const entity = await this.service.create(dto);
-    return this.toResponseDto(entity);
+  async create(@Body() body: TCreateCommand): Promise<TResponse> {
+    return this.createHandler.execute(body);
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() dto: TUpdateDto,
-  ): Promise<TResponseDto> {
-    const entity = await this.service.update(id, dto);
-    return this.toResponseDto(entity);
+    @Body() body: TUpdateCommand,
+  ): Promise<TResponse> {
+    const command = { ...body, id } as TUpdateCommand;
+    return this.updateHandler.execute(command);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string): Promise<void> {
-    await this.service.delete(id);
-  }
-
-  @Delete('bulk/delete')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteMany(@Body('ids') ids: string[]): Promise<void> {
-    await this.service.deleteMany(ids);
-  }
-
-  @Post('bulk/create')
-  @HttpCode(HttpStatus.CREATED)
-  async createMany(@Body('items') dtos: TCreateDto[]): Promise<TResponseDto[]> {
-    const entities = await this.service.createMany(dtos);
-    return this.toResponseDtoList(entities);
-  }
-
-  @Put('bulk/update')
-  async updateMany(
-    @Body('updates') updates: Array<{ id: string; data: TUpdateDto }>,
-  ): Promise<TResponseDto[]> {
-    const mappedUpdates = updates.map(({ id, data }) => ({ id, dto: data }));
-    const entities = await this.service.updateMany(mappedUpdates);
-    return this.toResponseDtoList(entities);
+    const command = { id } as TDeleteCommand;
+    await this.deleteHandler.execute(command);
   }
 }

@@ -16,24 +16,20 @@ export interface PaginatedResponse<T> {
   meta: PaginationMeta;
 }
 
-export interface IBaseService<
-  TDomain,
-  TCreateDto,
-  TUpdateDto,
-> {
+export interface IBaseService<TDomain, TCreateDto, TUpdateDto> {
   findById(id: string): Promise<TDomain | null>;
-  
+
   findAll(query: PaginationQuery): Promise<PaginatedResponse<TDomain>>;
-  
+
   create(dto: TCreateDto): Promise<TDomain>;
-  
+
   update(id: string, dto: TUpdateDto): Promise<TDomain>;
-  
+
   delete(id: string): Promise<void>;
-  
+
   deleteMany(ids: string[]): Promise<void>;
-  
+
   createMany(dtos: TCreateDto[]): Promise<TDomain[]>;
-  
+
   updateMany(updates: Array<{ id: string; dto: TUpdateDto }>): Promise<TDomain[]>;
 }

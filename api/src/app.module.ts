@@ -9,8 +9,17 @@ import { DatabaseModule } from './infra/database';
 // Application Services
 //import {} from './application/services';
 
+// Role Use Cases
+import {
+  CreateRoleCommandHandler,
+  DeleteRoleCommandHandler,
+  GetRoleByIdQueryHandler,
+  ListRolesQueryHandler,
+  UpdateRoleCommandHandler,
+} from './application/features/role';
+
 // Presentation Controllers
-import { HealthController } from './presentation/controllers';
+import { HealthController, RoleController } from './presentation/controllers';
 
 @Module({
   imports: [
@@ -28,7 +37,13 @@ import { HealthController } from './presentation/controllers';
     // ─── Infrastructure ────────────────────────────────────────────────────
     DatabaseModule,
   ],
-  controllers: [AppController, HealthController],
-  providers: [HealthController],
+  controllers: [AppController, HealthController, RoleController],
+  providers: [
+    CreateRoleCommandHandler,
+    UpdateRoleCommandHandler,
+    DeleteRoleCommandHandler,
+    GetRoleByIdQueryHandler,
+    ListRolesQueryHandler,
+  ],
 })
 export class AppModule {}

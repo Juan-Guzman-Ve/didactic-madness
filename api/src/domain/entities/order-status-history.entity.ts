@@ -1,9 +1,10 @@
 import { BaseEntity } from './base';
 
-export interface OrderStatusHistory extends BaseEntity {
-  orderId: string;
-  status: string;
+export class OrderStatusHistory implements BaseEntity {
+  id!: string;
+  orderId!: string;
+  status!: string;
   changedByUserId?: string;
   notes?: string;
-  changedAt: Date;
+  changedAt!: Date;
 }

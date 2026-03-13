@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database.config';
 import * as entities from './entities';
-import { UserRepository } from './repositories';
+import { RoleRepository, UserRepository } from './repositories';
 
 @Global()
 @Module({
@@ -15,7 +15,7 @@ import { UserRepository } from './repositories';
     }),
     TypeOrmModule.forFeature(Object.values(entities)),
   ],
-  providers: [UserRepository],
-  exports: [TypeOrmModule, UserRepository],
+  providers: [UserRepository, RoleRepository],
+  exports: [TypeOrmModule, UserRepository, RoleRepository],
 })
 export class DatabaseModule {}

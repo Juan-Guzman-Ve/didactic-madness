@@ -1,6 +1,7 @@
 import { Repository, FindOptionsWhere, ObjectLiteral } from 'typeorm';
-import { IRepository } from '../../../../application/contracts/repositories';
-import { PaginationParams, PaginatedResult } from '../../../../application/contracts/common/pagination.types';
+import { IRepository } from '@app/application/contracts/repositories';
+import { PaginationParams, PaginatedResult } from '@app/application/contracts/common/pagination.types';
+import { AuditableEntity } from '@app/infra/database';
 
 /**
  * Base repository implementation using TypeORM
@@ -11,7 +12,13 @@ import { PaginationParams, PaginatedResult } from '../../../../application/contr
  * @typeParam TDomain - Domain entity interface
  * @typeParam TEntity - TypeORM entity class
  */
-export abstract class BaseRepository<TDomain, TEntity extends ObjectLiteral> implements IRepository<TDomain> {
+export abstract class BaseRepository
+<
+  TDomain extends AuditableEntity, 
+  TEntity extends ObjectLiteral
+>   
+  implements IRepository<TDomain> 
+{
   constructor(protected readonly repository: Repository<TEntity>) {}
 
   protected abstract toDomain(entity: TEntity): TDomain;
@@ -196,8 +203,6 @@ export abstract class BaseRepository<TDomain, TEntity extends ObjectLiteral> imp
   }
 
   async saveChanges(): Promise<void> {
-    // TypeORM auto-saves, but this method is here for compatibility
-    // with patterns that require explicit save calls
     await this.repository.manager.connection.synchronize();
   }
 }
