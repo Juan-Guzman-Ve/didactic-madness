@@ -1,5 +1,4 @@
-import { IQuery } from './i-query';
-import { IResponse } from './i-response';
+import { IQuery, IResponse } from '@app/application';
 
 export interface IQueryHandler
 <

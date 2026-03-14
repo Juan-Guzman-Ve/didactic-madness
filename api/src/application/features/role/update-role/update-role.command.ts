@@ -1,4 +1,4 @@
-import { ICommand } from '@app/application/contracts/base';
+import { ICommand } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 

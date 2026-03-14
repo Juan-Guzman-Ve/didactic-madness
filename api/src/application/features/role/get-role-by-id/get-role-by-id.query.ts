@@ -1,7 +1,6 @@
-import { IQuery } from '@app/application/contracts/base';
+import { IQuery, RoleResponse } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID } from 'class-validator';
-import { RoleResponse } from '../role.response';
 
 export class GetRoleByIdQuery implements IQuery<RoleResponse> {
   @ApiProperty({

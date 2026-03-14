@@ -4,26 +4,14 @@ import {
   PaginationQuery,
   PaginatedResponse,
   PaginationMeta,
-} from '../contracts/base/base.service.interface';
-import {
-  IRepository
-} from '../contracts/repositories/base/repository.interface';
-import { PaginationParams } from '../contracts/common/pagination.types';
+  IRepository,
+  PaginationParams
+} from '@app/application';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-/**
- * Base service implementation using IRepository pattern
- * 
- * Provides common CRUD operations for all services following Clean Architecture.
- * Services work with domain entities and communicate through repository interfaces.
- * 
- * @typeParam TDomain - Domain entity interface (from domain/entities)
- * @typeParam TCreateDto - DTO for creating entities
- * @typeParam TUpdateDto - DTO for updating entities
- */
 export abstract class BaseService<
   TDomain,
   TCreateDto,

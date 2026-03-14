@@ -1,5 +1,4 @@
-import { ICommand } from './i-command';
-
+import { ICommand } from '@app/application';
 export interface ICommandHandler
 <
   TCommand extends ICommand,

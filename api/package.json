@@ -4,12 +4,14 @@
   "description": "NestJS API for PC Parts Store with TypeORM + Supabase PostgreSQL",
   "main": "dist/main.js",
   "scripts": {
-    "build": "nest build",
+    "prestart": "kill-port 3000",
+    "build": "nest build && tsc-alias -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start",
+    "start": "npm run build && node dist/src/main.js",
     "start:dev": "nest start --watch",
+    "prestart:debug": "kill-port 3000",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main.js",
     "lint": "prettier --check \"src/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -60,6 +62,8 @@
     "ts-jest": "29.2.5",
     "ts-node": "10.9.2",
     "ts-node-dev": "2.0.0",
+    "kill-port": "2.0.1",
+    "tsc-alias": "1.8.16",
     "tsconfig-paths": "4.2.0",
     "typescript": "5.9.3"
   }

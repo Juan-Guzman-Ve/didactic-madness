@@ -1,12 +1,10 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { ICommandHandler } from '@app/application/contracts/base';
-import { Role } from '@app/domain/entities';
-import { RoleRepository } from '@app/infra/database/repositories';
-import { CreateRoleCommand } from './create-role.command';
+import { Role } from '@app/domain';
+import { IRoleRepository, CreateRoleCommand, ICommandHandler } from '@app/application';
 
 @Injectable()
 export class CreateRoleCommandHandler implements ICommandHandler<CreateRoleCommand, Role> {
-  constructor(private readonly repository: RoleRepository) {}
+  constructor(private readonly repository: IRoleRepository) {}
 
   async execute(command: CreateRoleCommand): Promise<Role> {
     const existing = await this.repository.findOne(

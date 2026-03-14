@@ -1,5 +1,5 @@
-import { IResponse } from '@app/application/contracts/base';
-import { Role } from '@app/domain/entities';
+import { IResponse } from '@app/application';
+import { Role } from '@app/domain';
 
 export class RoleResponse implements IResponse {
   id!: string;

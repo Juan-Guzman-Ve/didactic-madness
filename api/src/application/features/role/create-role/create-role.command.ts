@@ -1,6 +1,6 @@
 import { ICommand } from '@app/application/contracts/base';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateRoleCommand implements ICommand {
   @ApiProperty({

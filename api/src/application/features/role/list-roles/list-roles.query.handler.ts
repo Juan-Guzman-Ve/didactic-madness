@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IQueryHandler } from '@app/application/contracts/base';
-import { RoleRepository } from '@app/infra/database/repositories';
-import { ListRolesQuery } from './list-roles.query';
-import { ListRolesResponse, toRoleResponse } from '../role.response';
+import { IRoleRepository, ListRolesResponse, toRoleResponse, ListRolesQuery, IQueryHandler } from '@app/application';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -10,7 +7,7 @@ const MAX_LIMIT = 100;
 
 @Injectable()
 export class ListRolesQueryHandler implements IQueryHandler<ListRolesQuery, ListRolesResponse> {
-  constructor(private readonly repository: RoleRepository) {}
+  constructor(private readonly repository: IRoleRepository) {}
 
   async execute(query: ListRolesQuery): Promise<ListRolesResponse> {
     const page = Math.max(query.page ?? DEFAULT_PAGE, 1);

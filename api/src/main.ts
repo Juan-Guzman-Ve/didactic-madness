@@ -4,6 +4,27 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
+
+  let isShuttingDown = false;
+  const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
+    if (isShuttingDown) {
+      return;
+    }
+
+    isShuttingDown = true;
+    console.log(`Received ${signal}. Closing application...`);
+    await app.close();
+    console.log('Application closed gracefully.');
+  };
+
+  process.once('SIGINT', () => {
+    void shutdown('SIGINT');
+  });
+
+  process.once('SIGTERM', () => {
+    void shutdown('SIGTERM');
+  });
 
   // ─── CORS Configuration ──────────────────────────────────────────────────
   app.enableCors({
@@ -37,9 +58,9 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
-  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Application is running on: http://localhost:${port}/api`);
+  console.log(`API Documentation: http://localhost:${port}/api/docs`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 }
 
 bootstrap();

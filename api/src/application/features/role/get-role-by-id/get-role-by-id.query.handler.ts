@@ -1,12 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IQueryHandler } from '@app/application/contracts/base';
-import { RoleRepository } from '@app/infra/database/repositories';
-import { GetRoleByIdQuery } from './get-role-by-id.query';
-import { RoleResponse, toRoleResponse } from '../role.response';
+import { RoleResponse, toRoleResponse,IQueryHandler,IRoleRepository,GetRoleByIdQuery} from '@app/application';
 
 @Injectable()
 export class GetRoleByIdQueryHandler implements IQueryHandler<GetRoleByIdQuery, RoleResponse> {
-  constructor(private readonly repository: RoleRepository) {}
+  constructor(private readonly repository: IRoleRepository) {}
 
   async execute(query: GetRoleByIdQuery): Promise<RoleResponse> {
     const role = await this.repository.findById(query.id);

@@ -3,15 +3,6 @@ import { IRepository } from '@app/application/contracts/repositories';
 import { PaginationParams, PaginatedResult } from '@app/application/contracts/common/pagination.types';
 import { AuditableEntity } from '@app/infra/database';
 
-/**
- * Base repository implementation using TypeORM
- * Provides generic CRUD operations for all entities
- * 
- * Similar to .NET's Repository<T> base class
- * 
- * @typeParam TDomain - Domain entity interface
- * @typeParam TEntity - TypeORM entity class
- */
 export abstract class BaseRepository
 <
   TDomain extends AuditableEntity, 

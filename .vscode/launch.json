@@ -6,7 +6,12 @@
       "request": "launch",
       "name": "🚀 Debug NestJS API",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:debug"],
+      "runtimeArgs": [
+        "--prefix",
+        "${workspaceFolder}/api",
+        "run",
+        "start"
+      ],
       "cwd": "${workspaceFolder}/api",
       "console": "integratedTerminal",
       "restart": true,
