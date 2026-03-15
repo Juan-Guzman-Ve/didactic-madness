@@ -1,13 +1,8 @@
 import { AuditableEntity } from './base';
 
-export class Product implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
+export class Product extends AuditableEntity {
   sku!: string;
-  categoryId!: string;
+  categoryId!: number;
   name!: string;
   description!: string;
   brand!: string;

@@ -4,11 +4,11 @@ import { OrderEntity } from './order.entity';
 
 @Entity('order_items')
 export class OrderItemEntity extends AuditableEntity {
-  @Column({ name: 'order_id' })
-  orderId!: string;
+  @Column({ name: 'order_id', type: 'integer' })
+  orderId!: number;
 
-  @Column({ name: 'product_id' })
-  productId!: string;
+  @Column({ name: 'product_id', type: 'integer' })
+  productId!: number;
 
   @Column('integer')
   quantity!: number;

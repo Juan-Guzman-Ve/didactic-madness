@@ -7,8 +7,8 @@ export class ProductEntity extends AuditableEntity {
   @Column({ unique: true })
   sku!: string;
 
-  @Column({ name: 'category_id' })
-  categoryId!: string;
+  @Column({ name: 'category_id', type: 'integer' })
+  categoryId!: number;
 
   @Column()
   name!: string;

@@ -18,8 +18,8 @@ export class UserEntity extends AuditableEntity {
   @Column({ nullable: true })
   phone!: string;
 
-  @Column({ name: 'role_id' })
-  roleId!: string;
+  @Column({ name: 'role_id', type: 'integer' })
+  roleId!: number;
 
   @Column({ default: 'Active' })
   status!: string;

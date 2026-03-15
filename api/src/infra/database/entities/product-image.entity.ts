@@ -4,8 +4,8 @@ import { ProductEntity } from './product.entity';
 
 @Entity('product_images')
 export class ProductImageEntity extends AuditableEntity {
-  @Column({ name: 'product_id' })
-  productId!: string;
+  @Column({ name: 'product_id', type: 'integer' })
+  productId!: number;
 
   @Column()
   url!: string;

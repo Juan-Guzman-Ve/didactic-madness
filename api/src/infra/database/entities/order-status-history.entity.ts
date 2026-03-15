@@ -4,14 +4,14 @@ import { OrderEntity } from './order.entity';
 
 @Entity('order_status_history')
 export class OrderStatusHistoryEntity extends BaseEntity {
-  @Column({ name: 'order_id' })
-  orderId!: string;
+  @Column({ name: 'order_id', type: 'integer' })
+  orderId!: number;
 
   @Column()
   status!: string;
 
-  @Column({ name: 'changed_by_user_id', nullable: true })
-  changedByUserId!: string;
+  @Column({ name: 'changed_by_user_id', type: 'integer', nullable: true })
+  changedByUserId!: number | null;
 
   @Column('text', { nullable: true })
   notes!: string;

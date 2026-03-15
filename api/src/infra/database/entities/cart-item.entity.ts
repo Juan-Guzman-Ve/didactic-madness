@@ -4,11 +4,11 @@ import { CartEntity } from './cart.entity';
 
 @Entity('cart_items')
 export class CartItemEntity extends AuditableEntity {
-  @Column({ name: 'cart_id' })
-  cartId!: string;
+  @Column({ name: 'cart_id', type: 'integer' })
+  cartId!: number;
 
-  @Column({ name: 'product_id' })
-  productId!: string;
+  @Column({ name: 'product_id', type: 'integer' })
+  productId!: number;
 
   @Column('integer')
   quantity!: number;

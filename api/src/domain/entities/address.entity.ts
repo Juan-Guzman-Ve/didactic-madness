@@ -1,12 +1,7 @@
 import { AuditableEntity } from './base';
 
-export class Address implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
-  userId!: string;
+export class Address extends AuditableEntity {
+  userId!: number;
   addressLine1!: string;
   addressLine2?: string;
   city!: string;

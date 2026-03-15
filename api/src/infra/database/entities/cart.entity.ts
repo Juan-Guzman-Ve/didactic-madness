@@ -4,8 +4,8 @@ import { CartItemEntity } from './cart-item.entity';
 
 @Entity('carts')
 export class CartEntity extends AuditableEntity {
-  @Column({ name: 'user_id', unique: true })
-  userId!: string;
+  @Column({ name: 'user_id', unique: true, type: 'integer' })
+  userId!: number;
 
   @OneToMany(() => CartItemEntity, (item) => item.cart)
   items!: CartItemEntity[];

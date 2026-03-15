@@ -1,10 +1,9 @@
 import { BaseEntity } from './base';
 
-export class OrderStatusHistory implements BaseEntity {
-  id!: string;
-  orderId!: string;
+export class OrderStatusHistory extends BaseEntity {
+  orderId!: number;
   status!: string;
-  changedByUserId?: string;
+  changedByUserId?: number;
   notes?: string;
   changedAt!: Date;
 }

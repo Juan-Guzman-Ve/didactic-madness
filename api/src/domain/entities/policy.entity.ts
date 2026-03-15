@@ -1,11 +1,6 @@
 import { AuditableEntity } from './base';
 
-export class Policy implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
+export class Policy extends AuditableEntity {
   name!: string;
   resource!: string;
   action!: string;

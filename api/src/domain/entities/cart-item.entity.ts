@@ -1,12 +1,7 @@
 import { AuditableEntity } from './base';
 
-export class CartItem implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
-  cartId!: string;
-  productId!: string;
+export class CartItem extends AuditableEntity {
+  cartId!: number;
+  productId!: number;
   quantity!: number;
 }

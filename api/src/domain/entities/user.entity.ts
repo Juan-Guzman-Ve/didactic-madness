@@ -1,16 +1,11 @@
 import { AuditableEntity } from './base';
 
-export class User implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
+export class User extends AuditableEntity {
   email!: string;
   passwordHash!: string;
   firstName!: string;
   lastName!: string;
   phone?: string;
-  roleId!: string;
+  roleId!: number;
   status!: string;
 }

@@ -3,8 +3,8 @@ import { AuditableEntity } from './base';
 
 @Entity('addresses')
 export class AddressEntity extends AuditableEntity {
-  @Column({ name: 'user_id' })
-  userId!: string;
+  @Column({ name: 'user_id', type: 'integer' })
+  userId!: number;
 
   @Column({ name: 'address_line_1' })
   addressLine1!: string;

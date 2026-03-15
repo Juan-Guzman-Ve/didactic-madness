@@ -1,14 +1,9 @@
 import { AuditableEntity } from './base';
 
-export class Order implements AuditableEntity {
-  id!: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-  createdBy!: string;
-  updatedBy!: string;
+export class Order extends AuditableEntity {
   orderNumber!: string;
-  userId!: string;
-  addressId!: string;
+  userId!: number;
+  addressId!: number;
   status!: string;
   totalAmount!: number;
   paymentStatus!: string;

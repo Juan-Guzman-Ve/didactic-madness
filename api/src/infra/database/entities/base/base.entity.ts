@@ -5,25 +5,11 @@ import {
   Column,
 } from 'typeorm';
 
-/**
- * Base entity class for TypeORM
- * Provides common fields for all entities
- */
 export abstract class BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn('increment')
+  id!: number;
 }
 
-/**
- * Auditable entity class for TypeORM
- * Provides audit trail fields
- * 
- * Audit fields are automatically populated by AuditSubscriber:
- * - createdAt: Set on insert
- * - updatedAt: Set on insert and update
- * - createdBy: Set on insert (from request context)
- * - updatedBy: Set on update (from request context)
- */
 export abstract class AuditableEntity extends BaseEntity {
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

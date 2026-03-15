@@ -8,11 +8,11 @@ export class OrderEntity extends AuditableEntity {
   @Column({ name: 'order_number', unique: true })
   orderNumber!: string;
 
-  @Column({ name: 'user_id' })
-  userId!: string;
+  @Column({ name: 'user_id', type: 'integer' })
+  userId!: number;
 
-  @Column({ name: 'address_id' })
-  addressId!: string;
+  @Column({ name: 'address_id', type: 'integer' })
+  addressId!: number;
 
   @Column()
   status!: string;
