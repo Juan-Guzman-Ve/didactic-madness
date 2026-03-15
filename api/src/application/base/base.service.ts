@@ -1,23 +1,17 @@
 import { NotFoundException } from '@nestjs/common';
 import {
-  IBaseService,
   PaginationQuery,
   PaginatedResponse,
   PaginationMeta,
   IRepository,
-  PaginationParams
+  PaginationParams,
 } from '@app/application';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-export abstract class BaseService<
-  TDomain,
-  TCreateDto,
-  TUpdateDto,
-> implements IBaseService<TDomain, TCreateDto, TUpdateDto>
-{
+export abstract class BaseService<TDomain, TCreateDto, TUpdateDto> {
   constructor(
     protected readonly repository: IRepository<TDomain>,
     protected readonly entityName: string,
@@ -26,23 +20,16 @@ export abstract class BaseService<
   protected abstract mapCreateDtoToEntity(dto: TCreateDto): TDomain;
   protected abstract mapUpdateDtoToEntity(dto: TUpdateDto, entity: TDomain): TDomain;
 
-  async findById(id: string): Promise<TDomain | null> {
+  async findById(id: number): Promise<TDomain | null> {
     return this.repository.findById(id);
   }
 
   async findAll(query: PaginationQuery): Promise<PaginatedResponse<TDomain>> {
-    const page = Math.max(query.page || DEFAULT_PAGE, 1);
-    const limit = Math.min(query.limit || DEFAULT_LIMIT, MAX_LIMIT);
-
+    const page = Math.max(query.page ?? DEFAULT_PAGE, 1);
+    const limit = Math.min(query.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
     const { sortBy, sortOrder } = this.parseSort(query.sort);
 
-    const params: PaginationParams = {
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-    };
-
+    const params: PaginationParams = { page, limit, sortBy, sortOrder };
     const result = await this.repository.findPaginated(params);
 
     const meta: PaginationMeta = {
@@ -60,71 +47,48 @@ export abstract class BaseService<
     return this.repository.create(entity);
   }
 
-  async update(id: string, dto: TUpdateDto): Promise<TDomain> {
+  async update(id: number, dto: TUpdateDto): Promise<TDomain> {
     const entity = await this.findById(id);
-
-    if (!entity) {
-      throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
-    }
+    if (!entity) throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
 
     const updatedEntity = this.mapUpdateDtoToEntity(dto, entity);
     return this.repository.updateById(id, updatedEntity);
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     const exists = await this.repository.exists(id);
-
-    if (!exists) {
-      throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
-    }
+    if (!exists) throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
 
     await this.repository.deleteById(id);
   }
 
-  async deleteMany(ids: string[]): Promise<void> {
-    if (ids.length === 0) {
-      return;
-    }
-
+  async deleteMany(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
     await this.repository.deleteByIds(ids);
   }
 
   async createMany(dtos: TCreateDto[]): Promise<TDomain[]> {
-    if (dtos.length === 0) {
-      return [];
-    }
-
+    if (dtos.length === 0) return [];
     const entities = dtos.map((dto) => this.mapCreateDtoToEntity(dto));
     return this.repository.createMany(entities);
   }
 
-  async updateMany(
-    updates: Array<{ id: string; dto: TUpdateDto }>,
-  ): Promise<TDomain[]> {
-    if (updates.length === 0) {
-      return [];
-    }
+  async updateMany(updates: Array<{ id: number; dto: TUpdateDto }>): Promise<TDomain[]> {
+    if (updates.length === 0) return [];
 
-    const results = await Promise.all(
+    return Promise.all(
       updates.map(async ({ id, dto }) => {
         const entity = await this.findById(id);
-
-        if (!entity) {
-          throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
-        }
+        if (!entity) throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
 
         const updatedEntity = this.mapUpdateDtoToEntity(dto, entity);
         return this.repository.updateById(id, updatedEntity);
       }),
     );
-
-    return results;
   }
 
   private parseSort(sort?: string): { sortBy?: string; sortOrder?: 'ASC' | 'DESC' } {
-    if (!sort) {
-      return {};
-    }
+    if (!sort) return {};
 
     const parts = sort.split(':');
     const sortBy = parts[0];

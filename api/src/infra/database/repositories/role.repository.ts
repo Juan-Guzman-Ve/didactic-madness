@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BaseRepository } from './base/base.repository';
-import { Role } from '@app/domain/entities';
-import { RoleEntity } from '@app/infra/database/entities';
+import { Role } from '@app/domain';
 import { IRoleRepository } from '@app/application';
+import { BaseRepository } from '@app/infra/database/repositories/base/base.repository';
+import { RoleEntity } from '@app/infra/database/entities';
 
 @Injectable()
 export class RoleRepository extends BaseRepository<Role, RoleEntity> implements IRoleRepository {
@@ -13,6 +13,11 @@ export class RoleRepository extends BaseRepository<Role, RoleEntity> implements 
     repository: Repository<RoleEntity>,
   ) {
     super(repository);
+  }
+
+  async findByName(name: string): Promise<Role | null> {
+    const entity = await this.repository.findOne({ where: { name } });
+    return entity ? this.toDomain(entity) : null;
   }
 
   protected toDomain(entity: RoleEntity): Role {

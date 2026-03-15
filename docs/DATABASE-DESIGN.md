@@ -1,7 +1,7 @@
 # Database Design — PC Parts E-Commerce Platform
 
-**Version:** 1.0  
-**Last Updated:** March 6, 2026
+**Version:** 1.1  
+**Last Updated:** March 15, 2026
 
 This document defines the database schema, including tables, fields, relationships, and the RBAC (Role-Based Access Control) implementation.
 
@@ -43,14 +43,14 @@ erDiagram
     
     %% RBAC entities
     Role {
-        string id PK
+        int id PK
         string name
         string description
         Auditable auditable
     }
     
     Policy {
-        string id PK
+        int id PK
         string name
         string resource
         string action
@@ -59,28 +59,28 @@ erDiagram
     }
     
     RolePolicy {
-        string id PK
-        string role_id FK
-        string policy_id FK
+        int id PK
+        int role_id FK
+        int policy_id FK
         Auditable auditable
     }
     
     %% Domain entities
     User {
-        string id PK
+        int id PK
         string email
         string password_hash
         string first_name
         string last_name
         string phone
-        string role_id FK
+        int role_id FK
         string status
         Auditable auditable
     }
     
     Address {
-        string id PK
-        string user_id FK
+        int id PK
+        int user_id FK
         string address_line_1
         string address_line_2
         string city
@@ -92,7 +92,7 @@ erDiagram
     }
     
     Category {
-        string id PK
+        int id PK
         string name
         string description
         string slug
@@ -100,9 +100,9 @@ erDiagram
     }
     
     Product {
-        string id PK
+        int id PK
         string sku
-        string category_id FK
+        int category_id FK
         string name
         text description
         string brand
@@ -115,32 +115,32 @@ erDiagram
     }
     
     ProductImage {
-        string id PK
-        string product_id FK
+        int id PK
+        int product_id FK
         string url
         integer display_order
         Auditable auditable
     }
     
     Cart {
-        string id PK
-        string user_id FK
+        int id PK
+        int user_id FK
         Auditable auditable
     }
     
     CartItem {
-        string id PK
-        string cart_id FK
-        string product_id FK
+        int id PK
+        int cart_id FK
+        int product_id FK
         integer quantity
         Auditable auditable
     }
     
     Order {
-        string id PK
+        int id PK
         string order_number
-        string user_id FK
-        string address_id FK
+        int user_id FK
+        int address_id FK
         string status
         integer total_amount
         string payment_status
@@ -148,19 +148,19 @@ erDiagram
     }
     
     OrderItem {
-        string id PK
-        string order_id FK
-        string product_id FK
+        int id PK
+        int order_id FK
+        int product_id FK
         integer quantity
         integer price_at_purchase
         Auditable auditable
     }
     
     OrderStatusHistory {
-        string id PK
-        string order_id FK
+        int id PK
+        int order_id FK
         string status
-        string changed_by_user_id FK
+        int changed_by_user_id FK
         text notes
         timestamp changed_at
     }
@@ -187,7 +187,7 @@ User → Role → Policies
 #### `roles`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `name` | VARCHAR(50) | Unique role name (e.g., "Customer", "Manager") |
 | `description` | TEXT | Human-readable description |
 | `Auditable` | — | created_by, created_at, updated_by, updated_at |
@@ -195,7 +195,7 @@ User → Role → Policies
 #### `policies`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `name` | VARCHAR(100) | Unique policy name (e.g., "products:create") |
 | `resource` | VARCHAR(50) | Resource type (e.g., "products", "orders") |
 | `action` | VARCHAR(50) | Action type (e.g., "create", "read", "update", "delete") |
@@ -207,9 +207,9 @@ User → Role → Policies
 #### `role_policies` (Junction Table)
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `role_id` | UUID | Foreign key to roles |
-| `policy_id` | UUID | Foreign key to policies |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `role_id` | INTEGER | Foreign key to roles |
+| `policy_id` | INTEGER | Foreign key to policies |
 | `Auditable` | — | created_by, created_at, updated_by, updated_at |
 
 **Constraints:**
@@ -282,9 +282,9 @@ Common audit fields applied to most tables:
 
 | Field | Type | Description |
 |---|---|---|
-| `created_by` | UUID | User who created the record (nullable) |
+| `created_by` | VARCHAR(100) | Username/identifier of who created the record (nullable) |
 | `created_at` | TIMESTAMPTZ | Timestamp of creation |
-| `updated_by` | UUID | User who last updated the record (nullable) |
+| `updated_by` | VARCHAR(100) | Username/identifier of who last updated the record (nullable) |
 | `updated_at` | TIMESTAMPTZ | Timestamp of last update |
 
 **Tables with Auditable:**
@@ -305,21 +305,21 @@ Common audit fields applied to most tables:
 #### `users`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `email` | VARCHAR(255) | Unique, used for login |
 | `password_hash` | VARCHAR(255) | Bcrypt hashed password |
 | `first_name` | VARCHAR(100) | User's first name |
 | `last_name` | VARCHAR(100) | User's last name |
 | `phone` | VARCHAR(20) | Phone number |
-| `role_id` | UUID | Foreign key to roles |
+| `role_id` | INTEGER | Foreign key to roles |
 | `status` | VARCHAR(50) | Active, Suspended |
 | `Auditable` | — | Audit fields |
 
 #### `addresses`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `user_id` | UUID | Foreign key to users |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `user_id` | INTEGER | Foreign key to users |
 | `address_line_1` | VARCHAR(255) | Street address |
 | `address_line_2` | VARCHAR(255) | Apartment, suite, etc. (optional) |
 | `city` | VARCHAR(100) | City |
@@ -336,7 +336,7 @@ Common audit fields applied to most tables:
 #### `categories`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `name` | VARCHAR(255) | Unique category name |
 | `description` | TEXT | Category description |
 | `slug` | VARCHAR(100) | Unique URL-friendly identifier |
@@ -345,9 +345,9 @@ Common audit fields applied to most tables:
 #### `products`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `sku` | VARCHAR(100) | Unique stock-keeping unit |
-| `category_id` | UUID | Foreign key to categories |
+| `category_id` | INTEGER | Foreign key to categories |
 | `name` | VARCHAR(255) | Product name |
 | `description` | TEXT | Product description |
 | `brand` | VARCHAR(100) | Brand/manufacturer |
@@ -361,8 +361,8 @@ Common audit fields applied to most tables:
 #### `product_images`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `product_id` | UUID | Foreign key to products |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `product_id` | INTEGER | Foreign key to products |
 | `url` | VARCHAR(500) | Image URL (from storage service) |
 | `display_order` | INTEGER | Sort order for display |
 | `Auditable` | — | Audit fields |
@@ -374,16 +374,16 @@ Common audit fields applied to most tables:
 #### `carts`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `user_id` | UUID | Foreign key to users (unique) |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `user_id` | INTEGER | Foreign key to users (unique) |
 | `Auditable` | — | Audit fields |
 
 #### `cart_items`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `cart_id` | UUID | Foreign key to carts |
-| `product_id` | UUID | Foreign key to products |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `cart_id` | INTEGER | Foreign key to carts |
+| `product_id` | INTEGER | Foreign key to products |
 | `quantity` | INTEGER | Number of units |
 | `Auditable` | — | Audit fields |
 
@@ -394,10 +394,10 @@ Common audit fields applied to most tables:
 #### `orders`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
+| `id` | INTEGER | Primary key (auto-incremented) |
 | `order_number` | VARCHAR(50) | Unique order identifier |
-| `user_id` | UUID | Foreign key to users |
-| `address_id` | UUID | Foreign key to addresses |
+| `user_id` | INTEGER | Foreign key to users |
+| `address_id` | INTEGER | Foreign key to addresses |
 | `status` | VARCHAR(50) | Order status (see statuses below) |
 | `total_amount` | INTEGER | Total price in cents |
 | `payment_status` | VARCHAR(50) | Pending, Confirmed, Failed, Refunded |
@@ -410,9 +410,9 @@ Common audit fields applied to most tables:
 #### `order_items`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `order_id` | UUID | Foreign key to orders |
-| `product_id` | UUID | Foreign key to products |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `order_id` | INTEGER | Foreign key to orders |
+| `product_id` | INTEGER | Foreign key to products |
 | `quantity` | INTEGER | Number of units |
 | `price_at_purchase` | INTEGER | Price snapshot in cents at order time |
 | `Auditable` | — | Audit fields (created only, immutable) |
@@ -420,10 +420,10 @@ Common audit fields applied to most tables:
 #### `order_status_history`
 | Field | Type | Description |
 |---|---|---|
-| `id` | UUID | Primary key |
-| `order_id` | UUID | Foreign key to orders |
+| `id` | INTEGER | Primary key (auto-incremented) |
+| `order_id` | INTEGER | Foreign key to orders |
 | `status` | VARCHAR(50) | Status at this point in time |
-| `changed_by_user_id` | UUID | User who changed status (nullable) |
+| `changed_by_user_id` | INTEGER | User who changed status (nullable) |
 | `notes` | TEXT | Optional notes |
 | `changed_at` | TIMESTAMPTZ | Timestamp of change |
 

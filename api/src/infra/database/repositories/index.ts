@@ -1,2 +1,2 @@
-export * from './base/base.repository';
-export * from './role.repository';
+export * from '@app/infra/database/repositories/base/base.repository';
+export * from '@app/infra/database/repositories/role.repository';

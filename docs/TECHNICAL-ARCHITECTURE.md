@@ -1,7 +1,7 @@
 # Technical Architecture — Custom PC Parts E-Commerce Platform
 
-**Version:** 1.1  
-**Last Updated:** March 11, 2026  
+**Version:** 1.2  
+**Last Updated:** March 15, 2026  
 **Related Documents:**  
 - [Business Requirements](./SYSTEM-OVERVIEW.md) — What we're building
 - [Database Design](./DATABASE-DESIGN.md) — Database schema and RBAC
@@ -95,7 +95,7 @@ This document defines the **technical architecture, stack decisions, and impleme
 | `DbContext` | TypeORM `DataSource` |
 | EF Entity class + `IEntityTypeConfiguration` | `@Entity()` decorated class with column/relation decorators |
 | `DbContext.OnModelCreating()` | TypeORM decorators on entity properties (`@Column`, `@ManyToOne`, etc.) |
-| Generic `Repository<T>` | TypeORM built-in `Repository<T>` wrapped in a custom `BaseRepository<T>` |
+| Generic `Repository<T>` | TypeORM built-in `Repository<T>` wrapped in a custom `BaseRepository<T>` — uses database-level queries only (no in-memory filtering) |
 | `dotnet ef migrations add` | Hand-written SQL scripts in `database/migrations/` |
 | `dotnet ef database update` | Apply SQL scripts manually via Supabase SQL editor |
 | Controller + Route attributes | `@Controller('route')` + `@Get()`, `@Post()`, `@Put()`, `@Delete()` |
@@ -197,8 +197,8 @@ export class ListProductsQuery implements IQuery<PaginatedResponse<ProductRespon
   limit?: number = 20;
 
   @IsOptional()
-  @IsUUID()
-  categoryId?: string;
+  @IsInt()
+  categoryId?: number;
 }
 ```
 
@@ -291,7 +291,7 @@ api/
 │   │
 │   ├── database/                         # TypeORM setup + base classes
 │   │   ├── database.module.ts            # TypeORM forRoot() wired to ConfigService
-│   │   ├── base.entity.ts                # Abstract: id (uuid), createdAt, updatedAt
+│   │   ├── base.entity.ts                # Abstract: id (auto-incremented integer), createdAt, updatedAt
 │   │   └── base.repository.ts            # Generic BaseRepository<T extends BaseEntity>
 │   │
 │   ├── common/                           # Cross-cutting concerns (no business logic)
@@ -307,7 +307,7 @@ api/
 │   │   │   ├── current-user.decorator.ts # @CurrentUser()
 │   │   │   └── require-policy.decorator.ts  # @RequirePolicy('resource:action')
 │   │   └── pipes/
-│   │       └── parse-uuid.pipe.ts
+│   │       └── parse-int.pipe.ts
 │   │
 │   └── modules/                          # Feature modules (one per domain)
 │       ├── auth/
@@ -328,7 +328,7 @@ api/
 │       │   │   │   ├── update-user.command.ts
 │       │   │   │   └── update-user.handler.ts
 │       │   │   └── queries/
-│       │   │       ├── get-user-by-id.query.ts     # Query with @IsUUID()
+│       │   │       ├── get-user-by-id.query.ts     # Query with @IsInt()
 │       │   │       ├── get-user-by-id.handler.ts   # Queries and maps Domain → Response
 │       │   │       ├── list-users.query.ts
 │       │   │       └── list-users.handler.ts
@@ -617,7 +617,7 @@ docs/
 ### Products
 | Method | Route | Description | Auth | Required Policy | Query Params |
 |---|---|---|---|---|---|
-| GET | `/products` | List products with filters | Public | — | `?page=1&limit=20&category=uuid&search=text&minPrice=0&maxPrice=999&brand=text&inStock=true&sort=price:asc` |
+| GET | `/products` | List products with filters | Public | — | `?page=1&limit=20&categoryId=int&search=text&minPrice=0&maxPrice=999&brand=text&inStock=true&sort=price:asc` |
 | GET | `/products/:id` | Get product details | Public | — | — |
 | POST | `/products` | Create product | Manager+ | `products:create` | — |
 | PUT | `/products/:id` | Update product | Manager+ | `products:update` | — |
@@ -646,7 +646,7 @@ docs/
 ### Admin - Orders
 | Method | Route | Description | Auth | Required Policy | Query Params |
 |---|---|---|---|---|---|
-| GET | `/admin/orders` | List all orders | Staff+ | `orders:list` | `?page=1&limit=20&status=Shipped&userId=uuid&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` |
+| GET | `/admin/orders` | List all orders | Staff+ | `orders:list` | `?page=1&limit=20&status=Shipped&userId=int&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` |
 | PATCH | `/admin/orders/:id/assign` | Assign order to staff | Manager+ | `orders:update` | — |
 
 ### Admin - Users
@@ -718,8 +718,8 @@ docs/
 **Goal:** Establish reusable patterns following DDD and Use Case principles
 
 **API:**
-- `BaseEntity` abstract class (id, createdAt, updatedAt)
-- `BaseRepository<T>` generic wrapper with common methods
+- `BaseEntity` abstract class (id as auto-incremented integer, createdAt, updatedAt)
+- `BaseRepository<T>` generic wrapper with database-level queries only (`findAll`, `findPaginated`, `findById`, CRUD, `exists`, `count`)
 - Use Case infrastructure:
   - `ICommand` interface for write operations
   - `IQuery<TResult>` interface for read operations
@@ -958,14 +958,14 @@ docs/
 // Example: domain/user.entity.ts
 export class User {
   private constructor(
-    public readonly id: string,
+    public readonly id: number,
     private _email: string,
     private _status: UserStatus,
   ) {}
 
   static create(email: string): User {
     if (!User.isValidEmail(email)) throw new InvalidEmailError();
-    return new User(uuid(), email, UserStatus.ACTIVE);
+    return new User(0, email, UserStatus.ACTIVE); // id assigned by DB on insert
   }
 
   static fromPersistence(data: UserDbEntity): User {
@@ -999,8 +999,8 @@ export class User {
 // Example: entities/user.entity.ts
 @Entity('users')
 export class UserEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
   @Column({ unique: true })
   email: string;
@@ -1008,8 +1008,8 @@ export class UserEntity {
   @Column({ name: 'password_hash' })
   passwordHash: string;
 
-  @Column({ name: 'role_id' })
-  roleId: string;
+  @Column({ name: 'role_id', type: 'integer' })
+  roleId: number;
 
   @Column()
   status: string;
@@ -1049,7 +1049,7 @@ export class CreateUserDto {
 // Example: dto/user-response.dto.ts
 export class UserResponseDto {
   @ApiProperty()
-  id: string;
+  id: number;
 
   @ApiProperty()
   email: string;

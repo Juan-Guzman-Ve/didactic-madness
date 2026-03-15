@@ -5,13 +5,13 @@ export class UserTestFactory {
 
   constructor() {
     this.user = {
-      id: `test-user-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      id: Date.now(),
       email: `test-${Date.now()}@example.com`,
       passwordHash: 'default_hashed_password',
       firstName: 'Test',
       lastName: 'User',
       phone: '+1234567890',
-      roleId: '00000000-0000-0000-0000-000000000001', // Default role ID
+      roleId: 1,
       status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -20,7 +20,7 @@ export class UserTestFactory {
     };
   }
 
-  withId(id: string): UserTestFactory {
+  withId(id: number): UserTestFactory {
     this.user.id = id;
     return this;
   }
@@ -46,7 +46,7 @@ export class UserTestFactory {
     return this;
   }
 
-  withRole(roleId: string): UserTestFactory {
+  withRole(roleId: number): UserTestFactory {
     this.user.roleId = roleId;
     return this;
   }
@@ -82,7 +82,7 @@ export class UserTestFactory {
         ...factory.build(),
         ...overrides,
         email: `test-${Date.now()}-${i}@example.com`,
-        id: `test-user-${Date.now()}-${i}`,
+        id: Date.now() + i,
       };
     });
   }
