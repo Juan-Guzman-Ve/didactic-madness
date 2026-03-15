@@ -1,8 +1,0 @@
-import { ICommand } from '@app/application/contracts/base';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
-
-export class DeleteRoleCommand implements ICommand {
-  @IsUUID()
-  id!: string;
-}

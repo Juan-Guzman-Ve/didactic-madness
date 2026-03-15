@@ -1,8 +1,0 @@
-import { IQuery, RoleResponse } from '@app/application';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
-
-export class GetRoleByIdQuery implements IQuery<RoleResponse> {
-  @IsUUID()
-  id!: string;
-}
