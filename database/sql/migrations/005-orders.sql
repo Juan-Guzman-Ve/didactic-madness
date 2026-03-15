@@ -5,16 +5,16 @@
 
 -- Orders table
 CREATE TABLE orders (
-    id VARCHAR(50) PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     order_number VARCHAR(50) NOT NULL UNIQUE,
-    user_id VARCHAR(50) NOT NULL,
-    address_id VARCHAR(50) NOT NULL,
+    user_id INTEGER NOT NULL,
+    address_id INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PendingPayment',
     total_amount INTEGER NOT NULL,
     payment_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
     CONSTRAINT fk_orders_address FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE RESTRICT,
@@ -41,14 +41,14 @@ CREATE INDEX idx_orders_user_created ON orders(user_id, created_at DESC);
 
 -- Order items table
 CREATE TABLE order_items (
-    id VARCHAR(50) PRIMARY KEY,
-    order_id VARCHAR(50) NOT NULL,
-    product_id VARCHAR(50) NOT NULL,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     price_at_purchase INTEGER NOT NULL,
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
@@ -64,10 +64,10 @@ CREATE INDEX idx_order_items_product_id ON order_items(product_id);
 
 -- Order status history table
 CREATE TABLE order_status_history (
-    id VARCHAR(50) PRIMARY KEY,
-    order_id VARCHAR(50) NOT NULL,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    order_id INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,
-    changed_by_user_id VARCHAR(50),
+    changed_by_user_id INTEGER,
     notes TEXT,
     changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_order_status_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,

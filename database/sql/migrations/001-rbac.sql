@@ -5,12 +5,12 @@
 
 -- Roles table
 CREATE TABLE roles (
-    id VARCHAR(50) PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -19,14 +19,14 @@ COMMENT ON COLUMN roles.name IS 'Unique role name (e.g., Customer, Manager, Supe
 
 -- Policies table
 CREATE TABLE policies (
-    id VARCHAR(50) PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     resource VARCHAR(50) NOT NULL,
     action VARCHAR(50) NOT NULL,
     description TEXT,
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -38,12 +38,12 @@ CREATE INDEX idx_policies_resource ON policies(resource);
 
 -- Role-Policy junction table (many-to-many)
 CREATE TABLE role_policies (
-    id VARCHAR(50) PRIMARY KEY,
-    role_id VARCHAR(50) NOT NULL,
-    policy_id VARCHAR(50) NOT NULL,
-    created_by VARCHAR(50),
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    role_id INTEGER NOT NULL,
+    policy_id INTEGER NOT NULL,
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_role_policies_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_policies_policy FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE RESTRICT,

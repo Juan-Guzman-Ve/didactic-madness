@@ -5,13 +5,13 @@
 
 -- Categories table
 CREATE TABLE categories (
-    id VARCHAR(50) PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     slug VARCHAR(100) NOT NULL UNIQUE,
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -20,9 +20,9 @@ COMMENT ON COLUMN categories.slug IS 'URL-friendly identifier';
 
 -- Products table
 CREATE TABLE products (
-    id VARCHAR(50) PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     sku VARCHAR(100) NOT NULL UNIQUE,
-    category_id VARCHAR(50) NOT NULL,
+    category_id INTEGER NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     brand VARCHAR(100) NOT NULL,
@@ -31,9 +31,9 @@ CREATE TABLE products (
     stock INTEGER NOT NULL DEFAULT 0,
     specifications JSONB,
     status VARCHAR(50) NOT NULL DEFAULT 'Active',
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
     CONSTRAINT chk_products_price CHECK (price >= 0),
@@ -54,13 +54,13 @@ CREATE INDEX idx_products_category_status ON products(category_id, status);
 
 -- Product images table
 CREATE TABLE product_images (
-    id VARCHAR(50) PRIMARY KEY,
-    product_id VARCHAR(50) NOT NULL,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    product_id INTEGER NOT NULL,
     url VARCHAR(500) NOT NULL,
     display_order INTEGER NOT NULL DEFAULT 0,
-    created_by VARCHAR(50),
+    created_by VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(50),
+    updated_by VARCHAR(100),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
