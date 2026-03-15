@@ -31,9 +31,9 @@
 | 1   | Apply all SQL migrations to Supabase                               | Phase 1 | 🔴 Critical | ✓    |
 | 2   | Apply seed data (roles, users, products)                           | Phase 1 | 🔴 Critical | ✓    |
 | 3   | Configure TypeORM DataSource and test connection                   | Phase 1 | 🔴 Critical | ✓    |
-| 4   | Configure Swagger documentation                                    | Phase 1 | 🟡 High     | ☐    |
-| 5   | Create Use Case base interfaces (ICommand, IQuery, handlers)       | Phase 1 | 🔴 Critical | ☐    |
-| 6   | Create use-cases folder structure (commands/queries per module)    | Phase 1 | 🔴 Critical | ☐    |
+| 4   | Configure Swagger documentation                                    | Phase 1 | 🟡 High     | ✓    |
+| 5   | Create Use Case base interfaces (ICommand, IQuery, handlers)       | Phase 1 | 🔴 Critical | ✓     |
+| 6   | Create use-cases folder structure (commands/queries per module)    | Phase 1 | 🔴 Critical | ✓     |
 | 7   | Implement example Command + Handler with validations               | Phase 1 | 🔴 Critical | ☐    |
 | 8   | Configure JWT authentication with @nestjs/jwt                      | Phase 2 | 🔴 Critical | ☐    |
 | 9   | Implement JWT Strategy with Passport                               | Phase 2 | 🔴 Critical | ☐    |

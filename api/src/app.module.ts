@@ -6,9 +6,6 @@ import { AppController } from './app.controller';
 import { configurations, validationSchema } from './infra/config';
 import { DatabaseModule } from './infra/database';
 
-// Application Services
-//import {} from './application/services';
-
 // Role Use Cases
 import {
   CreateRoleCommandHandler,
