@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CreatePolicyCommand,
   CreatePolicyCommandHandler,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('policies')
+@ApiExtraModels(ListPoliciesQuery)
 @Controller('policies')
 export class PolicyController extends BaseController<
   CreatePolicyCommand,
   UpdatePolicyCommand,
   DeletePolicyCommand,
   GetPolicyByIdQuery,
-  ListPoliciesQuery,
-  PolicyResponse,
-  ListPoliciesResponse
+  PolicyResponse
 > {
   constructor(
     createHandler: CreatePolicyCommandHandler,
     updateHandler: UpdatePolicyCommandHandler,
     deleteHandler: DeletePolicyCommandHandler,
     getByIdHandler: GetPolicyByIdQueryHandler,
-    listHandler: ListPoliciesQueryHandler,
+    private readonly listHandler: ListPoliciesQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListPoliciesQuery): Promise<ListPoliciesResponse> {
+      return this.listHandler.execute(query);
+    }
 }

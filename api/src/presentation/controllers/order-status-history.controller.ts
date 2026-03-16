@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CreateOrderStatusHistoryCommand,
   CreateOrderStatusHistoryCommandHandler,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('order-status-histories')
+@ApiExtraModels(ListOrderStatusHistoriesQuery)
 @Controller('order-status-histories')
 export class OrderStatusHistoryController extends BaseController<
   CreateOrderStatusHistoryCommand,
   UpdateOrderStatusHistoryCommand,
   DeleteOrderStatusHistoryCommand,
   GetOrderStatusHistoryByIdQuery,
-  ListOrderStatusHistoriesQuery,
-  OrderStatusHistoryResponse,
-  ListOrderStatusHistoriesResponse
+  OrderStatusHistoryResponse
 > {
   constructor(
     createHandler: CreateOrderStatusHistoryCommandHandler,
     updateHandler: UpdateOrderStatusHistoryCommandHandler,
     deleteHandler: DeleteOrderStatusHistoryCommandHandler,
     getByIdHandler: GetOrderStatusHistoryByIdQueryHandler,
-    listHandler: ListOrderStatusHistoriesQueryHandler,
+    private readonly listHandler: ListOrderStatusHistoriesQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListOrderStatusHistoriesQuery): Promise<ListOrderStatusHistoriesResponse> {
+      return this.listHandler.execute(query);
+    }
 }

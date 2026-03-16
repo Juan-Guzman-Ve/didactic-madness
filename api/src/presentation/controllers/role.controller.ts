@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CreateRoleCommand,
   CreateRoleCommandHandler,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('roles')
+@ApiExtraModels(ListRolesQuery)
 @Controller('roles')
 export class RoleController extends BaseController<
   CreateRoleCommand,
   UpdateRoleCommand,
   DeleteRoleCommand,
   GetRoleByIdQuery,
-  ListRolesQuery,
-  RoleResponse,
-  ListRolesResponse
+  RoleResponse
 > {
   constructor(
     createHandler: CreateRoleCommandHandler,
     updateHandler: UpdateRoleCommandHandler,
     deleteHandler: DeleteRoleCommandHandler,
     getByIdHandler: GetRoleByIdQueryHandler,
-    listHandler: ListRolesQueryHandler,
+    private readonly listHandler: ListRolesQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListRolesQuery): Promise<ListRolesResponse> {
+      return this.listHandler.execute(query);
+    }
 }

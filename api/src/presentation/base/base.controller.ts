@@ -5,7 +5,6 @@ import {
   Delete,
   Param,
   Body,
-  Query,
   HttpCode,
   HttpStatus,
   ParseIntPipe,
@@ -23,26 +22,18 @@ export abstract class BaseController<
   TUpdateCommand extends ICommand,
   TDeleteCommand extends ICommand,
   TGetByIdQuery extends IQuery<TResponse>,
-  TListQuery extends IQuery<TListResponse>,
   TResponse extends IResponse,
-  TListResponse extends IResponse,
 > {
   constructor(
     protected readonly createHandler: ICommandHandler<TCreateCommand, TResponse>,
     protected readonly updateHandler: ICommandHandler<TUpdateCommand, TResponse>,
     protected readonly deleteHandler: ICommandHandler<TDeleteCommand, void>,
     protected readonly getByIdHandler: IQueryHandler<TGetByIdQuery, TResponse>,
-    protected readonly listHandler: IQueryHandler<TListQuery, TListResponse>,
   ) {}
 
   @Get(':id')
   getById(@Param('id', ParseIntPipe) id: number): Promise<TResponse> {
     return this.getByIdHandler.execute({ id } as unknown as TGetByIdQuery);
-  }
-
-  @Get()
-  list(@Query() query: TListQuery): Promise<TListResponse> {
-    return this.listHandler.execute(query);
   }
 
   @Post()

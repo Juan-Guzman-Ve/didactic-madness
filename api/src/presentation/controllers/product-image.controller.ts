@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CreateProductImageCommand,
   CreateProductImageCommandHandler,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('product-images')
+@ApiExtraModels(ListProductImagesQuery)
 @Controller('product-images')
 export class ProductImageController extends BaseController<
   CreateProductImageCommand,
   UpdateProductImageCommand,
   DeleteProductImageCommand,
   GetProductImageByIdQuery,
-  ListProductImagesQuery,
-  ProductImageResponse,
-  ListProductImagesResponse
+  ProductImageResponse
 > {
   constructor(
     createHandler: CreateProductImageCommandHandler,
     updateHandler: UpdateProductImageCommandHandler,
     deleteHandler: DeleteProductImageCommandHandler,
     getByIdHandler: GetProductImageByIdQueryHandler,
-    listHandler: ListProductImagesQueryHandler,
+    private readonly listHandler: ListProductImagesQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListProductImagesQuery): Promise<ListProductImagesResponse> {
+      return this.listHandler.execute(query);
+    }
 }

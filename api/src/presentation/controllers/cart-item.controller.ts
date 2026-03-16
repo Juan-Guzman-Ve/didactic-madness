@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CartItemResponse,
   CreateCartItemCommand,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('cart-items')
+@ApiExtraModels(ListCartItemsQuery)
 @Controller('cart-items')
 export class CartItemController extends BaseController<
   CreateCartItemCommand,
   UpdateCartItemCommand,
   DeleteCartItemCommand,
   GetCartItemByIdQuery,
-  ListCartItemsQuery,
-  CartItemResponse,
-  ListCartItemsResponse
+  CartItemResponse
 > {
   constructor(
     createHandler: CreateCartItemCommandHandler,
     updateHandler: UpdateCartItemCommandHandler,
     deleteHandler: DeleteCartItemCommandHandler,
     getByIdHandler: GetCartItemByIdQueryHandler,
-    listHandler: ListCartItemsQueryHandler,
+    private readonly listHandler: ListCartItemsQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListCartItemsQuery): Promise<ListCartItemsResponse> {
+      return this.listHandler.execute(query);
+    }
 }

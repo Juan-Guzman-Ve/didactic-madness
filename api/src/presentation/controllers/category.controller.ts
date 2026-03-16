@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
 import {
   CategoryResponse,
   CreateCategoryCommand,
@@ -17,23 +18,30 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('categories')
+@ApiExtraModels(ListCategoriesQuery)
 @Controller('categories')
 export class CategoryController extends BaseController<
   CreateCategoryCommand,
   UpdateCategoryCommand,
   DeleteCategoryCommand,
   GetCategoryByIdQuery,
-  ListCategoriesQuery,
-  CategoryResponse,
-  ListCategoriesResponse
+  CategoryResponse
 > {
   constructor(
     createHandler: CreateCategoryCommandHandler,
     updateHandler: UpdateCategoryCommandHandler,
     deleteHandler: DeleteCategoryCommandHandler,
     getByIdHandler: GetCategoryByIdQueryHandler,
-    listHandler: ListCategoriesQueryHandler,
+    private readonly listHandler: ListCategoriesQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler, listHandler);
+    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
+
+  @Get()
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'sort', required: false, type: String })
+    list(@Query() query: ListCategoriesQuery): Promise<ListCategoriesResponse> {
+      return this.listHandler.execute(query);
+    }
 }
