@@ -1,1 +1,13 @@
 export const ROLE_REPOSITORY = Symbol('IRoleRepository');
+export const USER_REPOSITORY = Symbol('IUserRepository');
+export const ADDRESS_REPOSITORY = Symbol('IAddressRepository');
+export const CATEGORY_REPOSITORY = Symbol('ICategoryRepository');
+export const POLICY_REPOSITORY = Symbol('IPolicyRepository');
+export const ROLE_POLICY_REPOSITORY = Symbol('IRolePolicyRepository');
+export const PRODUCT_REPOSITORY = Symbol('IProductRepository');
+export const PRODUCT_IMAGE_REPOSITORY = Symbol('IProductImageRepository');
+export const CART_REPOSITORY = Symbol('ICartRepository');
+export const CART_ITEM_REPOSITORY = Symbol('ICartItemRepository');
+export const ORDER_REPOSITORY = Symbol('IOrderRepository');
+export const ORDER_ITEM_REPOSITORY = Symbol('IOrderItemRepository');
+export const ORDER_STATUS_HISTORY_REPOSITORY = Symbol('IOrderStatusHistoryRepository');

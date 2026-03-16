@@ -1,88 +1,73 @@
 -- ============================================================================
 -- Seed: 001 - RBAC Default Roles and Policies
 -- ============================================================================
--- UUID key:
---   0001 = roles        0002 = policies        0003 = role_policies
--- ============================================================================
 
 -- Insert default roles
-INSERT INTO roles (id, name, description) VALUES
-    ('00000000-0000-0000-0001-000000000001', 'Customer',   'Standard customer with basic shopping privileges'),
-    ('00000000-0000-0000-0001-000000000002', 'Staff',      'Staff member with order management access'),
-    ('00000000-0000-0000-0001-000000000003', 'Manager',    'Manager with product and category management'),
-    ('00000000-0000-0000-0001-000000000004', 'SuperAdmin', 'Full system administrator access');
+INSERT INTO roles (name, description) VALUES
+    ('Customer',   'Standard customer with basic shopping privileges'),
+    ('Staff',      'Staff member with order management access'),
+    ('Manager',    'Manager with product and category management'),
+    ('SuperAdmin', 'Full system administrator access');
 
 -- Insert policies
-INSERT INTO policies (id, name, resource, action, description) VALUES
+INSERT INTO policies (name, resource, action, description) VALUES
     -- Products
-    ('00000000-0000-0000-0002-000000000001', 'products:list',   'products', 'list',   'View product catalog'),
-    ('00000000-0000-0000-0002-000000000002', 'products:read',   'products', 'read',   'View product details'),
-    ('00000000-0000-0000-0002-000000000003', 'products:create', 'products', 'create', 'Create new products'),
-    ('00000000-0000-0000-0002-000000000004', 'products:update', 'products', 'update', 'Update existing products'),
-    ('00000000-0000-0000-0002-000000000005', 'products:delete', 'products', 'delete', 'Delete products'),
+    ('products:list',   'products', 'list',   'View product catalog'),
+    ('products:read',   'products', 'read',   'View product details'),
+    ('products:create', 'products', 'create', 'Create new products'),
+    ('products:update', 'products', 'update', 'Update existing products'),
+    ('products:delete', 'products', 'delete', 'Delete products'),
 
     -- Orders
-    ('00000000-0000-0000-0002-000000000006', 'orders:list',   'orders', 'list',   'View order list'),
-    ('00000000-0000-0000-0002-000000000007', 'orders:read',   'orders', 'read',   'View order details'),
-    ('00000000-0000-0000-0002-000000000008', 'orders:create', 'orders', 'create', 'Place new orders'),
-    ('00000000-0000-0000-0002-000000000009', 'orders:update', 'orders', 'update', 'Update order status'),
-    ('00000000-0000-0000-0002-000000000010', 'orders:cancel', 'orders', 'cancel', 'Cancel orders'),
+    ('orders:list',   'orders', 'list',   'View order list'),
+    ('orders:read',   'orders', 'read',   'View order details'),
+    ('orders:create', 'orders', 'create', 'Place new orders'),
+    ('orders:update', 'orders', 'update', 'Update order status'),
+    ('orders:cancel', 'orders', 'cancel', 'Cancel orders'),
 
     -- Users
-    ('00000000-0000-0000-0002-000000000011', 'users:read',   'users', 'read',   'View user details'),
-    ('00000000-0000-0000-0002-000000000012', 'users:create', 'users', 'create', 'Create new users'),
-    ('00000000-0000-0000-0002-000000000013', 'users:update', 'users', 'update', 'Update user information'),
-    ('00000000-0000-0000-0002-000000000014', 'users:delete', 'users', 'delete', 'Delete users'),
+    ('users:read',   'users', 'read',   'View user details'),
+    ('users:create', 'users', 'create', 'Create new users'),
+    ('users:update', 'users', 'update', 'Update user information'),
+    ('users:delete', 'users', 'delete', 'Delete users'),
 
     -- Cart
-    ('00000000-0000-0000-0002-000000000015', 'cart:manage', 'cart', 'manage', 'Add/remove/update cart items'),
+    ('cart:manage', 'cart', 'manage', 'Add/remove/update cart items'),
 
     -- Categories
-    ('00000000-0000-0000-0002-000000000016', 'categories:list',   'categories', 'list',   'View categories'),
-    ('00000000-0000-0000-0002-000000000017', 'categories:read',   'categories', 'read',   'View category details'),
-    ('00000000-0000-0000-0002-000000000018', 'categories:create', 'categories', 'create', 'Create categories'),
-    ('00000000-0000-0000-0002-000000000019', 'categories:update', 'categories', 'update', 'Update categories'),
-    ('00000000-0000-0000-0002-000000000020', 'categories:delete', 'categories', 'delete', 'Delete categories'),
+    ('categories:list',   'categories', 'list',   'View categories'),
+    ('categories:read',   'categories', 'read',   'View category details'),
+    ('categories:create', 'categories', 'create', 'Create categories'),
+    ('categories:update', 'categories', 'update', 'Update categories'),
+    ('categories:delete', 'categories', 'delete', 'Delete categories'),
 
     -- Roles & Policies
-    ('00000000-0000-0000-0002-000000000021', 'roles:manage',    'roles',    'manage', 'Manage roles and role-policy assignments'),
-    ('00000000-0000-0000-0002-000000000022', 'policies:manage', 'policies', 'manage', 'Manage policies');
+    ('roles:manage',    'roles',    'manage', 'Manage roles and role-policy assignments'),
+    ('policies:manage', 'policies', 'manage', 'Manage policies');
 
 -- Assign policies to Customer role
-INSERT INTO role_policies (id, role_id, policy_id) VALUES
-    ('00000000-0000-0000-0003-000000000001', '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0002-000000000001'),
-    ('00000000-0000-0000-0003-000000000002', '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0002-000000000002'),
-    ('00000000-0000-0000-0003-000000000003', '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0002-000000000008'),
-    ('00000000-0000-0000-0003-000000000004', '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0002-000000000007'),
-    ('00000000-0000-0000-0003-000000000005', '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0002-000000000015');
+INSERT INTO role_policies (role_id, policy_id)
+SELECT r.id, p.id FROM roles r, policies p
+WHERE r.name = 'Customer'
+  AND p.name IN ('products:list', 'products:read', 'orders:create', 'orders:read', 'cart:manage');
 
 -- Assign policies to Staff role
-INSERT INTO role_policies (id, role_id, policy_id) VALUES
-    ('00000000-0000-0000-0003-000000000006', '00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0002-000000000001'),
-    ('00000000-0000-0000-0003-000000000007', '00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0002-000000000002'),
-    ('00000000-0000-0000-0003-000000000008', '00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0002-000000000006'),
-    ('00000000-0000-0000-0003-000000000009', '00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0002-000000000007'),
-    ('00000000-0000-0000-0003-000000000010', '00000000-0000-0000-0001-000000000002', '00000000-0000-0000-0002-000000000009');
+INSERT INTO role_policies (role_id, policy_id)
+SELECT r.id, p.id FROM roles r, policies p
+WHERE r.name = 'Staff'
+  AND p.name IN ('products:list', 'products:read', 'orders:list', 'orders:read', 'orders:update');
 
 -- Assign policies to Manager role
-INSERT INTO role_policies (id, role_id, policy_id) VALUES
-    ('00000000-0000-0000-0003-000000000011', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000001'),
-    ('00000000-0000-0000-0003-000000000012', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000002'),
-    ('00000000-0000-0000-0003-000000000013', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000003'),
-    ('00000000-0000-0000-0003-000000000014', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000004'),
-    ('00000000-0000-0000-0003-000000000015', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000005'),
-    ('00000000-0000-0000-0003-000000000016', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000006'),
-    ('00000000-0000-0000-0003-000000000017', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000007'),
-    ('00000000-0000-0000-0003-000000000018', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000009'),
-    ('00000000-0000-0000-0003-000000000019', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000010'),
-    ('00000000-0000-0000-0003-000000000020', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000011'),
-    ('00000000-0000-0000-0003-000000000021', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000018'),
-    ('00000000-0000-0000-0003-000000000022', '00000000-0000-0000-0001-000000000003', '00000000-0000-0000-0002-000000000019');
+INSERT INTO role_policies (role_id, policy_id)
+SELECT r.id, p.id FROM roles r, policies p
+WHERE r.name = 'Manager'
+  AND p.name IN (
+    'products:list', 'products:read', 'products:create', 'products:update', 'products:delete',
+    'orders:list', 'orders:read', 'orders:update', 'orders:cancel',
+    'users:read', 'categories:create', 'categories:update'
+  );
 
 -- Assign all policies to SuperAdmin role
-INSERT INTO role_policies (id, role_id, policy_id)
-SELECT
-    gen_random_uuid()::text,
-    '00000000-0000-0000-0001-000000000004',
-    id
+INSERT INTO role_policies (role_id, policy_id)
+SELECT (SELECT id FROM roles WHERE name = 'SuperAdmin'), id
 FROM policies;

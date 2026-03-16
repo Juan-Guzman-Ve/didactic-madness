@@ -8,6 +8,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ICommand,
@@ -15,13 +16,13 @@ import {
   IQuery,
   IQueryHandler,
   IResponse,
-} from '@app/application/contracts/base';
+} from '@app/application';
 
 export abstract class BaseController<
   TCreateCommand extends ICommand,
-  TUpdateCommand extends ICommand & { id: string },
-  TDeleteCommand extends ICommand & { id: string },
-  TGetByIdQuery extends IQuery<TResponse> & { id: string },
+  TUpdateCommand extends ICommand,
+  TDeleteCommand extends ICommand,
+  TGetByIdQuery extends IQuery<TResponse>,
   TListQuery extends IQuery<TListResponse>,
   TResponse extends IResponse,
   TListResponse extends IResponse,
@@ -35,35 +36,32 @@ export abstract class BaseController<
   ) {}
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<TResponse> {
-    const query = { id } as TGetByIdQuery;
-    return this.getByIdHandler.execute(query);
+  getById(@Param('id', ParseIntPipe) id: number): Promise<TResponse> {
+    return this.getByIdHandler.execute({ id } as unknown as TGetByIdQuery);
   }
 
   @Get()
-  async findAll(@Query() query: TListQuery): Promise<TListResponse> {
+  list(@Query() query: TListQuery): Promise<TListResponse> {
     return this.listHandler.execute(query);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() body: TCreateCommand): Promise<TResponse> {
-    return this.createHandler.execute(body);
+  create(@Body() command: TCreateCommand): Promise<TResponse> {
+    return this.createHandler.execute(command);
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id: string,
+  update(
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: TUpdateCommand,
   ): Promise<TResponse> {
-    const command = { ...body, id } as TUpdateCommand;
-    return this.updateHandler.execute(command);
+    return this.updateHandler.execute({ ...body, id } as unknown as TUpdateCommand);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string): Promise<void> {
-    const command = { id } as TDeleteCommand;
-    await this.deleteHandler.execute(command);
+  delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.deleteHandler.execute({ id } as unknown as TDeleteCommand);
   }
 }
