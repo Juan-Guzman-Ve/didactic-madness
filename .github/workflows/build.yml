@@ -1,0 +1,37 @@
+name: Build API and UI
+
+on:
+	push:
+		branches:
+			- develop
+	pull_request:
+		branches:
+			- develop
+
+jobs:
+	build:
+		runs-on: ubuntu-latest
+		steps:
+			- name: Checkout repository
+				uses: actions/checkout@v4
+
+			- name: Set up Node.js
+				uses: actions/setup-node@v4
+				with:
+					node-version: '20.11.1'
+
+			- name: Build API
+				working-directory: api
+				run: |
+					npm install
+					npm run build
+					npm run lint
+					npm run test
+
+			- name: Build UI
+				working-directory: ui
+				run: |
+					npm install
+					npm run build
+					npm run lint
+					npm run test

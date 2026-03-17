@@ -46,7 +46,7 @@ Full-stack TypeScript application with NestJS backend + TypeORM + Supabase Postg
 
 ### Installation
 
-- Use `npm install --legacy-peer-deps` to bypass peer dependency checks
+- Use `npm install` (no --legacy-peer-deps)
 - Never install packages with `--save` or `--save-exact` manually - edit package.json directly
 - Delete `package-lock.json` and `node_modules/` before major dependency updates
 - Test after any dependency change: `npm run build && npm test`
@@ -55,7 +55,7 @@ Full-stack TypeScript application with NestJS backend + TypeORM + Supabase Postg
 
 1. Check compatibility with current NestJS version
 2. Add to `package.json` with **exact version** (no `^` or `~`)
-3. Run `npm install --legacy-peer-deps`
+3. Run `npm install` (no --legacy-peer-deps)
 4. Run `npm run build` to verify
 5. Commit `package.json` and `package-lock.json` together
 
