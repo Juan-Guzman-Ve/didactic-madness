@@ -4,10 +4,10 @@
   "description": "NestJS API for PC Parts Store with TypeORM + Supabase PostgreSQL",
   "main": "dist/main.js",
   "scripts": {
-    "prestart": "kill-port 8080",
+    "prestart": "kill-port 3000",
     "build": "nest build && tsc-alias -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "npm run build && node dist/src/main.js",
+    "start": "node dist/src/main.js",
     "start:dev": "nest start --watch",
     "prestart:debug": "kill-port 8080",
     "start:debug": "nest start --debug --watch",
