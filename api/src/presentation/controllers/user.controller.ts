@@ -1,6 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Body, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBody } from '@nestjs/swagger';
 import {
   CreateUserCommand,
   CreateUserCommandHandler,
@@ -37,11 +36,26 @@ export class UserController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
+  @ApiBody({ type: CreateUserCommand }) 
+  @Post()
+  create(@Body() command: CreateUserCommand): Promise<UserResponse> {
+    return super.create(command); 
+  }
+
+  @ApiBody({ type: UpdateUserCommand })
+  @Put(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateUserCommand,
+  ): Promise<UserResponse> {
+    return super.update(id, body);
+  }
+
   @Get()
-    @ApiQuery({ name: 'page', required: false, type: Number })
-    @ApiQuery({ name: 'limit', required: false, type: Number })
-    @ApiQuery({ name: 'sort', required: false, type: String })
-    list(@Query() query: ListUsersQuery): Promise<ListUsersResponse> {
-      return this.listHandler.execute(query);
-    }
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'sort', required: false, type: String })
+  list(@Query() query: ListUsersQuery): Promise<ListUsersResponse> {
+    return this.listHandler.execute(query);
+  }
 }

@@ -2,6 +2,7 @@ import { IsInt, IsPositive, IsNumber, IsOptional } from 'class-validator';
 import { ICommand } from '@app/application';
 
 export class CreateOrderItemCommand implements ICommand {
+  
   @IsInt()
   @IsPositive()
   orderId!: number;
