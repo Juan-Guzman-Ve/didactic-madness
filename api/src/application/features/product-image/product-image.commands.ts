@@ -1,15 +1,19 @@
 import { IsString, IsOptional, IsInt, IsPositive, IsUrl, Min } from 'class-validator';
 import { ICommand } from '@app/application';
+import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
 
 export class CreateProductImageCommand implements ICommand {
+  @ApiProperty()
   @IsInt()
   @IsPositive()
   productId!: number;
 
+  @ApiProperty()
   @IsString()
   @IsUrl()
   url!: string;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsInt()
   @Min(0)
@@ -19,11 +23,13 @@ export class CreateProductImageCommand implements ICommand {
 export class UpdateProductImageCommand implements ICommand {
   id!: number;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   @IsUrl()
   url?: string;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsInt()
   @Min(0)

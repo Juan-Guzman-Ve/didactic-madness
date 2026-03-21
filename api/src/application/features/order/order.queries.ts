@@ -2,18 +2,21 @@ import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IQuery } from '@app/application';
 import { OrderResponse, ListOrdersResponse } from './order.responses';
+import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
 
 export class GetOrderByIdQuery implements IQuery<OrderResponse> {
   id!: number;
 }
 
 export class ListOrdersQuery implements IQuery<ListOrdersResponse> {
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -21,6 +24,7 @@ export class ListOrdersQuery implements IQuery<ListOrdersResponse> {
   @Max(100)
   limit?: number;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   sort?: string;
