@@ -5,6 +5,7 @@ import { Product } from '@app/domain';
 import { IProductRepository, ProductFilterParams, PaginatedResult } from '@app/application';
 import { BaseRepository } from '@app/infra/database/repositories/base/base.repository';
 import { ProductEntity } from '@app/infra/database/entities';
+import { min } from 'class-validator';
 
 @Injectable()
 export class ProductRepository extends BaseRepository<Product, ProductEntity> implements IProductRepository {
@@ -46,11 +47,11 @@ export class ProductRepository extends BaseRepository<Product, ProductEntity> im
       queryBuilder.andWhere('product.category_id = :categoryId', { categoryId });
     }
 
-    if (minPrice !== undefined) {
+    if (minPrice !== undefined && minPrice >= 0 && !isNaN(minPrice)) {
       queryBuilder.andWhere('product.price >= :minPrice', { minPrice });
     }
 
-    if (maxPrice !== undefined) {
+    if (maxPrice !== undefined && maxPrice >= 0 && !isNaN(maxPrice)) {
       queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice });
     }
 
