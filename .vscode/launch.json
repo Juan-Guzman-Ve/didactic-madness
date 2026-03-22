@@ -1,21 +1,21 @@
 {
   "version": "0.2.0",
   "configurations": [
+    
     {
       "type": "node",
       "request": "launch",
       "name": "🚀 Debug NestJS API",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "--prefix",
-        "${workspaceFolder}/api",
-        "run",
-        "start"
-      ],
+      "runtimeArgs": ["--prefix", "${workspaceFolder}/api", "run", "start"],
       "cwd": "${workspaceFolder}/api",
       "console": "integratedTerminal",
       "restart": true,
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
       "sourceMaps": true,
       "outFiles": ["${workspaceFolder}/api/dist/**/*.js"],
       "env": {
@@ -28,7 +28,7 @@
       "name": "🧪 Debug Jest Tests (Current File)",
       "program": "${workspaceFolder}/api/node_modules/.bin/jest",
       "args": [
-        "${relativeFile}",
+        "${fileBasenameNoExtension}",
         "--config",
         "${workspaceFolder}/api/jest.config.ts",
         "--runInBand",
@@ -43,7 +43,12 @@
       "env": {
         "NODE_ENV": "test"
       },
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
+      "sourceMaps": true
     },
     {
       "type": "node",
@@ -65,7 +70,12 @@
       "env": {
         "NODE_ENV": "test"
       },
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
+      "sourceMaps": true
     },
     {
       "type": "node",
@@ -82,7 +92,12 @@
       "env": {
         "NODE_ENV": "test"
       },
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
+      "sourceMaps": true
     },
     {
       "type": "node",
@@ -105,7 +120,12 @@
       "env": {
         "NODE_ENV": "test"
       },
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
+      "sourceMaps": true
     },
     {
       "type": "node",
@@ -113,7 +133,11 @@
       "name": "🔗 Attach to NestJS Process",
       "port": 9229,
       "restart": true,
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/api/node_modules/**",
+        "${workspaceFolder}/api/dist/**/*.js"
+      ],
       "sourceMaps": true,
       "outFiles": ["${workspaceFolder}/api/dist/**/*.js"]
     }

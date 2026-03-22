@@ -11,21 +11,16 @@ import * as path from 'path';
 const envTestPath = path.resolve(__dirname, '../.env.test');
 dotenv.config({ path: envTestPath });
 
-// Ensure we're in test mode
-if (process.env.NODE_ENV !== 'test') {
-  console.warn(
-    '⚠️  WARNING: NODE_ENV is not set to "test". Setting it now...',
-  );
-  process.env.NODE_ENV = 'test';
-}
+
 
 // Validate required test environment variables
 const requiredEnvVars = [
-  'DATABASE_HOST',
-  'DATABASE_PORT',
-  'DATABASE_USER',
-  'DATABASE_PASSWORD',
-  'DATABASE_NAME',
+  'DB_HOST',
+  'DB_PORT',
+  'DB_USERNAME',
+  'DB_PASSWORD',
+  'DB_NAME',
+  'DB_SCHEMA',
 ];
 
 const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
@@ -37,6 +32,7 @@ if (missingVars.length > 0) {
   );
 }
 
-console.log('✅ Test environment loaded successfully');
-console.log(`📊 NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(`🗄️  DATABASE: ${process.env.DATABASE_NAME}@${process.env.DATABASE_HOST}`);
+console.log('SUCCESS: Test environment loaded successfully');
+console.log(`INFO: NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`INFO: DATABASE: ${process.env.DB_USERNAME}@${process.env.DB_HOST}`);
+console.log(`INFO: SCHEMA: ${process.env.DB_SCHEMA}`);
