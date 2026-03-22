@@ -670,7 +670,7 @@ Tareas organizadas por fases.
 
 ### Fase 5: Implementación Backend - Módulos de Negocio
 
-**Estado:** ✅ Completado (100%)
+**Estado:** 🚧 En progreso (60% completado)
 
 #### 5.1 Módulo de Categorías
 
@@ -679,8 +679,8 @@ Tareas organizadas por fases.
 | 5.1.1 | Implementar Use Cases (GetAllCategories, GetCategoryById) | ✅ |
 | 5.1.2 | Implementar CategoriesService usando Use Cases | ✅ |
 | 5.1.3 | Implementar CategoriesController | ✅ |
-| 5.1.4 | Crear integration tests | ✅ |
-| 5.1.5 | Crear colección Bruno | ✅ |
+| 5.1.4 | Crear integration tests | ⏳ |
+| 5.1.5 | Crear colección Bruno | 🚧 |
 
 #### 5.2 Módulo de Productos
 
@@ -690,12 +690,12 @@ Tareas organizadas por fases.
 | 5.2.2 | Implementar Queries (GetProductById, ListProducts, SearchProducts) | ✅ |
 | 5.2.3 | Implementar ProductsService usando Use Cases | ✅ |
 | 5.2.4 | Implementar ProductsController | ✅ |
-| 5.2.5 | Implementar upload de imágenes a Supabase Storage | ✅ |
+| 5.2.5 | Implementar upload de imágenes a Supabase Storage | ⏳ |
 | 5.2.6 | Implementar filtros (category, price, brand, stock) | ✅ |
 | 5.2.7 | Implementar búsqueda por nombre/SKU | ✅ |
 | 5.2.8 | Implementar paginación | ✅ |
-| 5.2.9 | Crear integration tests | ✅ |
-| 5.2.10 | Crear colección Bruno | ✅ |
+| 5.2.9 | Crear integration tests | ⏳ |
+| 5.2.10 | Crear colección Bruno | 🚧 |
 
 #### 5.3 Módulo de Carrito
 
@@ -706,8 +706,8 @@ Tareas organizadas por fases.
 | 5.3.3 | Implementar CartService usando Use Cases | ✅ |
 | 5.3.4 | Implementar CartController | ✅ |
 | 5.3.5 | Implementar validación de stock | ✅ |
-| 5.3.6 | Crear integration tests | ✅ |
-| 5.3.7 | Crear colección Bruno | ✅ |
+| 5.3.6 | Crear integration tests | ⏳ |
+| 5.3.7 | Crear colección Bruno | 🚧 |
 
 #### 5.4 Módulo de Órdenes
 
@@ -718,21 +718,21 @@ Tareas organizadas por fases.
 | 5.4.3 | Implementar OrdersService usando Use Cases | ✅ |
 | 5.4.4 | Implementar OrdersController | ✅ |
 | 5.4.5 | Implementar workflow de estados (Pending → Delivered) | ✅ |
-| 5.4.6 | Implementar OrderStatusHistory tracking | ✅ |
+| 5.4.6 | Implementar OrderStatusHistory tracking | 🚧 |
 | 5.4.7 | Implementar cancelación de órdenes | ✅ |
-| 5.4.8 | Implementar reserva de stock en PaymentConfirmed | ✅ |
-| 5.4.9 | Crear integration tests | ✅ |
-| 5.4.10 | Crear colección Bruno | ✅ |
+| 5.4.8 | Implementar reserva de stock en PaymentConfirmed | ⏳ |
+| 5.4.9 | Crear integration tests | ⏳ |
+| 5.4.10 | Crear colección Bruno | 🚧 |
 
-**Nota:** Los 13 módulos del sistema ya cuentan con handlers de CRUD básico, repositorios, mappers y controladores implementados. Pendiente implementar lógica de negocio avanzada y tests.
+**Nota:** Se han implementado los esqueletos de CRUD y la estructura de Use Cases para todos los módulos. Falta integrar la lógica de negocio inter-modular (Stock + History) y alcanzar la cobertura de pruebas requerida.
 
 **Criterios Fase 5:**
-- Endpoints CRUD + filtros operativos
-- Carrito persistente
-- Flujo de órdenes completo
-- Reserva de stock funcional
-- Tests >80% coverage
-- Bruno collections completas
+- Endpoints CRUD + filtros operativos ✅
+- Carrito persistente ✅
+- Flujo de órdenes completo (Estructura) ✅
+- Reserva de stock funcional ⏳
+- Tests >80% coverage ⏳
+- Bruno collections completas 🚧
 
 ---
 

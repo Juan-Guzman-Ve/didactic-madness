@@ -96,6 +96,8 @@ export class ProductRepository extends BaseRepository<Product, ProductEntity> im
         page,
         limit,
         totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
       },
     };
   }
