@@ -932,9 +932,9 @@ tests {
 
 ## Comments and Documentation
 
-**Minimal comments. Code should be self-explanatory.**
+**AVOID comments. Code MUST be so clean that it is self-explanatory. If you feel the need to add a comment to explain what the code does, refactor the code instead.**
 
-### When to Comment:
+### The ONLY Exceptions:
 
 ✅ **Complex business logic**
 ```typescript
