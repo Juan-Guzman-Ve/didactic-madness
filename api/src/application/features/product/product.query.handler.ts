@@ -26,16 +26,22 @@ export class ListProductsQueryHandler implements IQueryHandler<ListProductsQuery
   async execute(query: ListProductsQuery): Promise<ListProductsResponse> {
     const page = Math.max(query.page ?? 1, 1);
     const limit = Math.min(query.limit ?? 20, 100);
-    const result = await this.productRepository.findPaginated({ page, limit });
+    
+    const result = await this.productRepository.findWithFilters({
+      page,
+      limit,
+      search: query.search,
+      categoryId: query.categoryId,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      brand: query.brand,
+      inStock: query.inStock,
+      sort: query.sort,
+    });
 
     return {
       data: result.data.map(ProductMapper.toResponse),
-      meta: {
-        page: result.meta.page,
-        limit: result.meta.limit,
-        total: result.meta.total,
-        totalPages: result.meta.totalPages,
-      },
+      meta: result.meta,
     };
   }
 }

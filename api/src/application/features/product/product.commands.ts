@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, IsPositive, IsObject } from 'class-validator';
 import { ICommand } from '@app/application';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+ 
 
 export class CreateProductCommand implements ICommand {
   @ApiProperty()

@@ -15,6 +15,15 @@ export class PolicyRepository extends BaseRepository<Policy, PolicyEntity> imple
     super(repository);
   }
 
+  async findByRoleId(roleId: number): Promise<Policy[]> {
+    const entities = await this.repository
+      .createQueryBuilder('policy')
+      .innerJoin('role_policies', 'rp', 'rp.policy_id = policy.id')
+      .where('rp.role_id = :roleId', { roleId })
+      .getMany();
+    return this.toDomainMany(entities);
+  }
+
   protected toDomain(entity: PolicyEntity): Policy {
     return Object.assign(new Policy(), {
       id: entity.id,

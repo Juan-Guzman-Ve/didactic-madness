@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IOrderRepository, ORDER_REPOSITORY, ICommandHandler } from '@app/application';
 import { Order } from '@app/domain';
 import { CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand } from './order.commands';
@@ -13,12 +13,12 @@ export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
 
   async execute(command: CreateOrderCommand): Promise<OrderResponse> {
     const order = Object.assign(new Order(), {
-      orderNumber: command.orderNumber,
+      orderNumber: command.orderNumber || `ORD-${Date.now()}`,
       userId: command.userId,
       addressId: command.addressId,
-      status: command.status ?? 'Pending',
+      status: 'Pending',
       totalAmount: command.totalAmount,
-      paymentStatus: command.paymentStatus ?? 'Pending',
+      paymentStatus: 'Pending',
     });
     const saved = await this.orderRepository.create(order);
     return OrderMapper.toResponse(saved);
@@ -35,12 +35,32 @@ export class UpdateOrderCommandHandler implements ICommandHandler<UpdateOrderCom
     const existing = await this.orderRepository.findById(command.id);
     if (!existing) throw new NotFoundException(`Order with ID ${command.id} not found`);
 
+    if (command.status && command.status !== existing.status) {
+      this.validateStatusTransition(existing.status, command.status);
+    }
+
     const updated = await this.orderRepository.updateById(command.id, {
       status: command.status,
       paymentStatus: command.paymentStatus,
       addressId: command.addressId,
     });
     return OrderMapper.toResponse(updated);
+  }
+
+  private validateStatusTransition(current: string, next: string): void {
+    const validTransitions: Record<string, string[]> = {
+      'Pending': ['Paid', 'Cancelled'],
+      'Paid': ['Processing', 'Cancelled'],
+      'Processing': ['Shipped', 'Cancelled'],
+      'Shipped': ['Delivered'],
+      'Delivered': [],
+      'Cancelled': [],
+    };
+
+    const allowed = validTransitions[current] || [];
+    if (!allowed.includes(next)) {
+      throw new BadRequestException(`Invalid status transition from ${current} to ${next}`);
+    }
   }
 }
 

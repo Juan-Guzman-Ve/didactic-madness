@@ -757,21 +757,22 @@ docs/
 9. **Integration Tests** for auth flows and policy enforcement
 
 **Authorization Flow:**
-- JWT payload includes `user_id` and `role_id`
-- `PolicyGuard` queries user's policies via role
-- `@RequirePolicy('products:create')` decorator on endpoints
-- Guard checks if user's role has required policy
+- **JWT payload** includes `user_id`, `role_id`, and `status`.
+- **JwtAuthGuard** (Global) validates the token and attaches the user to the request.
+- **PoliciesGuard** (Global) fetches permissions from `PolicyRepository.findByRoleId()` and compares them against `@RequirePolicies()` metadata.
+- **Decorators** `@Public()` and `@RequirePolicies('resource:action')` manage granular access.
+- **SuperAdmin** role is granted all policies in the system via database seeds.
 
-**Deliverables:**
-- All routes protected by default (JWT required)
-- Public routes marked with `@Public()`
-- Policy-based access: endpoints require specific policies
-- Swagger shows lock icons on protected endpoints
-- Admin endpoints for managing roles and policies
+### 2. Audit & Context Pattern
+- **AsyncLocalStorage:** Used via `RequestContextHolder` to maintain a type-safe request context (e.g., `userId`) across the entire call stack without manual prop-drilling.
+- **RequestContextInterceptor:** Captures the `userId` from the authenticated request and initializes the `AsyncLocalStorage` store.
+- **AuditSubscriber:** A TypeORM `EventSubscriber` that automatically populates `createdBy` and `updatedBy` fields for any `AuditableEntity` using the `RequestContextHolder`.
+- **ValidationPipe:** Configured globally in `main.ts` with `transform: true` to automatically convert and validate incoming Commands and Queries.
 
 ---
 
-### Phase 4 — Core Feature Modules
+## Entity Architecture
+
 **Implementation Order:** Categories → Products → Cart → Orders
 
 **Each Module Follows DDD + Use Case Pattern:**

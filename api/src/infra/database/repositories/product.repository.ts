@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Product } from '@app/domain';
-import { IProductRepository } from '@app/application';
+import { IProductRepository, ProductFilterParams, PaginatedResult } from '@app/application';
 import { BaseRepository } from '@app/infra/database/repositories/base/base.repository';
 import { ProductEntity } from '@app/infra/database/entities';
 
@@ -23,6 +23,80 @@ export class ProductRepository extends BaseRepository<Product, ProductEntity> im
   async findByCategoryId(categoryId: number): Promise<Product[]> {
     const entities = await this.repository.find({ where: { categoryId } });
     return this.toDomainMany(entities);
+  }
+
+  async findWithFilters(params: ProductFilterParams): Promise<PaginatedResult<Product>> {
+    const { page, limit, search, categoryId, minPrice, maxPrice, brand, inStock, sort } = params;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.repository.createQueryBuilder('product');
+
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('product.name ILIKE :search', { search: `%${search}%` })
+            .orWhere('product.sku ILIKE :search', { search: `%${search}%` })
+            .orWhere('product.brand ILIKE :search', { search: `%${search}%` })
+            .orWhere('product.model ILIKE :search', { search: `%${search}%` });
+        }),
+      );
+    }
+
+    if (categoryId) {
+      queryBuilder.andWhere('product.category_id = :categoryId', { categoryId });
+    }
+
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('product.price >= :minPrice', { minPrice });
+    }
+
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice });
+    }
+
+    if (brand) {
+      queryBuilder.andWhere('product.brand ILIKE :brand', { brand: `%${brand}%` });
+    }
+
+    if (inStock === true) {
+      queryBuilder.andWhere('product.stock > 0');
+    } else if (inStock === false) {
+      queryBuilder.andWhere('product.stock = 0');
+    }
+
+    if (sort) {
+      const [field, order] = sort.split(':');
+      const sortOrder = order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      
+      const columnMap: Record<string, string> = {
+        name: 'product.name',
+        price: 'product.price',
+        stock: 'product.stock',
+        createdAt: 'product.created_at'
+      };
+      
+      const column = columnMap[field] || 'product.id';
+      queryBuilder.orderBy(column, sortOrder);
+    } else {
+      queryBuilder.orderBy('product.id', 'ASC');
+    }
+
+    const [entities, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: this.toDomainMany(entities),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    };
   }
 
   protected toDomain(entity: ProductEntity): Product {

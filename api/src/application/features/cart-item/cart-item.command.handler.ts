@@ -1,5 +1,5 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { ICartItemRepository, CART_ITEM_REPOSITORY, ICommandHandler } from '@app/application';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ICartItemRepository, CART_ITEM_REPOSITORY, ICommandHandler, IProductRepository, PRODUCT_REPOSITORY } from '@app/application';
 import { CartItem } from '@app/domain';
 import { CreateCartItemCommand, UpdateCartItemCommand, DeleteCartItemCommand } from './cart-item.commands';
 import { CartItemResponse } from './cart-item.responses';
@@ -9,9 +9,18 @@ import { CartItemMapper } from './cart-item.mapper';
 export class CreateCartItemCommandHandler implements ICommandHandler<CreateCartItemCommand, CartItemResponse> {
   constructor(
     @Inject(CART_ITEM_REPOSITORY) private readonly cartItemRepository: ICartItemRepository,
+    @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
   ) {}
 
   async execute(command: CreateCartItemCommand): Promise<CartItemResponse> {
+    // Stock validation
+    const product = await this.productRepository.findById(command.productId);
+    if (!product) throw new NotFoundException(`Product with ID ${command.productId} not found`);
+    
+    if (product.stock < command.quantity) {
+      throw new BadRequestException(`Not enough stock for product ${product.name}. Available: ${product.stock}`);
+    }
+
     const cartItem = Object.assign(new CartItem(), {
       cartId: command.cartId,
       productId: command.productId,
@@ -26,11 +35,18 @@ export class CreateCartItemCommandHandler implements ICommandHandler<CreateCartI
 export class UpdateCartItemCommandHandler implements ICommandHandler<UpdateCartItemCommand, CartItemResponse> {
   constructor(
     @Inject(CART_ITEM_REPOSITORY) private readonly cartItemRepository: ICartItemRepository,
+    @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
   ) {}
 
   async execute(command: UpdateCartItemCommand): Promise<CartItemResponse> {
     const existing = await this.cartItemRepository.findById(command.id);
     if (!existing) throw new NotFoundException(`CartItem with ID ${command.id} not found`);
+
+    // Stock validation
+    const product = await this.productRepository.findById(existing.productId);
+    if (product && product.stock < command.quantity) {
+      throw new BadRequestException(`Not enough stock for product ${product.name}. Available: ${product.stock}`);
+    }
 
     const updated = await this.cartItemRepository.updateById(command.id, { quantity: command.quantity });
     return CartItemMapper.toResponse(updated);

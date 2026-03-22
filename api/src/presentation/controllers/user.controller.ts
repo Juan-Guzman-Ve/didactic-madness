@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, ParseIntPipe, Query, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBody } from '@nestjs/swagger';
 import {
   CreateUserCommand,
@@ -15,6 +15,7 @@ import {
   UserResponse,
 } from '@app/application/features/user';
 import { BaseController } from '@app/presentation/base';
+import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('users')
 @ApiExtraModels(ListUsersQuery)
@@ -36,21 +37,37 @@ export class UserController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
+  @RequirePolicies('users:read')
+  @Get(':id')
+  override getById(@Param('id', ParseIntPipe) id: number): Promise<UserResponse> {
+    return super.getById(id);
+  }
+
+  @RequirePolicies('users:create')
   @ApiBody({ type: CreateUserCommand }) 
   @Post()
-  create(@Body() command: CreateUserCommand): Promise<UserResponse> {
+  override create(@Body() command: CreateUserCommand): Promise<UserResponse> {
     return super.create(command); 
   }
 
+  @RequirePolicies('users:update')
   @ApiBody({ type: UpdateUserCommand })
   @Put(':id')
-  update(
+  override update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateUserCommand,
   ): Promise<UserResponse> {
     return super.update(id, body);
   }
 
+  @RequirePolicies('users:delete')
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  override delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return super.delete(id);
+  }
+
+  @RequirePolicies('users:read')
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })

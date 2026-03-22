@@ -1,0 +1,21 @@
+meta {
+  name: Update Order Status
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/orders/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "status": "Paid"
+  }
+}

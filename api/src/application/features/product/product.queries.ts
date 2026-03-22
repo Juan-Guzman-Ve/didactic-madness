@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsInt, IsString, Min, Max, IsBoolean } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { IQuery } from '@app/application';
 import { ProductResponse, ListProductsResponse } from './product.responses';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
 
 export class GetProductByIdQuery implements IQuery<ProductResponse> {
   @ApiProperty()
@@ -30,4 +29,38 @@ export class ListProductsQuery implements IQuery<ListProductsResponse> {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  categoryId?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  minPrice?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  maxPrice?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  brand?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  inStock?: boolean;
 }
