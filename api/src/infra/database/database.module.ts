@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from '@app/infra/database/database.config';
 import * as entities from '@app/infra/database/entities';
+import { AuditSubscriber } from './subscribers/audit.subscriber';
 import { RoleRepository } from '@app/infra/database/repositories/role.repository';
 import { UserRepository } from '@app/infra/database/repositories/user.repository';
 import { AddressRepository } from '@app/infra/database/repositories/address.repository';
@@ -69,6 +70,7 @@ import {
     { provide: ORDER_ITEM_REPOSITORY, useExisting: OrderItemRepository },
     OrderStatusHistoryRepository,
     { provide: ORDER_STATUS_HISTORY_REPOSITORY, useExisting: OrderStatusHistoryRepository },
+    AuditSubscriber,
   ],
   exports: [
     TypeOrmModule,

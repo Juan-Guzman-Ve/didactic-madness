@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 
 // Infrastructure
 import { configurations, validationSchema } from './infra/config';
 import { DatabaseModule } from './infra/database';
+
+// Auth
+import { AuthModule } from './application/features/auth/auth.module';
+import { JwtAuthGuard, PoliciesGuard } from './presentation/guards';
+import { RequestContextInterceptor } from './presentation/interceptors/request-context.interceptor';
 
 // Role
 import {
@@ -152,6 +158,7 @@ import {
       },
     }),
     DatabaseModule,
+    AuthModule,
   ],
   controllers: [
     AppController,
@@ -170,6 +177,18 @@ import {
     OrderStatusHistoryController,
   ],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestContextInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PoliciesGuard,
+    },
     // Role
     CreateRoleCommandHandler,
     UpdateRoleCommandHandler,

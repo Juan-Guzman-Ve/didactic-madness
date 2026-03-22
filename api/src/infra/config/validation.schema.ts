@@ -22,4 +22,8 @@ export const validationSchema = Joi.object({
   // TypeORM
   TYPEORM_SYNCHRONIZE: Joi.string().valid('true', 'false').default('false'),
   TYPEORM_LOGGING: Joi.string().valid('true', 'false').default('false'),
+
+  // JWT
+  JWT_SECRET: Joi.string().required(),
+  JWT_EXPIRATION: Joi.string().default('3600s'),
 });
