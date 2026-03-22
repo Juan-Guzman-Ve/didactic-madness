@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, IsPositive } from 'class-validator';
 import { ICommand } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
@@ -8,6 +9,7 @@ export class CreateOrderStatusHistoryCommand implements ICommand {
   @IsPositive()
   orderId!: number;
 
+  @ApiProperty()
   @IsString()
   @ApiProperty()
   status!: string;
@@ -25,6 +27,7 @@ export class CreateOrderStatusHistoryCommand implements ICommand {
 }
 
 export class UpdateOrderStatusHistoryCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
   @ApiProperty({ required: false })
@@ -39,5 +42,6 @@ export class UpdateOrderStatusHistoryCommand implements ICommand {
 }
 
 export class DeleteOrderStatusHistoryCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

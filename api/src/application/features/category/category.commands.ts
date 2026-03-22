@@ -1,6 +1,6 @@
 import { IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
 import { ICommand } from '@app/application';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 
 export class CreateCategoryCommand implements ICommand {
@@ -22,6 +22,7 @@ export class CreateCategoryCommand implements ICommand {
 }
 
 export class UpdateCategoryCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
   @ApiProperty({required: false})
@@ -44,5 +45,6 @@ export class UpdateCategoryCommand implements ICommand {
 }
 
 export class DeleteCategoryCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

@@ -38,6 +38,7 @@ export class CreateUserCommand implements ICommand {
 }
 
 export class UpdateUserCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
   @ApiProperty({ required: false })
@@ -80,5 +81,6 @@ export class UpdateUserCommand implements ICommand {
 }
 
 export class DeleteUserCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

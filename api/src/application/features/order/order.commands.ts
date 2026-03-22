@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsInt, IsPositive, IsNumber } from 'class-validator';
 import { ICommand } from '@app/application';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateOrderCommand implements ICommand {
   @ApiProperty()
@@ -34,6 +34,7 @@ export class CreateOrderCommand implements ICommand {
 }
 
 export class UpdateOrderCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
   @ApiProperty({ required: false })
@@ -54,5 +55,6 @@ export class UpdateOrderCommand implements ICommand {
 }
 
 export class DeleteOrderCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

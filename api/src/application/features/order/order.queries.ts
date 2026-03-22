@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IQuery } from '@app/application';
@@ -5,6 +6,7 @@ import { OrderResponse, ListOrdersResponse } from './order.responses';
 import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
 
 export class GetOrderByIdQuery implements IQuery<OrderResponse> {
+  @ApiProperty()
   id!: number;
 }
 

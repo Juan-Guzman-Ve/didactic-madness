@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IQuery } from '@app/application';
@@ -8,12 +9,14 @@ export class GetRoleByIdQuery implements IQuery<RoleResponse> {
 }
 
 export class ListRolesQuery implements IQuery<ListRolesResponse> {
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -21,6 +24,7 @@ export class ListRolesQuery implements IQuery<ListRolesResponse> {
   @Max(100)
   limit?: number;
 
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   sort?: string;

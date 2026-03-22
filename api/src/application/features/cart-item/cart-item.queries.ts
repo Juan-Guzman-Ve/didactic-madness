@@ -2,9 +2,10 @@ import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IQuery } from '@app/application';
 import { CartItemResponse, ListCartItemsResponse } from './cart-item.responses';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class GetCartItemByIdQuery implements IQuery<CartItemResponse> {
+  @ApiProperty()
   id!: number;
 }
 

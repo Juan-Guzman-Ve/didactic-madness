@@ -1,6 +1,6 @@
 import { IsInt, IsPositive } from 'class-validator';
 import { ICommand } from '@app/application';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCartItemCommand implements ICommand {
   @ApiProperty()
@@ -20,14 +20,16 @@ export class CreateCartItemCommand implements ICommand {
 }
 
 export class UpdateCartItemCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
   @IsInt()
   @IsPositive()
   quantity!: number;
 }
 
 export class DeleteCartItemCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

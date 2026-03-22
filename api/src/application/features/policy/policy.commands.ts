@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
 import { ICommand } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
@@ -26,6 +27,7 @@ export class CreatePolicyCommand implements ICommand {
 }
 
 export class UpdatePolicyCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 
   @ApiProperty({ required: false })
@@ -54,5 +56,6 @@ export class UpdatePolicyCommand implements ICommand {
 }
 
 export class DeletePolicyCommand implements ICommand {
+  @ApiProperty()
   id!: number;
 }

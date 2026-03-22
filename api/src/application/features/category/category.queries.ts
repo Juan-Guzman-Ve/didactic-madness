@@ -2,10 +2,11 @@ import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IQuery } from '@app/application';
 import { CategoryResponse, ListCategoriesResponse } from './category.responses';
-import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 
 export class GetCategoryByIdQuery implements IQuery<CategoryResponse> {
+  @ApiProperty()
   id!: number;
 }
 

@@ -1023,42 +1023,42 @@ export class UserEntity {
 }
 ```
 
-### 3. DTOs (Data Transfer Objects)
-- **Location:** `src/modules/{module}/dto/`
-- **Purpose:** API request/response contracts
-- **Examples:** `CreateUserDto`, `UpdateProductDto`, `UserResponseDto`
+### 3. Commands, Queries & Responses
+- **Location:** `api/src/application/features/{feature}/`
+- **Purpose:** API request/response contracts and use case inputs
+- **Examples:** `CreateUserCommand`, `UpdateProductCommand`, `UserResponse`, `ListUsersQuery`
 - **Characteristics:**
-  - Decorated with validation: `@IsEmail()`, `@IsString()`, `@Min()`
-  - Used for API inputs and outputs
+  - Decorated with validation: `@IsEmail()`, `@IsString()`, `@MinLength()`
+  - Decorated with Swagger: `@ApiProperty()`
+  - Used as inputs for Command/Query Handlers
   - No business logic
-  - Swagger documentation: `@ApiProperty()`
 
 ```typescript
-// Example: dto/create-user.dto.ts
-export class CreateUserDto {
+// Example: api/src/application/features/user/user.commands.ts
+export class CreateUserCommand implements ICommand {
   @IsEmail()
   @ApiProperty({ example: 'user@example.com' })
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(8)
   @ApiProperty({ example: 'SecurePass123' })
-  password: string;
+  passwordHash!: string;
 }
 
-// Example: dto/user-response.dto.ts
-export class UserResponseDto {
+// Example: api/src/application/features/user/user.responses.ts
+export class UserResponse implements IResponse {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiProperty()
-  createdAt: string;
+  createdAt!: Date;
 }
 ```
 
@@ -1066,40 +1066,39 @@ export class UserResponseDto {
 
 ```
 Controller receives Command/Query (@Body/@Query with validations) →
-Service.execute(command/query) →
-Handler:
-  1. Command/Query → Domain Entity (mapping)
-  2. Repository.save/find(domainEntity) → DB
-  3. Repository returns Domain Entity
-  4. Domain Entity → Response DTO (mapping)
-  5. Return Response DTO
-Controller wraps in Result Pattern: { data: ResponseDto }
+Handler.execute(command/query):
+  1. Command/Query → Domain Entity (mapping via Mapper)
+  2. Domain Entity → Persistence Entity (handled by Repository internally)
+  3. Repository.save/find(persistenceEntity) → DB
+  4. Repository returns Persistence Entity
+  5. Persistence Entity → Domain Entity
+  6. Domain Entity → Response (mapping via Mapper)
+  7. Return Response
+Controller returns Response directly (handled by Result Pattern or Interceptors)
 ```
 
 **Example Flow (Create Product with Use Case Pattern):**
 
 1. **Controller** receives `CreateProductCommand` from API request body
    - Validation happens automatically via `ValidationPipe` (`@IsString()`, `@Min()`, etc.)
-2. **Controller** calls **Service**: `service.createProduct(command)`
-3. **Service** delegates to **Handler**: `createProductHandler.execute(command)`
-4. **Handler** maps **Command → Domain Entity**: `Product.create(command.name, command.sku, command.price)`
-5. **Domain Entity** validates business rules internally
-6. **Handler** calls **Repository**: `repository.save(productEntity)`
-7. **Repository** converts **Domain → DB Entity** (TypeORM): `entity.toPersistence()`
-8. **TypeORM** persists DB Entity to database
-9. **Repository** converts **DB Entity → Domain Entity** and returns it
-10. **Handler** maps **Domain → Response DTO**: `ProductMapper.toResponseDto(saved)`
-11. **Handler** returns Response DTO to Service
-12. **Service** returns Response DTO to Controller
-13. **Controller** wraps in Result Pattern: `{ data: ProductResponseDto }`
+2. **Controller** delegates to **Handler**: `createProductHandler.execute(command)`
+3. **Handler** maps **Command → Domain Entity** using `ProductMapper.toDomain(command)`
+4. **Domain Entity** validates business rules internally
+5. **Handler** calls **Repository**: `repository.create(productDomainEntity)`
+6. **Repository** converts **Domain → Persistence Entity** (TypeORM): `entity.toPersistence()`
+7. **TypeORM** persists Persistence Entity to database
+8. **Repository** converts **Persistence Entity → Domain Entity** and returns it
+9. **Handler** maps **Domain → Response**: `ProductMapper.toResponse(saved)`
+10. **Handler** returns Response to Controller
+11. **Controller** returns Response to client
 
 **Benefits:**
-- **Controllers are generic** — only receive and delegate, no mapping logic
-- **Handlers own the mapping** — Command → Domain → Response DTO
-- **No input DTO redundancy** — Commands/Queries are the input DTOs
+- **Controllers are generic** — only receive and delegate via `BaseController`
+- **Handlers own the mapping** — Command → Domain → Response
+- **No input DTO redundancy** — Commands/Queries serve as input DTOs
 - **Separation of Concerns** — Business logic isolated in handlers and domain
 - **Type Safety** — Strong typing across all layers
-- **Clean Architecture** — Dependencies point inward
+- **Clean Architecture** — Dependencies point inward (Presentation → Application → Domain)
 
 ---
 

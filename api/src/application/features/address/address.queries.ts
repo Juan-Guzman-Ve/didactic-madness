@@ -5,6 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AddressResponse, ListAddressesResponse } from './address.responses';
 
 export class GetAddressByIdQuery implements IQuery<AddressResponse> {
+  @ApiProperty()
   id!: number;
 }
 
