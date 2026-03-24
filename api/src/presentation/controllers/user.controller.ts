@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Body, Param, ParseIntPipe, Query, Delete, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiExtraModels, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreateUserCommand,
   CreateUserCommandHandler,
@@ -18,6 +18,7 @@ import { BaseController } from '@app/presentation/base';
 import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('users')
+@ApiBearerAuth()
 @ApiExtraModels(ListUsersQuery)
 @Controller('users')
 export class UserController extends BaseController<

@@ -46,9 +46,9 @@ Plataforma e-commerce para venta de componentes de PC con arquitectura Clean, DD
 |---|-------|-------------|---------------------------|--------|
 | 2.1 | **Login/Register** | Flujo de autenticación con emisión de JWT y hashing Bcrypt. | Para asegurar la identidad de los usuarios y proteger sus contraseñas. | ✅ |
 | 2.2 | **PolicyGuard** | Implementación de validación de permisos granulares (`resource:action`). | Para permitir que los permisos sean configurables desde la DB sin cambiar código. | ✅ |
-| 2.3 | **Address CRUD** | Gestión de múltiples direcciones de envío por usuario. | Necesario para el checkout; permite al cliente guardar ubicaciones recurrentes. | ⏳ |
-| 2.4 | **Profile Update** | Edición de datos personales (nombre, teléfono) y cambio de password. | Permite al usuario mantener su información actualizada y segura. | ⏳ |
-| 2.5 | **Admin: User Mgmt**| Endpoints para suspender usuarios y asignar roles (SuperAdmin). | Control administrativo para manejar el acceso y mitigar abusos. | ⏳ |
+| 2.3 | **Address CRUD** | Gestión de múltiples direcciones de envío por usuario. | Necesario para el checkout; permite al cliente guardar ubicaciones recurrentes. | ✅ |
+| 2.4 | **Profile Update** | Edición de datos personales (nombre, teléfono) y cambio de password. | Permite al usuario mantener su información actualizada y segura. | ✅ |
+| 2.5 | **Admin: User Mgmt**| Endpoints para suspender usuarios y asignar roles (SuperAdmin). | Control administrativo para manejar el acceso y mitigar abusos. | ✅ |
 
 ---
 

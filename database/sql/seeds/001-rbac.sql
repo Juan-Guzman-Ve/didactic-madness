@@ -19,11 +19,13 @@ INSERT INTO policies (name, resource, action, description) VALUES
     ('products:delete', 'products', 'delete', 'Delete products'),
 
     -- Orders
-    ('orders:list',   'orders', 'list',   'View order list'),
-    ('orders:read',   'orders', 'read',   'View order details'),
+    ('orders:list',   'orders', 'list',   'View order list (admin)'),
+    ('orders:read',   'orders', 'read',   'View order details (admin)'),
     ('orders:create', 'orders', 'create', 'Place new orders'),
     ('orders:update', 'orders', 'update', 'Update order status'),
     ('orders:cancel', 'orders', 'cancel', 'Cancel orders'),
+    ('orders:read_own', 'orders', 'read_own', 'View own orders'),
+    ('orders:cancel_own', 'orders', 'cancel_own', 'Cancel own orders'),
 
     -- Users
     ('users:read',   'users', 'read',   'View user details'),
@@ -33,6 +35,7 @@ INSERT INTO policies (name, resource, action, description) VALUES
 
     -- Cart
     ('cart:manage', 'cart', 'manage', 'Add/remove/update cart items'),
+    ('cart:read_all', 'cart', 'read_all', 'View all carts (admin)'),
 
     -- Categories
     ('categories:list',   'categories', 'list',   'View categories'),
@@ -49,7 +52,14 @@ INSERT INTO policies (name, resource, action, description) VALUES
 INSERT INTO role_policies (role_id, policy_id)
 SELECT r.id, p.id FROM roles r, policies p
 WHERE r.name = 'Customer'
-  AND p.name IN ('products:list', 'products:read', 'orders:create', 'orders:read', 'cart:manage');
+  AND p.name IN (
+    'products:list', 
+    'products:read', 
+    'orders:create', 
+    'orders:read_own', 
+    'orders:cancel_own', 
+    'cart:manage'
+  );
 
 -- Assign policies to Staff role
 INSERT INTO role_policies (role_id, policy_id)

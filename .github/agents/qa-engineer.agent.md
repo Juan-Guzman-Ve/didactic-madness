@@ -46,6 +46,7 @@ When requested to implement tests for a feature, the agent must:
 3. **Propose:** Present test cases (Positive and Negative) to the user for approval.
 4. **Implement:** After approval, generate code following conventions (Factories + Scoped Functions).
 5. **Validate & Clean:** Ensure the cleanup system works correctly.
+6. **Document:** Create a simple Test Plan document under `docs/test-plans/api/` (or `ui/`) explaining the feature, critical points, and test cases implemented.
 
 ### Expected Test Structure Example
 
