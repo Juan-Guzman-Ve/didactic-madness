@@ -17,12 +17,6 @@ export interface PaginatedResult<T> {
   };
 }
 
-export interface PaginationQuery {
-  page?: number;
-  limit?: number;
-  sort?: string;
-}
-
 export interface PaginationMeta {
   page: number;
   limit: number;

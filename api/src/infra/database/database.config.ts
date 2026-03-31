@@ -8,6 +8,21 @@ export const getDatabaseConfig = (
 ): TypeOrmModuleOptions => {
   const dbConfig = configService.get<DatabaseConfig>('database')!;
 
+  // Log the actual database config values (excluding password for security)
+  // eslint-disable-next-line no-console
+  console.log('[DatabaseConfig]', {
+    host: dbConfig.host,
+    port: dbConfig.port,
+    username: dbConfig.username,
+    database: dbConfig.database,
+    schema: dbConfig.schema,
+    ssl: dbConfig.ssl,
+    synchronize: dbConfig.synchronize,
+    logging: dbConfig.logging,
+    maxConnections: dbConfig.maxConnections,
+    connectionTimeout: dbConfig.connectionTimeout,
+  });
+
   return {
     type: 'postgres',
     host: dbConfig.host,

@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { AppController } from './app.controller';
 
 // Infrastructure
 import { configurations, validationSchema } from './infra/config';
 import { DatabaseModule } from './infra/database';
 
 // Auth
-import { AuthModule } from './application/features/auth/auth.module';
 import { JwtAuthGuard, PoliciesGuard } from './presentation/guards';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { RequestContextInterceptor } from './presentation/interceptors/request-context.interceptor';
 
 // Role
@@ -145,6 +145,8 @@ import {
   OrderItemController,
   OrderStatusHistoryController,
 } from './presentation/controllers';
+import { AuthController } from '@app/presentation/controllers/auth.controller';
+import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/features/auth';
 
 @Module({
   imports: [
@@ -158,10 +160,19 @@ import {
       },
     }),
     DatabaseModule,
-    AuthModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('auth.jwtSecret') || 'super-secret-key',
+        signOptions: {
+          expiresIn: configService.get('auth.jwtExpiration') as any ?? '3600s',
+        },
+      }),
+    }),
   ],
   controllers: [
-    AppController,
+    AuthController,
     RoleController,
     UserController,
     AddressController,
@@ -189,6 +200,9 @@ import {
       provide: APP_GUARD,
       useClass: PoliciesGuard,
     },
+    // Auth
+    LoginCommandHandler,
+    RegisterCommandHandler,
     // Role
     CreateRoleCommandHandler,
     UpdateRoleCommandHandler,
@@ -267,6 +281,9 @@ import {
     DeleteOrderStatusHistoryCommandHandler,
     GetOrderStatusHistoryByIdQueryHandler,
     ListOrderStatusHistoriesQueryHandler,
+
+    // Auth
+    require('./application/features/auth/jwt.strategy').JwtStrategy,
   ],
 })
 export class AppModule {}

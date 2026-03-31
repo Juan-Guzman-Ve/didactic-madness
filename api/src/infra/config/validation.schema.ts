@@ -9,15 +9,15 @@ export const validationSchema = Joi.object({
   API_PREFIX: Joi.string().default('api'),
   CORS_ENABLED: Joi.string().valid('true', 'false').default('false'),
 
-  // Database
-  DATABASE_HOST: Joi.string().required(),
-  DATABASE_PORT: Joi.number().default(5432),
-  DATABASE_USER: Joi.string().required(),
-  DATABASE_PASSWORD: Joi.string().required(),
-  DATABASE_NAME: Joi.string().required(),
-  DATABASE_SSL: Joi.string().valid('true', 'false').default('false'),
-  DATABASE_MAX_CONNECTIONS: Joi.number().default(10),
-  DATABASE_CONNECTION_TIMEOUT: Joi.number().default(5000),
+  // DB
+  DB_HOST: Joi.string().required(),
+  DB_PORT: Joi.number().default(5432),
+  DB_USER: Joi.string().required(),
+  DB_PASSWORD: Joi.string().required(),
+  DB_NAME: Joi.string().required(),
+  DB_SSL: Joi.string().valid('true', 'false').default('false'),
+  DB_MAX_CONNECTIONS: Joi.number().default(10),
+  DB_CONNECTION_TIMEOUT: Joi.number().default(5000),
 
   // TypeORM
   TYPEORM_SYNCHRONIZE: Joi.string().valid('true', 'false').default('false'),
