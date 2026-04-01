@@ -11,12 +11,19 @@ INSERT INTO roles (name, description) VALUES
 
 -- Insert policies
 INSERT INTO policies (name, resource, action, description) VALUES
+
     -- Products
     ('products:list',   'products', 'list',   'View product catalog'),
     ('products:read',   'products', 'read',   'View product details'),
     ('products:create', 'products', 'create', 'Create new products'),
     ('products:update', 'products', 'update', 'Update existing products'),
     ('products:delete', 'products', 'delete', 'Delete products'),
+
+    -- Product Images
+    ('product-images:read',   'product-images', 'read',   'View product images'),
+    ('product-images:create', 'product-images', 'create', 'Create product images'),
+    ('product-images:update', 'product-images', 'update', 'Update product images'),
+    ('product-images:delete', 'product-images', 'delete', 'Delete product images'),
 
     -- Orders
     ('orders:list',   'orders', 'list',   'View order list (admin)'),
@@ -36,6 +43,18 @@ INSERT INTO policies (name, resource, action, description) VALUES
     -- Cart
     ('cart:manage', 'cart', 'manage', 'Add/remove/update cart items'),
     ('cart:read_all', 'cart', 'read_all', 'View all carts (admin)'),
+
+    -- Order Items
+    ('order-items:read',   'order-items', 'read',   'View order item details'),
+    ('order-items:create', 'order-items', 'create', 'Create order items'),
+    ('order-items:update', 'order-items', 'update', 'Update order items'),
+    ('order-items:delete', 'order-items', 'delete', 'Delete order items'),
+
+    -- Addresses
+    ('addresses:read',   'addresses', 'read',   'View address details'),
+    ('addresses:create', 'addresses', 'create', 'Create addresses'),
+    ('addresses:update', 'addresses', 'update', 'Update addresses'),
+    ('addresses:delete', 'addresses', 'delete', 'Delete addresses'),
 
     -- Categories
     ('categories:list',   'categories', 'list',   'View categories'),

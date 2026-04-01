@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiExtraModels, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreateRolePolicyCommand,
   CreateRolePolicyCommandHandler,
@@ -18,9 +18,9 @@ import { BaseController } from '@app/presentation/base';
 import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('role-policies')
+@ApiBearerAuth()
 @ApiExtraModels(ListRolePoliciesQuery)
 @Controller('role-policies')
-@RequirePolicies('roles:manage')
 export class RolePolicyController extends BaseController<
   CreateRolePolicyCommand,
   UpdateRolePolicyCommand,
@@ -38,17 +38,23 @@ export class RolePolicyController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
+
+  @RequirePolicies('roles:manage')
   @Get(':id')
   override getById(@Param('id', ParseIntPipe) id: number): Promise<RolePolicyResponse> {
     return super.getById(id);
   }
 
+
+  @RequirePolicies('roles:manage')
   @ApiBody({ type: CreateRolePolicyCommand })
   @Post()
   override create(@Body() command: CreateRolePolicyCommand): Promise<RolePolicyResponse> {
     return super.create(command);
   }
 
+
+  @RequirePolicies('roles:manage')
   @ApiBody({ type: UpdateRolePolicyCommand })
   @Put(':id')
   override update(
@@ -58,12 +64,15 @@ export class RolePolicyController extends BaseController<
     return super.update(id, body);
   }
 
+
+  @RequirePolicies('roles:manage')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   override delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return super.delete(id);
   }
 
+  @RequirePolicies('roles:manage')
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })

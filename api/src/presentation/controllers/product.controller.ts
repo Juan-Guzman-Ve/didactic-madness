@@ -1,6 +1,5 @@
 import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import {
   CreateProductCommand,
   CreateProductCommandHandler,
@@ -19,6 +18,7 @@ import { BaseController } from '@app/presentation/base';
 import { Public } from '@app/presentation/decorators/public.decorator';
 
 @ApiTags('products')
+@ApiBearerAuth()
 @ApiExtraModels(ListProductsQuery)
 @Controller('products')
 export class ProductController extends BaseController<
@@ -38,18 +38,43 @@ export class ProductController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
+
   @Public()
   @Get(':id')
   override getById(@Param('id', ParseIntPipe) id: number): Promise<ProductResponse> {
     return super.getById(id);
   }
 
+  @RequirePolicies('products:create')
+  @ApiBody({ type: CreateProductCommand })
+  @Post()
+  override create(@Body() command: CreateProductCommand): Promise<ProductResponse> {
+    return super.create(command);
+  }
+
+  @RequirePolicies('products:update')
+  @ApiBody({ type: UpdateProductCommand })
+  @Put(':id')
+  override update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateProductCommand,
+  ): Promise<ProductResponse> {
+    return super.update(id, body);
+  }
+
+  @RequirePolicies('products:delete')
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  override delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return super.delete(id);
+  }
+
   @Public()
   @Get()
-    @ApiQuery({ name: 'page', required: false, type: Number })
-    @ApiQuery({ name: 'limit', required: false, type: Number })
-    @ApiQuery({ name: 'sort', required: false, type: String })
-    list(@Query() query: ListProductsQuery): Promise<ListProductsResponse> {
-      return this.listHandler.execute(query);
-    }
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'sort', required: false, type: String })
+  list(@Query() query: ListProductsQuery): Promise<ListProductsResponse> {
+    return this.listHandler.execute(query);
+  }
 }

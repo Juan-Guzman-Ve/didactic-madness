@@ -1,6 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiExtraModels, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreateOrderStatusHistoryCommand,
   CreateOrderStatusHistoryCommandHandler,
@@ -18,6 +17,7 @@ import {
 import { BaseController } from '@app/presentation/base';
 
 @ApiTags('order-status-histories')
+@ApiBearerAuth()
 @ApiExtraModels(ListOrderStatusHistoriesQuery)
 @Controller('order-status-histories')
 export class OrderStatusHistoryController extends BaseController<
@@ -37,11 +37,12 @@ export class OrderStatusHistoryController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
+  // TODO: Add granular policies for order-status-history endpoints if needed
   @Get()
-    @ApiQuery({ name: 'page', required: false, type: Number })
-    @ApiQuery({ name: 'limit', required: false, type: Number })
-    @ApiQuery({ name: 'sort', required: false, type: String })
-    list(@Query() query: ListOrderStatusHistoriesQuery): Promise<ListOrderStatusHistoriesResponse> {
-      return this.listHandler.execute(query);
-    }
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'sort', required: false, type: String })
+  list(@Query() query: ListOrderStatusHistoriesQuery): Promise<ListOrderStatusHistoriesResponse> {
+    return this.listHandler.execute(query);
+  }
 }
