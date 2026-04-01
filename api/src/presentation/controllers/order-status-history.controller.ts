@@ -1,5 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import {
   CreateOrderStatusHistoryCommand,
   CreateOrderStatusHistoryCommandHandler,
@@ -15,6 +15,7 @@ import {
   UpdateOrderStatusHistoryCommandHandler,
 } from '@app/application/features/order-status-history';
 import { BaseController } from '@app/presentation/base';
+import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('order-status-histories')
 @ApiBearerAuth()
@@ -37,7 +38,37 @@ export class OrderStatusHistoryController extends BaseController<
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
-  // TODO: Add granular policies for order-status-history endpoints if needed
+  @RequirePolicies('orders:read')
+  @Get(':id')
+  override getById(@Param('id', ParseIntPipe) id: number): Promise<OrderStatusHistoryResponse> {
+    return super.getById(id);
+  }
+
+  @RequirePolicies('orders:update')
+  @ApiBody({ type: CreateOrderStatusHistoryCommand })
+  @Post()
+  override create(@Body() command: CreateOrderStatusHistoryCommand): Promise<OrderStatusHistoryResponse> {
+    return super.create(command);
+  }
+
+  @RequirePolicies('orders:update')
+  @ApiBody({ type: UpdateOrderStatusHistoryCommand })
+  @Put(':id')
+  override update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateOrderStatusHistoryCommand,
+  ): Promise<OrderStatusHistoryResponse> {
+    return super.update(id, body);
+  }
+
+  @RequirePolicies('orders:update')
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  override delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return super.delete(id);
+  }
+
+  @RequirePolicies('orders:read')
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })

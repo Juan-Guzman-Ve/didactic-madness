@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiExtraModels, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiExtraModels, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreateOrderCommand,
   CreateOrderCommandHandler,
@@ -18,6 +18,7 @@ import { BaseController } from '@app/presentation/base';
 import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('orders')
+@ApiBearerAuth()
 @ApiExtraModels(ListOrdersQuery)
 @Controller('orders')
 export class OrderController extends BaseController<
@@ -67,7 +68,7 @@ export class OrderController extends BaseController<
     return super.delete(id);
   }
 
-  @RequirePolicies('orders:read', 'orders:list')
+  @RequirePolicies('orders:list')
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })

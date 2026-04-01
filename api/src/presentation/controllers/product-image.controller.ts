@@ -15,6 +15,7 @@ import {
   UpdateProductImageCommandHandler,
 } from '@app/application/features/product-image';
 import { BaseController } from '@app/presentation/base';
+import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('product-images')
 @ApiBearerAuth()

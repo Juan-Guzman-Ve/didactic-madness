@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, ParseIntPipe, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import {
   CreateProductCommand,
@@ -16,6 +16,7 @@ import {
 } from '@app/application/features/product';
 import { BaseController } from '@app/presentation/base';
 import { Public } from '@app/presentation/decorators/public.decorator';
+import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
 
 @ApiTags('products')
 @ApiBearerAuth()

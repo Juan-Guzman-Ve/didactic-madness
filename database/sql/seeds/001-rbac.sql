@@ -72,28 +72,66 @@ INSERT INTO role_policies (role_id, policy_id)
 SELECT r.id, p.id FROM roles r, policies p
 WHERE r.name = 'Customer'
   AND p.name IN (
-    'products:list', 
-    'products:read', 
-    'orders:create', 
-    'orders:read_own', 
-    'orders:cancel_own', 
-    'cart:manage'
+    'products:list',
+    'products:read',
+    'product-images:read',
+    'orders:create',
+    'orders:read_own',
+    'orders:cancel_own',
+    'order-items:read',
+    'cart:manage',
+    'addresses:read',
+    'addresses:create',
+    'addresses:update',
+    'addresses:delete'
   );
 
 -- Assign policies to Staff role
 INSERT INTO role_policies (role_id, policy_id)
 SELECT r.id, p.id FROM roles r, policies p
 WHERE r.name = 'Staff'
-  AND p.name IN ('products:list', 'products:read', 'orders:list', 'orders:read', 'orders:update');
+  AND p.name IN (
+    'products:list',
+    'products:read',
+    'product-images:read',
+    'orders:list',
+    'orders:read',
+    'orders:update',
+    'order-items:read',
+    'addresses:read'
+  );
 
 -- Assign policies to Manager role
 INSERT INTO role_policies (role_id, policy_id)
 SELECT r.id, p.id FROM roles r, policies p
 WHERE r.name = 'Manager'
   AND p.name IN (
-    'products:list', 'products:read', 'products:create', 'products:update', 'products:delete',
-    'orders:list', 'orders:read', 'orders:update', 'orders:cancel',
-    'users:read', 'categories:create', 'categories:update'
+    'products:list',
+    'products:read',
+    'products:create',
+    'products:update',
+    'products:delete',
+    'product-images:read',
+    'product-images:create',
+    'product-images:update',
+    'product-images:delete',
+    'orders:list',
+    'orders:read',
+    'orders:update',
+    'orders:cancel',
+    'order-items:read',
+    'order-items:create',
+    'order-items:update',
+    'order-items:delete',
+    'users:read',
+    'users:update',
+    'categories:list',
+    'categories:read',
+    'categories:create',
+    'categories:update',
+    'categories:delete',
+    'cart:read_all',
+    'addresses:read'
   );
 
 -- Assign all policies to SuperAdmin role
