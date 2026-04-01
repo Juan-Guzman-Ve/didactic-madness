@@ -12,11 +12,13 @@ post {
 
 body:json {
   {
-    "email": "admin@example.com",
+    "email": "admin@techstore.com",
     "password": "Password123!"
   }
 }
 
-vars:post-response {
-  accessToken: res.body.access_token
+script:post-response {
+  if (res.status === 200 && res.body.access_token) {
+    bru.setEnvVar("accessToken", res.body.access_token);
+  }
 }

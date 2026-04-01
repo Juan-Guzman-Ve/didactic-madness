@@ -1,0 +1,17 @@
+meta {
+  name: Update Policy
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/policies/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "description": "Updated policy description"
+  }
+}

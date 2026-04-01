@@ -1,0 +1,20 @@
+meta {
+  name: Create Order Item
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/order-items
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "orderId": 1,
+    "productId": 1,
+    "quantity": 1,
+    "priceAtPurchase": 159900
+  }
+}

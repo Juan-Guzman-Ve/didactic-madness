@@ -1,0 +1,20 @@
+meta {
+  name: Create Policy
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/policies
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "reports:read",
+    "resource": "reports",
+    "action": "read",
+    "description": "View reports"
+  }
+}

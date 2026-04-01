@@ -1,0 +1,16 @@
+meta {
+  name: List Role Policies
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/role-policies
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 1
+  ~limit: 50
+}

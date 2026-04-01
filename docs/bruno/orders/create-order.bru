@@ -10,12 +10,9 @@ post {
   auth: inherit
 }
 
-headers {
-  Authorization: Bearer {{accessToken}}
-}
-
 body:json {
   {
+    "orderNumber": "ORD-001",
     "userId": 1,
     "addressId": 1,
     "totalAmount": 50000

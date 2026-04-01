@@ -1,0 +1,17 @@
+meta {
+  name: Update Cart Item
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/cart-items/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "quantity": 3
+  }
+}
