@@ -14,13 +14,14 @@ export class RequestContextInterceptor implements NestInterceptor {
     const userId = request.user?.id?.toString();
 
     return new Observable((observer) => {
-      RequestContextHolder.run({ userId }, () => {
+      const subscription = RequestContextHolder.run({ userId }, () =>
         next.handle().subscribe({
           next: (res) => observer.next(res),
           error: (err) => observer.error(err),
           complete: () => observer.complete(),
-        });
-      });
+        }),
+      );
+      return () => subscription.unsubscribe();
     });
   }
 }
