@@ -40,6 +40,9 @@ export const getDatabaseConfig = (
     extra: {
       max: dbConfig.maxConnections,
       connectionTimeoutMillis: dbConfig.connectionTimeout,
+      // Force IPv4 — deployment environments may not have IPv6 connectivity
+      // even when the DNS record returns an AAAA address first
+      family: 4,
     },
   };
 };
