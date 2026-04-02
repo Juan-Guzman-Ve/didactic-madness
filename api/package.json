@@ -52,16 +52,16 @@
     "tsc-alias": "1.8.16",
     "typescript": "5.9.3",
     "@types/node": "25.3.5",
+    "@types/bcrypt": "6.0.0",
+    "@types/express": "5.0.6",
+    "@types/passport-jwt": "4.0.1",
     "typeorm": "0.3.28",
-    "@nestjs/cli": "7.6.0"
+    "@nestjs/cli": "11.0.7"
   },
   "devDependencies": {
     "@nestjs/testing": "11.1.16",
-    "@types/bcrypt": "6.0.0",
-    "@types/express": "5.0.6",
     "@types/jest": "29.5.14",
     "@types/mocha": "10.0.10",
-    "@types/passport-jwt": "4.0.1",
     "@types/passport-strategy": "0.2.38",
     "@types/pg": "8.18.0",
     "@types/supertest": "6.0.2",
