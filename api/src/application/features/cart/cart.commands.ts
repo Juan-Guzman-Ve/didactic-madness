@@ -8,18 +8,3 @@ export class CreateCartCommand implements ICommand {
   @IsPositive()
   userId!: number;
 }
-
-export class UpdateCartCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-
-  @ApiProperty()
-  @IsInt()
-  @IsPositive()
-  userId!: number;
-}
-
-export class DeleteCartCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-}

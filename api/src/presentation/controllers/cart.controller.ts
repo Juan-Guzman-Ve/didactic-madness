@@ -4,15 +4,11 @@ import {
   CartResponse,
   CreateCartCommand,
   CreateCartCommandHandler,
-  DeleteCartCommand,
-  DeleteCartCommandHandler,
   GetCartByIdQuery,
   GetCartByIdQueryHandler,
   ListCartsQuery,
   ListCartsQueryHandler,
-  ListCartsResponse,
-  UpdateCartCommand,
-  UpdateCartCommandHandler,
+  ListCartsResponse
 } from '@app/application/features/cart';
 import { BaseController } from '@app/presentation/base';
 import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
@@ -21,21 +17,12 @@ import { RequirePolicies } from '@app/presentation/decorators/policies.decorator
 @ApiBearerAuth()
 @ApiExtraModels(ListCartsQuery)
 @Controller('carts')
-export class CartController extends BaseController<
-  CreateCartCommand,
-  UpdateCartCommand,
-  DeleteCartCommand,
-  GetCartByIdQuery,
-  CartResponse
-> {
+export class CartController
+{
   constructor(
-    createHandler: CreateCartCommandHandler,
-    updateHandler: UpdateCartCommandHandler,
-    deleteHandler: DeleteCartCommandHandler,
     getByIdHandler: GetCartByIdQueryHandler,
     private readonly listHandler: ListCartsQueryHandler,
   ) {
-    super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
 
 

@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { IUserRepository, USER_REPOSITORY, ICommandHandler } from '@app/application';
-import { User } from '@app/domain';
+import { IUserRepository, USER_REPOSITORY, ICommandHandler, CART_ITEM_REPOSITORY, ICartRepository, CART_REPOSITORY } from '@app/application';
+import { Cart, User } from '@app/domain';
 import { CreateUserCommand, UpdateUserCommand, DeleteUserCommand } from './user.commands';
 import { UserResponse } from './user.responses';
 import { UserMapper } from './user.mapper';
@@ -10,6 +10,7 @@ import { UserMapper } from './user.mapper';
 export class CreateUserCommandHandler implements ICommandHandler<CreateUserCommand, UserResponse> {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
+    @Inject(CART_REPOSITORY) private readonly cartRepository: ICartRepository
   ) {}
 
   async execute(command: CreateUserCommand): Promise<UserResponse> {
@@ -25,8 +26,12 @@ export class CreateUserCommandHandler implements ICommandHandler<CreateUserComma
       roleId: command.roleId,
       status: command.status ?? 'Active',
     });
-    const saved = await this.userRepository.create(user);
-    return UserMapper.toResponse(saved);
+    const savedUser = await this.userRepository.create(user);
+
+    const cart = Object.assign(new Cart(), { userId: savedUser.id });
+    await this.cartRepository.create(cart);
+    
+    return UserMapper.toResponse(savedUser);
   }
 }
 
