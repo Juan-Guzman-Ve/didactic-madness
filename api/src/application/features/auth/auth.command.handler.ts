@@ -1,11 +1,13 @@
 import { Injectable, UnauthorizedException, Inject, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { IUserRepository, USER_REPOSITORY } from '@app/application/contracts/repositories';
+import { ICartRepository, IUserRepository, USER_REPOSITORY } from '@app/application/contracts/repositories';
 import { RegisterCommand, LoginCommand } from './auth.commands';
 import { User } from '@app/domain/entities/user.entity';
 import { ICommandHandler } from '@app/application';
 import { AuthLoginResponse, AuthRegisterResponse } from '@app/application/features/auth/auth.responses';
+import { In } from 'typeorm';
+import { Cart } from '@app/domain/entities/cart.entity';
 
 @Injectable()
 export class LoginCommandHandler implements ICommandHandler<LoginCommand, AuthLoginResponse> {
@@ -49,6 +51,7 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, 
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
+    @Inject('CART_REPOSITORY') private readonly cartRepository: ICartRepository,
   ) {}
 
   async execute(command: RegisterCommand) : Promise<AuthRegisterResponse> {
@@ -72,6 +75,10 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, 
     });
 
     const createdUser = await this.userRepository.create(newUser);
+
+    const cart = Object.assign(new Cart(), { userId: createdUser.id });
+    await this.cartRepository.create(cart);
+
     return {
       id: createdUser.id,
       email: createdUser.email,

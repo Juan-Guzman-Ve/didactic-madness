@@ -100,6 +100,7 @@ import {
   DeleteCartItemCommandHandler,
   GetCartItemByIdQueryHandler,
   ListCartItemsQueryHandler,
+  SyncCartItemsCommandHandler,
 } from './application/features/cart-item';
 
 // Order
@@ -263,6 +264,7 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     DeleteCartItemCommandHandler,
     GetCartItemByIdQueryHandler,
     ListCartItemsQueryHandler,
+    SyncCartItemsCommandHandler,
     // Order
     CreateOrderCommandHandler,
     UpdateOrderCommandHandler,

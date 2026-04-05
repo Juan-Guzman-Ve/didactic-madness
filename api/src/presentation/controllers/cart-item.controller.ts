@@ -11,6 +11,8 @@ import {
   ListCartItemsQuery,
   ListCartItemsQueryHandler,
   ListCartItemsResponse,
+  SyncCartItemsCommand,
+  SyncCartItemsCommandHandler,
   UpdateCartItemCommand,
   UpdateCartItemCommandHandler,
 } from '@app/application/features/cart-item';
@@ -34,6 +36,7 @@ export class CartItemController extends BaseController<
     deleteHandler: DeleteCartItemCommandHandler,
     getByIdHandler: GetCartItemByIdQueryHandler,
     private readonly listHandler: ListCartItemsQueryHandler,
+    private readonly syncHandler: SyncCartItemsCommandHandler,
   ) {
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
@@ -62,6 +65,14 @@ export class CartItemController extends BaseController<
     @Body() body: UpdateCartItemCommand,
   ): Promise<CartItemResponse> {
     return super.update(id, body);
+  }
+
+
+  @RequirePolicies('cart:manage')
+  @ApiBody({ type: SyncCartItemsCommand })
+  @Put()
+  sync(@Body() command: SyncCartItemsCommand): Promise<CartItemResponse[]> {
+    return this.syncHandler.execute(command);
   }
 
 

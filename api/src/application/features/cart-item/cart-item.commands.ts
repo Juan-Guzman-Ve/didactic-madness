@@ -1,4 +1,5 @@
-import { IsInt, IsPositive } from 'class-validator';
+import { IsInt, IsPositive, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ICommand } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -32,4 +33,12 @@ export class UpdateCartItemCommand implements ICommand {
 export class DeleteCartItemCommand implements ICommand {
   @ApiProperty()
   id!: number;
+}
+
+export class SyncCartItemsCommand implements ICommand {
+  @ApiProperty({ type: [CreateCartItemCommand] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCartItemCommand)
+  items!: CreateCartItemCommand[];
 }
