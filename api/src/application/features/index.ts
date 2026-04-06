@@ -6,7 +6,6 @@ export * from './policy';
 export * from './role-policy';
 export * from './product';
 export * from './product-image';
-export * from './cart';
 export * from './cart-item';
 export * from './order';
 export * from './order-item';

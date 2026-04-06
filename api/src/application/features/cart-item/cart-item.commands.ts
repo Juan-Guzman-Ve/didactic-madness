@@ -3,11 +3,7 @@ import { Type } from 'class-transformer';
 import { ICommand } from '@app/application';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateCartItemCommand implements ICommand {
-  @ApiProperty()
-  @IsInt()
-  @IsPositive()
-  cartId!: number;
+export class CartItemDto {
 
   @ApiProperty()
   @IsInt()
@@ -20,25 +16,15 @@ export class CreateCartItemCommand implements ICommand {
   quantity!: number;
 }
 
-export class UpdateCartItemCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-
+export class SyncCartItemsCommand implements ICommand {
   @ApiProperty()
   @IsInt()
   @IsPositive()
-  quantity!: number;
-}
+  cartId!: number;
 
-export class DeleteCartItemCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-}
-
-export class SyncCartItemsCommand implements ICommand {
-  @ApiProperty({ type: [CreateCartItemCommand] })
+  @ApiProperty({ type: [CartItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateCartItemCommand)
-  items!: CreateCartItemCommand[];
+  @Type(() => CartItemDto)
+  items!: CartItemDto[];
 }

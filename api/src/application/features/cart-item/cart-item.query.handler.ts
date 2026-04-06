@@ -1,21 +1,8 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { ICartItemRepository, CART_ITEM_REPOSITORY, IQueryHandler } from '@app/application';
-import { GetCartItemByIdQuery, ListCartItemsQuery } from './cart-item.queries';
-import { CartItemResponse, ListCartItemsResponse } from './cart-item.responses';
+import { ListCartItemsQuery } from './cart-item.queries';
+import { ListCartItemsResponse } from './cart-item.responses';
 import { CartItemMapper } from './cart-item.mapper';
-
-@Injectable()
-export class GetCartItemByIdQueryHandler implements IQueryHandler<GetCartItemByIdQuery, CartItemResponse> {
-  constructor(
-    @Inject(CART_ITEM_REPOSITORY) private readonly cartItemRepository: ICartItemRepository,
-  ) {}
-
-  async execute(query: GetCartItemByIdQuery): Promise<CartItemResponse> {
-    const cartItem = await this.cartItemRepository.findById(query.id);
-    if (!cartItem) throw new NotFoundException(`CartItem with ID ${query.id} not found`);
-    return CartItemMapper.toResponse(cartItem);
-  }
-}
 
 @Injectable()
 export class ListCartItemsQueryHandler implements IQueryHandler<ListCartItemsQuery, ListCartItemsResponse> {

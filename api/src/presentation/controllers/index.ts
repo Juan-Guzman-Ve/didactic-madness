@@ -6,7 +6,6 @@ export * from './policy.controller';
 export * from './role-policy.controller';
 export * from './product.controller';
 export * from './product-image.controller';
-export * from './cart.controller';
 export * from './cart-item.controller';
 export * from './order.controller';
 export * from './order-item.controller';

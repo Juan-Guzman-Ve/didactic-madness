@@ -84,21 +84,8 @@ import {
   ListProductImagesQueryHandler,
 } from './application/features/product-image';
 
-// Cart
-import {
-  CreateCartCommandHandler,
-  UpdateCartCommandHandler,
-  DeleteCartCommandHandler,
-  GetCartByIdQueryHandler,
-  ListCartsQueryHandler,
-} from './application/features/cart';
-
 // CartItem
 import {
-  CreateCartItemCommandHandler,
-  UpdateCartItemCommandHandler,
-  DeleteCartItemCommandHandler,
-  GetCartItemByIdQueryHandler,
   ListCartItemsQueryHandler,
   SyncCartItemsCommandHandler,
 } from './application/features/cart-item';
@@ -140,7 +127,6 @@ import {
   RolePolicyController,
   ProductController,
   ProductImageController,
-  CartController,
   CartItemController,
   OrderController,
   OrderItemController,
@@ -182,7 +168,6 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     RolePolicyController,
     ProductController,
     ProductImageController,
-    CartController,
     CartItemController,
     OrderController,
     OrderItemController,
@@ -252,17 +237,7 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     DeleteProductImageCommandHandler,
     GetProductImageByIdQueryHandler,
     ListProductImagesQueryHandler,
-    // Cart
-    CreateCartCommandHandler,
-    UpdateCartCommandHandler,
-    DeleteCartCommandHandler,
-    GetCartByIdQueryHandler,
-    ListCartsQueryHandler,
     // CartItem
-    CreateCartItemCommandHandler,
-    UpdateCartItemCommandHandler,
-    DeleteCartItemCommandHandler,
-    GetCartItemByIdQueryHandler,
     ListCartItemsQueryHandler,
     SyncCartItemsCommandHandler,
     // Order

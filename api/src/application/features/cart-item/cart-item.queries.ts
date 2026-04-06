@@ -4,11 +4,6 @@ import { IQuery } from '@app/application';
 import { CartItemResponse, ListCartItemsResponse } from './cart-item.responses';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetCartItemByIdQuery implements IQuery<CartItemResponse> {
-  @ApiProperty()
-  id!: number;
-}
-
 export class ListCartItemsQuery implements IQuery<ListCartItemsResponse> {
   @ApiProperty({required: false})
   @IsOptional()
