@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import {
+  CheckoutCommand,
+  CheckoutCommandHandler,
   CreateOrderCommand,
   CreateOrderCommandHandler,
   DeleteOrderCommand,
@@ -16,6 +18,7 @@ import {
 } from '@app/application/features/order';
 import { BaseController } from '@app/presentation/base';
 import { RequirePolicies } from '@app/presentation/decorators/policies.decorator';
+import { CurrentUser } from '@app/presentation/decorators';
 
 @ApiTags('orders')
 @ApiBearerAuth()
@@ -34,6 +37,7 @@ export class OrderController extends BaseController<
     deleteHandler: DeleteOrderCommandHandler,
     getByIdHandler: GetOrderByIdQueryHandler,
     private readonly listHandler: ListOrdersQueryHandler,
+    private readonly checkoutHandler: CheckoutCommandHandler,
   ) {
     super(createHandler, updateHandler, deleteHandler, getByIdHandler);
   }
@@ -75,5 +79,16 @@ export class OrderController extends BaseController<
   @ApiQuery({ name: 'sort', required: false, type: String })
   list(@Query() query: ListOrdersQuery): Promise<ListOrdersResponse> {
     return this.listHandler.execute(query);
+  }
+
+  @RequirePolicies('orders:create')
+  @ApiBody({ type: CheckoutCommand })
+  @Post('checkout')
+  checkout(
+    @Body() command: CheckoutCommand,
+    @CurrentUser() user: { id: number },
+  ): Promise<OrderResponse> {
+    command.userId = user.id;
+    return this.checkoutHandler.execute(command);
   }
 }

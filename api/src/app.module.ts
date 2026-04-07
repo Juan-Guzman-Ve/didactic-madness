@@ -92,6 +92,7 @@ import {
 
 // Order
 import {
+  CheckoutCommandHandler,
   CreateOrderCommandHandler,
   UpdateOrderCommandHandler,
   DeleteOrderCommandHandler,
@@ -241,6 +242,7 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     ListCartItemsQueryHandler,
     SyncCartItemsCommandHandler,
     // Order
+    CheckoutCommandHandler,
     CreateOrderCommandHandler,
     UpdateOrderCommandHandler,
     DeleteOrderCommandHandler,

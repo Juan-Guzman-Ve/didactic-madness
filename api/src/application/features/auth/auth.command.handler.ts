@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, Inject, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { ICartRepository, IUserRepository, USER_REPOSITORY } from '@app/application/contracts/repositories';
+import { CART_REPOSITORY, ICartRepository, IUserRepository, USER_REPOSITORY } from '@app/application/contracts/repositories';
 import { RegisterCommand, LoginCommand } from './auth.commands';
 import { User } from '@app/domain/entities/user.entity';
 import { ICommandHandler } from '@app/application';
@@ -45,13 +45,13 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand, AuthLo
   }
 }
 
-
+  
 @Injectable()
 export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, AuthRegisterResponse> {
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
-    @Inject('CART_REPOSITORY') private readonly cartRepository: ICartRepository,
+    @Inject(CART_REPOSITORY) private readonly cartRepository: ICartRepository,
   ) {}
 
   async execute(command: RegisterCommand) : Promise<AuthRegisterResponse> {

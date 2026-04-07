@@ -10,7 +10,10 @@ get {
   auth: none
 }
 
-query {
+params:query {
+  search: Intel
+  minPrice: 100
+  sort: price:desc
   ~search: Intel
   ~categoryId: 1
   ~minPrice: 100
@@ -20,4 +23,32 @@ query {
   ~sort: price:desc
   ~page: 1
   ~limit: 10
+}
+
+script:post-response {
+  const response = res.body; 
+  
+  
+  const rowData = response.data.map(item => ({
+    id: item.id,
+    name: item.name,
+    stock: item.stock,
+    status: item.status
+  }));
+  
+  const columnDefinitions = [
+    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'name', headerName: 'Product Name', flex: 1 },
+    { field: 'stock', headerName: 'Stock', width: 100 },
+    { field: 'status', headerName: 'Status', width: 120 }
+  ];
+  
+  bru.visualize('table', {
+    name: 'Filtered Inventory Table',
+    provider: 'ag-grid',
+    props: {
+      rowData: rowData,
+      columnDefinitions: columnDefinitions
+    }
+  });
 }

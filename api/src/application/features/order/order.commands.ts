@@ -58,3 +58,12 @@ export class DeleteOrderCommand implements ICommand {
   @ApiProperty()
   id!: number;
 }
+
+export class CheckoutCommand implements ICommand {
+  @ApiProperty()
+  @IsInt()
+  @IsPositive()
+  addressId!: number;
+
+  userId!: number;
+}
