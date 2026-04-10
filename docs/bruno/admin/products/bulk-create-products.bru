@@ -1,0 +1,54 @@
+meta {
+  name: Bulk Create Products
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/products
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "products": [
+      {
+        "sku": "GPU-RTX-4090-001",
+        "categoryId": 1,
+        "name": "NVIDIA RTX 4090",
+        "description": "High-end gaming GPU with 24GB VRAM",
+        "brand": "NVIDIA",
+        "model": "RTX 4090",
+        "price": 159900,
+        "stock": 10,
+        "status": "Active"
+      },
+      {
+        "sku": "GPU-RTX-4080-001",
+        "categoryId": 1,
+        "name": "NVIDIA RTX 4080",
+        "description": "High-performance gaming GPU with 16GB VRAM",
+        "brand": "NVIDIA",
+        "model": "RTX 4080",
+        "price": 119900,
+        "stock": 15,
+        "status": "Active"
+      }
+    ]
+  }
+}
+
+tests {
+  test("Status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+
+  test("All products were created", function() {
+    expect(res.body.length).to.equal(2);
+  });
+}

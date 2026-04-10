@@ -1,0 +1,44 @@
+meta {
+  name: Sync Cart
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/cart
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "cartId": 1,
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 2
+      },
+      {
+        "productId": 3,
+        "quantity": 1
+      }
+    ]
+  }
+}
+
+docs {
+  Replaces the entire cart contents atomically.
+  Sending an empty items array clears the cart.
+  
+  Validates stock availability for all items before applying changes.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}

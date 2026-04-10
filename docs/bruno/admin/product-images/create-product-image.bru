@@ -1,0 +1,25 @@
+meta {
+  name: Create Product Image
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/product-images
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "productId": 1,
+    "url": "https://example.com/images/rtx4090-front.jpg",
+    "displayOrder": 1
+  }
+}
+
+tests {
+  test("Status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+}

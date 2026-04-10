@@ -1,0 +1,26 @@
+meta {
+  name: Get Categories (Public)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/categories
+  body: none
+  auth: none
+}
+
+params:query {
+  ~page: 1
+  ~limit: 50
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has data array", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+}

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Address } from '@app/domain';
-import { IAddressRepository } from '@app/application';
+import { IAddressRepository, PaginationParams, PaginatedResult } from '@app/application';
 import { BaseRepository } from '@app/infra/database/repositories/base/base.repository';
 import { AddressEntity } from '@app/infra/database/entities';
 
@@ -16,8 +16,33 @@ export class AddressRepository extends BaseRepository<Address, AddressEntity> im
   }
 
   async findByUserId(userId: number): Promise<Address[]> {
-    const entities = await this.repository.find({ where: { userId } });
+    const entities = await this.repository.find({ where: { userId } as any });
     return this.toDomainMany(entities);
+  }
+
+  async findPaginatedByUserId(userId: number, params: PaginationParams): Promise<PaginatedResult<Address>> {
+    const { page, limit, sortBy, sortOrder } = params;
+    const skip = (page - 1) * limit;
+
+    const [entities, total] = await this.repository.findAndCount({
+      where: { userId } as any,
+      skip,
+      take: limit,
+      order: sortBy ? ({ [sortBy]: sortOrder ?? 'ASC' } as any) : undefined,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+    return {
+      data: this.toDomainMany(entities),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   protected toDomain(entity: AddressEntity): Address {

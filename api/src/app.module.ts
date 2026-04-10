@@ -12,15 +12,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RequestContextInterceptor } from './presentation/interceptors/request-context.interceptor';
 
-// Role
-import {
-  CreateRoleCommandHandler,
-  DeleteRoleCommandHandler,
-  GetRoleByIdQueryHandler,
-  ListRolesQueryHandler,
-  UpdateRoleCommandHandler,
-} from './application/features/role';
-
 // User
 import {
   CreateUserCommandHandler,
@@ -48,27 +39,9 @@ import {
   ListCategoriesQueryHandler,
 } from './application/features/category';
 
-// Policy
-import {
-  CreatePolicyCommandHandler,
-  UpdatePolicyCommandHandler,
-  DeletePolicyCommandHandler,
-  GetPolicyByIdQueryHandler,
-  ListPoliciesQueryHandler,
-} from './application/features/policy';
-
-// RolePolicy
-import {
-  CreateRolePolicyCommandHandler,
-  UpdateRolePolicyCommandHandler,
-  DeleteRolePolicyCommandHandler,
-  GetRolePolicyByIdQueryHandler,
-  ListRolePoliciesQueryHandler,
-} from './application/features/role-policy';
-
 // Product
 import {
-  CreateProductCommandHandler,
+  BulkCreateProductsCommandHandler,
   UpdateProductCommandHandler,
   DeleteProductCommandHandler,
   GetProductByIdQueryHandler,
@@ -93,18 +66,13 @@ import {
 // Order
 import {
   CheckoutCommandHandler,
-  CreateOrderCommandHandler,
   UpdateOrderCommandHandler,
-  DeleteOrderCommandHandler,
   GetOrderByIdQueryHandler,
   ListOrdersQueryHandler,
 } from './application/features/order';
 
 // OrderItem
 import {
-  CreateOrderItemCommandHandler,
-  UpdateOrderItemCommandHandler,
-  DeleteOrderItemCommandHandler,
   GetOrderItemByIdQueryHandler,
   ListOrderItemsQueryHandler,
 } from './application/features/order-item';
@@ -112,26 +80,26 @@ import {
 // OrderStatusHistory
 import {
   CreateOrderStatusHistoryCommandHandler,
-  UpdateOrderStatusHistoryCommandHandler,
-  DeleteOrderStatusHistoryCommandHandler,
   GetOrderStatusHistoryByIdQueryHandler,
   ListOrderStatusHistoriesQueryHandler,
 } from './application/features/order-status-history';
 
 // Presentation Controllers
 import {
-  RoleController,
-  UserController,
-  AddressController,
-  CategoryController,
-  PolicyController,
-  RolePolicyController,
-  ProductController,
-  ProductImageController,
-  CartItemController,
-  OrderController,
-  OrderItemController,
-  OrderStatusHistoryController,
+  AdminCategoriesController,
+  AdminProductsController,
+  AdminUsersController,
+  AdminOrdersController,
+  AdminOrderItemsController,
+  AdminOrderStatusHistoriesController,
+  AdminProductImagesController,
+  AdminAddressesController,
+  StorefrontProductsController,
+  StorefrontCartController,
+  StorefrontCheckoutController,
+  StorefrontOrdersController,
+  StorefrontAddressesController,
+  StorefrontAccountController,
 } from './presentation/controllers';
 import { AuthController } from '@app/presentation/controllers/auth.controller';
 import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/features/auth';
@@ -161,18 +129,22 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
   ],
   controllers: [
     AuthController,
-    RoleController,
-    UserController,
-    AddressController,
-    CategoryController,
-    PolicyController,
-    RolePolicyController,
-    ProductController,
-    ProductImageController,
-    CartItemController,
-    OrderController,
-    OrderItemController,
-    OrderStatusHistoryController,
+    // Admin
+    AdminCategoriesController,
+    AdminProductsController,
+    AdminUsersController,
+    AdminOrdersController,
+    AdminOrderItemsController,
+    AdminOrderStatusHistoriesController,
+    AdminProductImagesController,
+    AdminAddressesController,
+    // Storefront
+    StorefrontProductsController,
+    StorefrontCartController,
+    StorefrontCheckoutController,
+    StorefrontOrdersController,
+    StorefrontAddressesController,
+    StorefrontAccountController,
   ],
   providers: [
     {
@@ -190,12 +162,6 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     // Auth
     LoginCommandHandler,
     RegisterCommandHandler,
-    // Role
-    CreateRoleCommandHandler,
-    UpdateRoleCommandHandler,
-    DeleteRoleCommandHandler,
-    GetRoleByIdQueryHandler,
-    ListRolesQueryHandler,
     // User
     CreateUserCommandHandler,
     UpdateUserCommandHandler,
@@ -214,20 +180,8 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     DeleteCategoryCommandHandler,
     GetCategoryByIdQueryHandler,
     ListCategoriesQueryHandler,
-    // Policy
-    CreatePolicyCommandHandler,
-    UpdatePolicyCommandHandler,
-    DeletePolicyCommandHandler,
-    GetPolicyByIdQueryHandler,
-    ListPoliciesQueryHandler,
-    // RolePolicy
-    CreateRolePolicyCommandHandler,
-    UpdateRolePolicyCommandHandler,
-    DeleteRolePolicyCommandHandler,
-    GetRolePolicyByIdQueryHandler,
-    ListRolePoliciesQueryHandler,
     // Product
-    CreateProductCommandHandler,
+    BulkCreateProductsCommandHandler,
     UpdateProductCommandHandler,
     DeleteProductCommandHandler,
     GetProductByIdQueryHandler,
@@ -243,21 +197,14 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     SyncCartItemsCommandHandler,
     // Order
     CheckoutCommandHandler,
-    CreateOrderCommandHandler,
     UpdateOrderCommandHandler,
-    DeleteOrderCommandHandler,
     GetOrderByIdQueryHandler,
     ListOrdersQueryHandler,
     // OrderItem
-    CreateOrderItemCommandHandler,
-    UpdateOrderItemCommandHandler,
-    DeleteOrderItemCommandHandler,
     GetOrderItemByIdQueryHandler,
     ListOrderItemsQueryHandler,
     // OrderStatusHistory
     CreateOrderStatusHistoryCommandHandler,
-    UpdateOrderStatusHistoryCommandHandler,
-    DeleteOrderStatusHistoryCommandHandler,
     GetOrderStatusHistoryByIdQueryHandler,
     ListOrderStatusHistoriesQueryHandler,
 

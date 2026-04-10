@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { IProductRepository, PRODUCT_REPOSITORY, ICommandHandler } from '@app/application';
 import { Product } from '@app/domain';
-import { CreateProductCommand, UpdateProductCommand, DeleteProductCommand } from './product.commands';
+import { CreateProductCommand, UpdateProductCommand, DeleteProductCommand, BulkCreateProductsCommand } from './product.commands';
 import { ProductResponse } from './product.responses';
 import { ProductMapper } from './product.mapper';
 
@@ -65,5 +65,31 @@ export class DeleteProductCommandHandler implements ICommandHandler<DeleteProduc
     const exists = await this.productRepository.exists(command.id);
     if (!exists) throw new NotFoundException(`Product with ID ${command.id} not found`);
     await this.productRepository.deleteById(command.id);
+  }
+}
+
+@Injectable()
+export class BulkCreateProductsCommandHandler implements ICommandHandler<BulkCreateProductsCommand, ProductResponse[]> {
+  constructor(
+    @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
+  ) {}
+
+  async execute(command: BulkCreateProductsCommand): Promise<ProductResponse[]> {
+    const products = command.products.map((p) =>
+      Object.assign(new Product(), {
+        sku: p.sku,
+        categoryId: p.categoryId,
+        name: p.name,
+        description: p.description,
+        brand: p.brand,
+        model: p.model,
+        price: p.price,
+        stock: p.stock,
+        specifications: p.specifications,
+        status: p.status ?? 'Active',
+      }),
+    );
+    const saved = await this.productRepository.createMany(products);
+    return saved.map(ProductMapper.toResponse);
   }
 }

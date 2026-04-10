@@ -1,0 +1,33 @@
+meta {
+  name: Update Order Status
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/admin/orders/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "status": "Paid"
+  }
+}
+
+docs {
+  Valid status transitions:
+  Pending      → Paid | Cancelled
+  Paid         → Processing | Cancelled
+  Processing   → Shipped | Cancelled
+  Shipped      → Delivered
+  Delivered    → (terminal)
+  Cancelled    → (terminal)
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

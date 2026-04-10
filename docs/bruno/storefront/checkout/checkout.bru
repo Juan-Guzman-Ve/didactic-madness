@@ -1,0 +1,49 @@
+meta {
+  name: Checkout
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/checkout
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "addressId": 1
+  }
+}
+
+docs {
+  Converts the current user's cart into an order.
+  
+  Flow:
+  1. Loads the cart for the authenticated user (userId from JWT)
+  2. Validates stock for all cart items
+  3. Creates the order + order items atomically
+  4. Decrements stock for each product
+  5. Records initial status history (PendingPayment)
+  6. Clears the cart
+  
+  The cart must not be empty and the addressId must belong to the authenticated user.
+}
+
+tests {
+  test("Status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("Response has order id", function() {
+    expect(res.body.id).to.be.a('number');
+  });
+
+  test("Status is PendingPayment", function() {
+    expect(res.body.status).to.equal('PendingPayment');
+  });
+
+  test("Payment status is Pending", function() {
+    expect(res.body.paymentStatus).to.equal('Pending');
+  });
+}

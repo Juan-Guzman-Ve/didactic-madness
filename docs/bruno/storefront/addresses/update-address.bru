@@ -1,0 +1,27 @@
+meta {
+  name: Update Address
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/addresses/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "addressLine1": "456 Oak Ave",
+    "city": "Brooklyn",
+    "state": "NY",
+    "postalCode": "11201",
+    "country": "US"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

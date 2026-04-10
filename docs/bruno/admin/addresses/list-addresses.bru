@@ -1,0 +1,23 @@
+meta {
+  name: List Addresses
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/admin/addresses
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 1
+  ~limit: 20
+  ~sort: createdAt:desc
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

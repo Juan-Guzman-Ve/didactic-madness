@@ -26,7 +26,10 @@ export class ListAddressesQueryHandler implements IQueryHandler<ListAddressesQue
   async execute(query: ListAddressesQuery): Promise<ListAddressesResponse> {
     const page = Math.max(query.page ?? 1, 1);
     const limit = Math.min(query.limit ?? 20, 100);
-    const result = await this.addressRepository.findPaginated({ page, limit });
+    const params = { page, limit };
+    const result = query.userId
+      ? await this.addressRepository.findPaginatedByUserId(query.userId, params)
+      : await this.addressRepository.findPaginated(params);
 
     return {
       data: result.data.map(AddressMapper.toResponse),

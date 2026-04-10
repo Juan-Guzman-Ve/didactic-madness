@@ -1,0 +1,28 @@
+meta {
+  name: Create User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/users
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "passwordHash": "Password123!",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "roleId": 2,
+    "status": "Active"
+  }
+}
+
+tests {
+  test("Status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+}

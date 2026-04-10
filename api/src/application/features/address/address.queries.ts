@@ -29,4 +29,6 @@ export class ListAddressesQuery implements IQuery<ListAddressesResponse> {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  userId?: number;
 }

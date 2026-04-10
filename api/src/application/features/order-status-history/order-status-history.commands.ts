@@ -26,22 +26,4 @@ export class CreateOrderStatusHistoryCommand implements ICommand {
   notes?: string;
 }
 
-export class UpdateOrderStatusHistoryCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  status?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  notes?: string;
-}
-
-export class DeleteOrderStatusHistoryCommand implements ICommand {
-  @ApiProperty()
-  id!: number;
-}
+// Status history is append-only — no update or delete

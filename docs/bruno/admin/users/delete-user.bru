@@ -1,0 +1,17 @@
+meta {
+  name: Delete User
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/admin/users/1
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status is 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}

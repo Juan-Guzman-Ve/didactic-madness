@@ -1,0 +1,25 @@
+meta {
+  name: Update Product
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/admin/products/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "price": 149900,
+    "stock": 15,
+    "status": "Active"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Category
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/admin/categories/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "description": "Updated category description"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

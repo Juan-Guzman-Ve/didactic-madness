@@ -112,3 +112,8 @@ export class DeleteProductCommand implements ICommand {
   @ApiProperty()
   id!: number;
 }
+
+export class BulkCreateProductsCommand implements ICommand {
+  @ApiProperty({ type: [CreateProductCommand] })
+  products!: CreateProductCommand[];
+}

@@ -1,0 +1,61 @@
+meta {
+  name: List Products
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/products
+  body: none
+  auth: none
+}
+
+params:query {
+  ~page: 1
+  ~limit: 20
+  ~search: Intel
+  ~categoryId: 1
+  ~minPrice: 100
+  ~maxPrice: 1000
+  ~brand: Intel
+  ~inStock: true
+  ~sort: price:desc
+}
+
+script:post-response {
+  const response = res.body;
+
+  const rowData = response.data.map(item => ({
+    id: item.id,
+    name: item.name,
+    brand: item.brand,
+    price: item.price,
+    stock: item.stock,
+    status: item.status
+  }));
+
+  const columnDefinitions = [
+    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'name', headerName: 'Product Name', flex: 1 },
+    { field: 'brand', headerName: 'Brand', width: 120 },
+    { field: 'price', headerName: 'Price', width: 100 },
+    { field: 'stock', headerName: 'Stock', width: 100 },
+    { field: 'status', headerName: 'Status', width: 120 }
+  ];
+
+  bru.visualize('table', {
+    name: 'Product Catalog',
+    provider: 'ag-grid',
+    props: { rowData, columnDefinitions }
+  });
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has data array", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+}

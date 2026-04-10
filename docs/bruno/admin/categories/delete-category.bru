@@ -1,0 +1,17 @@
+meta {
+  name: Delete Category
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/admin/categories/1
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status is 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}
