@@ -24,4 +24,7 @@ export class ListCartItemsQuery implements IQuery<ListCartItemsResponse> {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  // Set programmatically by the controller — not exposed as an HTTP query param
+  userId?: number;
 }

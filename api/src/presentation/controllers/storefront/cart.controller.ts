@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Put, Body, Query, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import {
   CartItemResponse,
@@ -8,6 +8,10 @@ import {
   SyncCartItemsCommand,
   SyncCartItemsCommandHandler,
 } from '@app/application/features/cart-item';
+import { IPolicyRepository, POLICY_REPOSITORY } from '@app/application';
+import { CurrentUser } from '@app/presentation/decorators';
+
+const CART_FULL_ACCESS_POLICY = 'cart:read_all';
 
 @ApiTags('storefront / cart')
 @ApiBearerAuth()
@@ -17,12 +21,23 @@ export class StorefrontCartController {
   constructor(
     private readonly listHandler: ListCartItemsQueryHandler,
     private readonly syncHandler: SyncCartItemsCommandHandler,
+    @Inject(POLICY_REPOSITORY) private readonly policyRepository: IPolicyRepository,
   ) {}
 
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  list(@Query() query: ListCartItemsQuery): Promise<ListCartItemsResponse> {
+  async list(
+    @Query() query: ListCartItemsQuery,
+    @CurrentUser() user: { id: number; roleId: number },
+  ): Promise<ListCartItemsResponse> {
+    const userPolicies = await this.policyRepository.findByRoleId(user.roleId);
+    const hasFullAccess = userPolicies.some(p => p.name === CART_FULL_ACCESS_POLICY);
+
+    if (!hasFullAccess) {
+      query.userId = user.id;
+    }
+
     return this.listHandler.execute(query);
   }
 
