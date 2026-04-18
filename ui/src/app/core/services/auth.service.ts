@@ -1,18 +1,21 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AppRoutes } from '@app/app.routes.constants';
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  roleId: number;
+  status: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
+interface LoginResponse {
+  access_token: string;
   user: User;
 }
 
@@ -46,21 +49,16 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
-    // TODO: Implement login
-    // const response = await firstValueFrom(
-    //   this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password })
-    // );
-    // this.setSession(response);
-    throw new Error('Not implemented');
+    const response = await firstValueFrom(
+      this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password }),
+    );
+    this.setSession(response);
   }
 
   async register(data: RegisterRequest): Promise<void> {
-    // TODO: Implement registration
-    // const response = await firstValueFrom(
-    //   this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, data)
-    // );
-    // this.setSession(response);
-    throw new Error('Not implemented');
+    await firstValueFrom(
+      this.http.post<User>(`${this.apiUrl}/auth/register`, data),
+    );
   }
 
   logout(): void {
@@ -69,18 +67,18 @@ export class AuthService {
     this.currentUserSignal.set(null);
     this.tokenSignal.set(null);
     this.isAuthenticated.set(false);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/' + AppRoutes.AUTH_LOGIN]);
   }
 
   getToken(): string | null {
     return this.tokenSignal();
   }
 
-  private setSession(authResult: AuthResponse): void {
-    localStorage.setItem(STORAGE_TOKEN_KEY, authResult.accessToken);
+  private setSession(authResult: LoginResponse): void {
+    localStorage.setItem(STORAGE_TOKEN_KEY, authResult.access_token);
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(authResult.user));
     this.currentUserSignal.set(authResult.user);
-    this.tokenSignal.set(authResult.accessToken);
+    this.tokenSignal.set(authResult.access_token);
     this.isAuthenticated.set(true);
   }
 

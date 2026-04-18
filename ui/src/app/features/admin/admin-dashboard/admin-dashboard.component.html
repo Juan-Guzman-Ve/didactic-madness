@@ -26,9 +26,9 @@
   <div class="quick-actions">
     <h2>Quick Actions</h2>
     <div class="action-buttons">
-      <a routerLink="/admin/products" class="action-btn">Manage Products</a>
-      <a routerLink="/admin/orders" class="action-btn">View Orders</a>
-      <a routerLink="/admin/users" class="action-btn">Manage Users</a>
+      <a [routerLink]="'/' + routes.ADMIN_PRODUCTS" class="action-btn">Manage Products</a>
+      <a [routerLink]="'/' + routes.ADMIN_ORDERS" class="action-btn">View Orders</a>
+      <a [routerLink]="'/' + routes.ADMIN_USERS" class="action-btn">Manage Users</a>
     </div>
   </div>
 </div>

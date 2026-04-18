@@ -200,15 +200,57 @@ features/
 
 ---
 
+## Navigation — Use AppRoutes Constants
+
+**Never use string literals for route navigation.** Always import from `@app/app.routes.constants`.
+
+```typescript
+// ❌ BAD — hardcoded string
+this.router.navigate(['/auth/login']);
+
+// ✅ GOOD — named constant
+import { AppRoutes } from '@app/app.routes.constants';
+this.router.navigate([AppRoutes.AUTH_LOGIN]);
+```
+
+When adding a new route, add it to `app.routes.constants.ts` and `app.routes.ts` together.
+
+---
+
+## Simplicity Rules
+
+**Only extract a method when the logic is reused or genuinely complex.** Do not extract single-use inline expressions into helper methods — it adds indirection without benefit.
+
+```typescript
+// ❌ BAD — unnecessary extraction for a one-liner
+private buildRequest(): RegisterRequest {
+  return this.form.getRawValue();
+}
+async onSubmit() {
+  await this.service.register(this.buildRequest());
+}
+
+// ✅ GOOD — inline it directly
+async onSubmit() {
+  await this.service.register(this.form.getRawValue());
+}
+```
+
+**Prefer direct, obvious code over clever abstractions.** If a method is used once and its body is 1-3 lines, keep it inline.
+
+---
+
 ## Common Mistakes to Avoid
 
 1. ❌ Using `any` without justification comment
 2. ❌ Nested `if` statements (use guard clauses)
-3. ❌ Magic numbers (use named constants)
-4. ❌ Long template files (extract to child components)
-5. ❌ Mixing business logic in generic components
-6. ❌ Constructor injection (use `inject()`)
-7. ❌ Relative imports (use `@app`, `@shared`)
+3. ❌ Magic numbers or strings (use named constants)
+4. ❌ Hardcoded route strings (use `AppRoutes`)
+5. ❌ Long template files (extract to child components)
+6. ❌ Mixing business logic in generic components
+7. ❌ Constructor injection (use `inject()`)
+8. ❌ Relative imports (use `@app`, `@shared`)
+9. ❌ Extracting single-use trivial logic into helper methods
 
 ---
 

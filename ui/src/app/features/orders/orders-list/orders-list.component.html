@@ -1,0 +1,44 @@
+<div class="orders-page">
+  <div class="container">
+    <h1>My Orders</h1>
+
+    @if (loading) {
+      <div class="loading-state">
+        <mat-spinner diameter="40" />
+      </div>
+    } @else if (orders().length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">receipt_long</mat-icon>
+        <h2>No orders yet</h2>
+        <p>Browse our product catalog and place your first order.</p>
+        <a mat-flat-button color="primary" [routerLink]="'/' + routes.PRODUCTS">Shop Now</a>
+      </div>
+    } @else {
+      <div class="orders-list">
+        @for (order of orders(); track order.id) {
+          <div class="order-card">
+            <div class="order-header">
+              <div class="order-meta">
+                <span class="order-number">{{ order.orderNumber }}</span>
+                <span class="order-date">{{ formatDate(order.createdAt) }}</span>
+              </div>
+              <span class="status-badge" [class]="statusClass(order.status)">
+                {{ statusLabel(order.status) }}
+              </span>
+            </div>
+            <div class="order-details">
+              <span class="order-total">{{ formatPrice(order.totalAmount) }}</span>
+            </div>
+            <div class="order-actions">
+              <a
+                mat-stroked-button
+                [routerLink]="'/' + routes.ORDER_DETAIL(order.id)">
+                View Details
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

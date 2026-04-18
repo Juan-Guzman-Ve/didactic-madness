@@ -42,10 +42,12 @@ export class UiInputComponent {
   // ── Error message mapping ───────────────────────────────────────────────────
   getErrorMessage(): string {
     const ctrl = this.control();
-    if (ctrl.hasError('required')) return `${this.label() || 'This field'} is required.`;
-    if (ctrl.hasError('email'))    return 'Invalid email address.';
-    if (ctrl.hasError('min'))      return `Value must be at least ${ctrl.getError('min').min}.`;
-    if (ctrl.hasError('max'))      return `Value must be at most ${ctrl.getError('max').max}.`;
+    if (ctrl.hasError('required'))  return `${this.label() || 'This field'} is required.`;
+    if (ctrl.hasError('email'))     return 'Invalid email address.';
+    if (ctrl.hasError('minlength')) return `Must be at least ${ctrl.getError('minlength').requiredLength} characters.`;
+    if (ctrl.hasError('maxlength')) return `Must be at most ${ctrl.getError('maxlength').requiredLength} characters.`;
+    if (ctrl.hasError('min'))       return `Value must be at least ${ctrl.getError('min').min}.`;
+    if (ctrl.hasError('max'))       return `Value must be at most ${ctrl.getError('max').max}.`;
     return 'Invalid value.';
   }
 }

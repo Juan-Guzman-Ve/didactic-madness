@@ -1,0 +1,17 @@
+export const AppRoutes = {
+  HOME: '',
+  SHOWCASE: 'showcase',
+  PRODUCTS: 'products',
+  PRODUCT_DETAIL: (id: number | string) => `products/${id}`,
+  CART: 'cart',
+  CHECKOUT: 'checkout',
+  ORDERS: 'orders',
+  ORDER_DETAIL: (id: number | string) => `orders/${id}`,
+  ORDER_CONFIRMATION: (id: number | string) => `orders/${id}/confirmation`,
+  AUTH_LOGIN: 'auth/login',
+  AUTH_REGISTER: 'auth/register',
+  ADMIN_DASHBOARD: 'admin',
+  ADMIN_PRODUCTS: 'admin/products',
+  ADMIN_ORDERS: 'admin/orders',
+  ADMIN_USERS: 'admin/users',
+} as const;

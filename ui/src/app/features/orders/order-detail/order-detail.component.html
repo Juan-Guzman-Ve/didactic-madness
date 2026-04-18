@@ -1,0 +1,108 @@
+<div class="order-detail-page">
+  <div class="container">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="40" />
+      </div>
+    } @else if (order(); as o) {
+      <nav class="breadcrumb">
+        <a [routerLink]="'/' + routes.HOME">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a [routerLink]="'/' + routes.ORDERS">My Orders</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span>{{ o.orderNumber }}</span>
+      </nav>
+
+      <div class="order-header">
+        <div>
+          <h1>{{ o.orderNumber }}</h1>
+          <p class="order-date">Placed on {{ formatDate(o.createdAt) }}</p>
+        </div>
+        <div class="header-right">
+          <span class="status-badge" [class]="statusClass(o.status)">
+            {{ statusLabel(o.status) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Status Timeline -->
+      @if (o.status !== 'Cancelled') {
+        <section class="timeline-section">
+          <div class="timeline">
+            @for (s of statuses; track s; let i = $index) {
+              <div class="timeline-step" [class.done]="i <= currentStatusIndex(o.status)" [class.active]="i === currentStatusIndex(o.status)">
+                <div class="step-dot"></div>
+                <span class="step-label">{{ statusLabel(s) }}</span>
+              </div>
+              @if (i < statuses.length - 1) {
+                <div class="timeline-line" [class.done]="i < currentStatusIndex(o.status)"></div>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      <div class="order-body">
+        <section class="section-card">
+          <h3>Order Summary</h3>
+          <mat-divider />
+          <div class="summary-lines">
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <span>{{ formatPrice(o.totalAmount) }}</span>
+            </div>
+            <div class="summary-line">
+              <span>Shipping</span>
+              <span class="free">FREE</span>
+            </div>
+          </div>
+          <mat-divider />
+          <div class="summary-line total">
+            <span>Total</span>
+            <span>{{ formatPrice(o.totalAmount) }}</span>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <h3>Shipping Address</h3>
+          @if (address(); as addr) {
+            <div class="address-block">
+              <p>{{ addr.addressLine1 }}</p>
+              @if (addr.addressLine2) { <p>{{ addr.addressLine2 }}</p> }
+              <p>{{ addr.city }}, {{ addr.state }} {{ addr.postalCode }}</p>
+              <p>{{ addr.country }}</p>
+            </div>
+          } @else {
+            <p class="no-data">Address information unavailable.</p>
+          }
+        </section>
+
+        <section class="section-card">
+          <h3>Payment</h3>
+          <p class="payment-info">
+            <mat-icon>credit_card</mat-icon>
+            Credit Card ending in 4242
+          </p>
+          <p class="payment-status" [class]="o.paymentStatus === 'Paid' ? 'paid' : 'pending-pay'">
+            Payment: {{ o.paymentStatus }}
+          </p>
+        </section>
+      </div>
+
+      <div class="order-footer">
+        <a mat-stroked-button [routerLink]="'/' + routes.ORDERS">
+          ← Back to Orders
+        </a>
+        <a mat-flat-button color="primary" [routerLink]="'/' + routes.PRODUCTS">
+          Continue Shopping
+        </a>
+      </div>
+    } @else {
+      <div class="not-found">
+        <mat-icon>error_outline</mat-icon>
+        <h2>Order not found</h2>
+        <a mat-flat-button color="primary" [routerLink]="'/' + routes.ORDERS">My Orders</a>
+      </div>
+    }
+  </div>
+</div>

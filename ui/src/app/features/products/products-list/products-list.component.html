@@ -1,28 +1,131 @@
-<div class="products-container">
-  <aside class="filters">
-    <h3>Filters</h3>
-    <!-- TODO: Add filter controls -->
-  </aside>
-
-  <main class="products-grid">
-    <h1>Products</h1>
-    
-    @if (loading()) {
-      <div class="loading">Loading products...</div>
-    }
-
-    @if (!loading() && products().length === 0) {
-      <div class="empty-state">No products found</div>
-    }
-
-    <div class="grid">
-      @for (product of products(); track product.id) {
-        <div class="product-card">
-          <!-- TODO: Replace with product card component -->
-          <h3>{{ product.name }}</h3>
-          <p>{{ product.price | currency }}</p>
-        </div>
+<div class="products-page">
+  <div class="page-banner">
+    <div class="container">
+      <h1>{{ selectedCategoryName() }}</h1>
+      @if (meta()) {
+        <span class="product-count">{{ meta()!.total }} products</span>
       }
     </div>
-  </main>
+  </div>
+
+  <div class="container page-body">
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search products..." [formControl]="searchControl"
+            (keyup.enter)="onSearchSubmit()" />
+        </mat-form-field>
+      </div>
+      <div class="sort-row">
+        <mat-form-field appearance="outline" class="sort-field">
+          <mat-select [value]="selectedSort()" (selectionChange)="onSortChange($event.value)">
+            @for (opt of sortOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="content-layout">
+      <aside class="sidebar">
+        <h3 class="filter-title">Category</h3>
+        <ul class="category-list">
+          <li>
+            <button
+              class="category-btn"
+              [class.active]="selectedCategoryId() === null"
+              (click)="filterByCategory(null)">
+              All Products
+            </button>
+          </li>
+          @for (cat of categories(); track cat.id) {
+            <li>
+              <button
+                class="category-btn"
+                [class.active]="selectedCategoryId() === cat.id"
+                (click)="filterByCategory(cat.id)">
+                {{ cat.name }}
+              </button>
+            </li>
+          }
+        </ul>
+
+        <div class="filter-divider"></div>
+
+        <mat-checkbox
+          [checked]="inStockOnly()"
+          (change)="onInStockToggle($event.checked)">
+          In Stock Only
+        </mat-checkbox>
+      </aside>
+
+      <div class="products-area">
+        @if (loading()) {
+          <div class="loading-grid">
+            @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+              <div class="skeleton-card"></div>
+            }
+          </div>
+        } @else if (products().length === 0) {
+          <div class="no-results">
+            <mat-icon>search_off</mat-icon>
+            <h3>No products found</h3>
+            <p>Try changing your filters or search term.</p>
+            <button mat-stroked-button (click)="filterByCategory(null)">Clear Filters</button>
+          </div>
+        } @else {
+          <div class="product-grid">
+            @for (product of products(); track product.id) {
+              <div class="product-card">
+                <a [routerLink]="'/' + routes.PRODUCT_DETAIL(product.id)" class="product-image-link">
+                  <img
+                    [src]="productImageUrl(product.sku)"
+                    [alt]="product.name"
+                    class="product-image"
+                    loading="lazy" />
+                </a>
+                <div class="product-info">
+                  <a [routerLink]="'/' + routes.PRODUCT_DETAIL(product.id)" class="product-name">
+                    {{ product.name }}
+                  </a>
+                  <span class="product-brand">{{ product.brand }}</span>
+                  <div class="product-footer">
+                    <span class="product-price">{{ formatPrice(product.price) }}</span>
+                    <span
+                      class="stock-badge"
+                      [class.out]="product.stock === 0"
+                      [class.low]="product.stock > 0 && product.stock < 5">
+                      {{ product.stock === 0 ? 'Out of Stock' : product.stock < 5 ? 'Low Stock' : 'In Stock' }}
+                    </span>
+                  </div>
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    class="add-btn"
+                    [disabled]="product.stock === 0"
+                    (click)="addToCart(product)">
+                    @if (addedProductId() === product.id) {
+                      <mat-icon>check</mat-icon> Added!
+                    } @else {
+                      <mat-icon>add_shopping_cart</mat-icon> Add to Cart
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (meta() && currentPage() < meta()!.totalPages) {
+            <div class="load-more">
+              <button mat-stroked-button (click)="loadMore()" [disabled]="loading()">
+                Load More Products
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
 </div>

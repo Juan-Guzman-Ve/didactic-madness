@@ -1,59 +1,133 @@
-<div class="product-detail-container">
-  @if (loading()) {
-    <div class="loading">Loading product...</div>
-  }
+<div class="product-detail-page">
+  <div class="container">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="48" />
+      </div>
+    } @else if (product(); as p) {
+      <nav class="breadcrumb">
+        <a [routerLink]="'/' + routes.HOME">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a [routerLink]="'/' + routes.PRODUCTS">Products</a>
+        @if (category()) {
+          <mat-icon>chevron_right</mat-icon>
+          <a [routerLink]="'/' + routes.PRODUCTS" [queryParams]="{ categoryId: category()!.id }">
+            {{ category()!.name }}
+          </a>
+        }
+        <mat-icon>chevron_right</mat-icon>
+        <span>{{ p.name }}</span>
+      </nav>
 
-  @if (product(); as p) {
-    <div class="product-layout">
-      <!-- Image Gallery -->
-      <div class="image-section">
-        <div class="main-image">
-          @if (p.images && p.images.length > 0) {
-            <img [src]="p.images[selectedImage()].url" [alt]="p.name">
-          }
+      <div class="product-layout">
+        <div class="image-section">
+          <div class="main-image">
+            <img [src]="productImageUrl(p.sku)" [alt]="p.name" />
+          </div>
         </div>
-        <div class="thumbnail-strip">
-          @for (image of p.images; track image.id; let i = $index) {
-            <img 
-              [src]="image.url" 
-              [alt]="p.name"
-              [class.active]="selectedImage() === i"
-              (click)="selectedImage.set(i)">
+
+        <div class="info-section">
+          <span class="brand-label">{{ p.brand }}</span>
+          <h1 class="product-title">{{ p.name }}</h1>
+          @if (p.model) {
+            <p class="model-label">Model: {{ p.model }}</p>
           }
+
+          <div class="price-block">
+            <span class="price">{{ formatPrice(p.price) }}</span>
+            <span
+              class="stock-badge"
+              [class.out]="p.stock === 0"
+              [class.low]="p.stock > 0 && p.stock < 5">
+              {{ p.stock === 0 ? 'Out of Stock' : p.stock < 5 ? 'Low Stock (​' + p.stock + '​ left)' : 'In Stock' }}
+            </span>
+          </div>
+
+          <p class="description">{{ p.description }}</p>
+
+          <div class="actions">
+            <div class="qty-control">
+              <button mat-icon-button (click)="decreaseQty()" [disabled]="quantity() <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="qty-value">{{ quantity() }}</span>
+              <button mat-icon-button (click)="increaseQty()" [disabled]="quantity() >= p.stock">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+
+            <button
+              mat-flat-button
+              color="primary"
+              class="add-to-cart-btn"
+              [disabled]="p.stock === 0 || cartLoading()"
+              (click)="addToCart()">
+              @if (addedToCart()) {
+                <ng-container>
+                  <mat-icon>check_circle</mat-icon> Added to Cart!
+                </ng-container>
+              } @else if (cartLoading()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                <ng-container>
+                  <mat-icon>add_shopping_cart</mat-icon> Add to Cart
+                </ng-container>
+              }
+            </button>
+          </div>
+
+          <div class="sku-info">
+            <span>SKU: <strong>{{ p.sku }}</strong></span>
+            <a [routerLink]="'/' + routes.CART" mat-button class="view-cart-link">
+              <mat-icon>shopping_cart</mat-icon> View Cart
+            </a>
+          </div>
         </div>
       </div>
 
-      <!-- Product Info -->
-      <div class="info-section">
-        <h1>{{ p.name }}</h1>
-        <div class="brand">{{ p.brand }} {{ p.model }}</div>
-        <div class="price">{{ p.price | currency }}</div>
-        
-        <div class="stock-info">
-          @if (p.stock > 0) {
-            <span class="in-stock">In Stock ({{ p.stock }} available)</span>
-          } @else {
-            <span class="out-of-stock">Out of Stock</span>
-          }
-        </div>
+      @if (specEntries.length > 0) {
+        <section class="specs-section">
+          <h2>Specifications</h2>
+          <div class="specs-grid">
+            @for (spec of specEntries; track spec.key) {
+              <div class="spec-row">
+                <span class="spec-key">{{ spec.key }}</span>
+                <span class="spec-value">{{ spec.value }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
 
-        <button 
-          class="add-to-cart-btn"
-          [disabled]="p.stock === 0"
-          (click)="addToCart()">
-          Add to Cart
-        </button>
-
-        <div class="description">
-          <h3>Description</h3>
-          <p>{{ p.description }}</p>
-        </div>
-
-        <div class="specifications">
-          <h3>Specifications</h3>
-          <!-- TODO: Render specifications -->
-        </div>
+      @if (relatedProducts().length > 0) {
+        <section class="related-section">
+          <div class="section-header">
+            <h2>You May Also Like</h2>
+            <a mat-button [routerLink]="'/' + routes.PRODUCTS" [queryParams]="{ categoryId: p.categoryId }">
+              View All <mat-icon>arrow_forward</mat-icon>
+            </a>
+          </div>
+          <div class="related-grid">
+            @for (related of relatedProducts(); track related.id) {
+              <a class="related-card" [routerLink]="'/' + routes.PRODUCT_DETAIL(related.id)">
+                <div class="related-image">
+                  <img [src]="productImageUrl(related.sku)" [alt]="related.name" loading="lazy" />
+                </div>
+                <div class="related-info">
+                  <span class="related-name">{{ related.name }}</span>
+                  <span class="related-price">{{ formatPrice(related.price) }}</span>
+                </div>
+              </a>
+            }
+          </div>
+        </section>
+      }
+    } @else {
+      <div class="not-found">
+        <mat-icon>error_outline</mat-icon>
+        <h2>Product not found</h2>
+        <a mat-flat-button color="primary" [routerLink]="'/' + routes.PRODUCTS">Browse Products</a>
       </div>
-    </div>
-  }
+    }
+  </div>
 </div>

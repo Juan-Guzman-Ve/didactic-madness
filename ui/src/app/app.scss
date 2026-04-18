@@ -1,148 +1,97 @@
-// ─── App Shell Layout (NZXT-Inspired) ───────────────────────────────────────
-
-.app-container {
-  height: 100vh;
+// App Shell Layout
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--nzxt-gray-50);
 }
 
-.app-sidenav {
-  width: 260px;
-  background: var(--nzxt-white);
-  color: var(--nzxt-gray-900);
-  border-right: 1px solid var(--nzxt-gray-200);
-  box-shadow: var(--shadow-md);
-
-  .sidenav-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: var(--spacing-lg) var(--spacing-md);
-    border-bottom: 1px solid var(--nzxt-gray-200);
-    background: linear-gradient(135deg, var(--nzxt-gray-50) 0%, var(--nzxt-white) 100%);
-
-    .logo-icon { 
-      color: var(--nzxt-black); 
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-    }
-    .logo-text { 
-      font-size: 1.25rem;
-      font-weight: var(--font-weight-normal);
-      color: var(--nzxt-gray-900);
-      letter-spacing: 0.02em;
-      
-      strong { 
-        font-weight: var(--font-weight-bold);
-        color: var(--nzxt-black);
-      }
-    }
-  }
-
-  mat-nav-list {
-    padding: var(--spacing-md);
-  }
-
-  mat-nav-list a {
-    color: var(--nzxt-gray-700);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-xs);
-    font-weight: var(--font-weight-medium);
-    transition: all 0.2s ease;
-
-    mat-icon { 
-      color: var(--nzxt-gray-600);
-      transition: color 0.2s ease;
-    }
-
-    &.active-link {
-      background: var(--nzxt-black);
-      color: var(--nzxt-white);
-      
-      mat-icon { 
-        color: var(--nzxt-white);
-      }
-    }
-
-    &:hover:not(.active-link) {
-      background: var(--nzxt-gray-100);
-      color: var(--nzxt-black);
-      transform: translateX(2px);
-      
-      mat-icon {
-        color: var(--nzxt-black);
-      }
-    }
-  }
-}
-
-.app-toolbar {
+.navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--nzxt-white);
-  color: var(--nzxt-gray-900);
+  background: var(--nzxt-white) !important;
+  color: var(--nzxt-gray-900) !important;
   border-bottom: 1px solid var(--nzxt-gray-200);
   box-shadow: var(--shadow-sm);
+  padding: 0 var(--spacing-lg);
   height: 64px;
-  padding: 0 var(--spacing-md);
 
-  .menu-button {
-    margin-right: var(--spacing-md);
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-decoration: none;
     color: var(--nzxt-gray-900);
-    
-    &:hover {
-      background: var(--nzxt-gray-100);
-    }
-  }
-
-  .toolbar-title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: var(--font-weight-semibold);
-    color: var(--nzxt-black);
-    letter-spacing: 0.01em;
+    margin-right: var(--spacing-xl);
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
   }
 
-  button[mat-icon-button] {
-    color: var(--nzxt-gray-700);
-    
-    &:hover {
-      background: var(--nzxt-gray-100);
-      color: var(--nzxt-black);
+  .nav-links {
+    display: flex;
+    gap: var(--spacing-xs);
+
+    a {
+      color: var(--nzxt-gray-700);
+      font-weight: var(--font-weight-medium);
+
+      &.active-link {
+        color: var(--nzxt-primary);
+      }
+    }
+  }
+
+  .flex-1 { flex: 1; }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+
+    .user-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      color: var(--nzxt-gray-700);
+
+      .user-name {
+        font-weight: var(--font-weight-medium);
+      }
     }
   }
 }
 
-.app-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.main-area {
+.main-content {
   flex: 1;
-  overflow: auto;
-  background: var(--nzxt-white);
 }
 
-// ─── Responsive Adjustments ─────────────────────────────────────────────────
-@media (max-width: 768px) {
-  .app-sidenav {
-    width: 280px;
+.footer {
+  background: var(--nzxt-gray-900);
+  color: var(--nzxt-gray-400);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
+
+  .footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    font-size: 0.875rem;
   }
 
-  .app-toolbar {
-    padding: 0 var(--spacing-sm);
-    
-    .toolbar-title {
-      font-size: 1rem;
-    }
-  }
-}
-
-// ─── Material Overrides for NZXT Style ──────────────────────────────────────
-::ng-deep {
-  .mat-drawer-backdrop.mat-drawer-shown {
-    background-color: rgba(0, 0, 0, 0.4);
+  .footer-logo {
+    font-size: 1.1rem;
+    color: var(--nzxt-white);
+    font-weight: var(--font-weight-semibold);
   }
 }

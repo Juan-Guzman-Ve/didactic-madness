@@ -1,20 +1,17 @@
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
-import { MatListModule } from '@angular/material/list';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-
-export interface NavItem {
-  label: string;
-  icon: string;
-  route: string;
-}
+import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
+import { AuthService } from '@app/core/services/auth.service';
+import { CartService } from '@app/core/services/cart.service';
+import { AppRoutes } from '@app/app.routes.constants';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [
     RouterOutlet,
     RouterLink,
@@ -22,41 +19,25 @@ export interface NavItem {
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatSidenavModule,
-    MatListModule,
+    MatMenuModule,
+    MatBadgeModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  @ViewChild('drawer') drawer!: MatSidenav;
-  
-  isMobile = signal(false);
-  
-  readonly navItems: NavItem[] = [
-    { label: 'Home',     icon: 'home',          route: '/' },
-    { label: 'Products', icon: 'inventory_2',   route: '/products' },
-    { label: 'Cart',     icon: 'shopping_cart', route: '/cart' },
-    { label: 'Orders',   icon: 'receipt_long',  route: '/orders' },
-    { label: 'Admin',    icon: 'admin_panel_settings', route: '/admin' },
-    { label: 'Showcase', icon: 'palette',       route: '/showcase' },
-  ];
+export class App implements OnInit {
+  protected readonly authService = inject(AuthService);
+  protected readonly cartService = inject(CartService);
+  protected readonly routes = AppRoutes;
 
-  constructor(private breakpointObserver: BreakpointObserver) {
-    this.breakpointObserver
-      .observe([Breakpoints.Handset, Breakpoints.Tablet])
-      .subscribe(result => {
-        this.isMobile.set(result.matches);
-      });
-  }
-
-  toggleDrawer(): void {
-    this.drawer.toggle();
-  }
-
-  closeDrawerIfMobile(): void {
-    if (this.isMobile()) {
-      this.drawer.close();
+  async ngOnInit(): Promise<void> {
+    if (this.authService.isAuthenticated()) {
+      await this.cartService.loadCart();
     }
+  }
+
+  logout(): void {
+    this.cartService.clearLocalCart();
+    this.authService.logout();
   }
 }

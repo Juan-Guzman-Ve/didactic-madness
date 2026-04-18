@@ -1,46 +1,61 @@
-<mat-sidenav-container class="app-container">
-  <mat-sidenav 
-    #drawer
-    [mode]="isMobile() ? 'over' : 'side'"
-    [opened]="!isMobile()"
-    class="app-sidenav">
-    <div class="sidenav-header">
-      <mat-icon class="logo-icon">computer</mat-icon>
-      <span class="logo-text">PC<strong>Store</strong></span>
-    </div>
-    <mat-nav-list>
-      @for (item of navItems; track item.route) {
-        <a 
-          mat-list-item 
-          [routerLink]="item.route" 
-          routerLinkActive="active-link"
-          (click)="closeDrawerIfMobile()">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
+<div class="app-layout">
+  <mat-toolbar class="navbar">
+    <a class="logo" [routerLink]="'/' + routes.HOME">
+      <mat-icon>computer</mat-icon>
+      <span>PC<strong>Store</strong></span>
+    </a>
+
+    <nav class="nav-links">
+      <a mat-button [routerLink]="routes.PRODUCTS" routerLinkActive="active-link">
+        Products
+      </a>
+      @if (authService.isAuthenticated()) {
+        <a mat-button [routerLink]="routes.ORDERS" routerLinkActive="active-link">
+          My Orders
         </a>
       }
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content class="app-content">
-    <mat-toolbar class="app-toolbar">
-      <button 
-        mat-icon-button 
-        (click)="toggleDrawer()" 
-        aria-label="Toggle navigation"
-        class="menu-button">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="toolbar-title">PC Parts Store</span>
-      <span class="flex-1"></span>
-      <button mat-icon-button aria-label="Notifications">
-        <mat-icon>notifications</mat-icon>
-      </button>
-      <button mat-icon-button aria-label="Account">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-    </mat-toolbar>
-    <main class="main-area">
-      <router-outlet />
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+    </nav>
+
+    <span class="flex-1"></span>
+
+    <div class="nav-actions">
+      @if (authService.isAuthenticated()) {
+        <a mat-icon-button [routerLink]="routes.CART" aria-label="Cart">
+          <mat-icon
+            [matBadge]="cartService.cartCount() > 0 ? cartService.cartCount() : null"
+            matBadgeColor="warn"
+            matBadgeSize="small">
+            shopping_cart
+          </mat-icon>
+        </a>
+
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+          <mat-icon>account_circle</mat-icon>
+          <span class="user-name">{{ authService.currentUser()?.firstName }}</span>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <a mat-menu-item [routerLink]="routes.ORDERS">
+            <mat-icon>receipt_long</mat-icon> My Orders
+          </a>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon> Sign Out
+          </button>
+        </mat-menu>
+      } @else {
+        <a mat-button [routerLink]="routes.AUTH_LOGIN">Sign In</a>
+        <a mat-raised-button color="primary" [routerLink]="routes.AUTH_REGISTER">Register</a>
+      }
+    </div>
+  </mat-toolbar>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">PC<strong>Store</strong></span>
+      <span>© 2026 PC Parts Store. All rights reserved.</span>
+    </div>
+  </footer>
+</div>

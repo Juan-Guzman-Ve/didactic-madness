@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from '@app/core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'cart',
+    canActivate: [AuthGuard],
     loadComponent: () =>
       import('./features/cart/cart.component').then((m) => m.CartComponent),
   },
@@ -42,7 +44,36 @@ export const routes: Routes = [
         (m) => m.RegisterComponent
       ),
   },
-  // TODO: Add admin, checkout, orders routes with guards
+  {
+    path: 'checkout',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/checkout/checkout.component').then((m) => m.CheckoutComponent),
+  },
+  {
+    path: 'orders',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/orders/orders-list/orders-list.component').then(
+        (m) => m.OrdersListComponent
+      ),
+  },
+  {
+    path: 'orders/:id/confirmation',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/orders/order-confirmation/order-confirmation.component').then(
+        (m) => m.OrderConfirmationComponent
+      ),
+  },
+  {
+    path: 'orders/:id',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/orders/order-detail/order-detail.component').then(
+        (m) => m.OrderDetailComponent
+      ),
+  },
   {
     path: '**',
     redirectTo: '',

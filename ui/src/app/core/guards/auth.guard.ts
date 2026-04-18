@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { AppRoutes } from '@app/app.routes.constants';
 
 interface RouteData {
   policies?: string[];
@@ -16,7 +17,7 @@ export class AuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot): boolean {
     // Guard clause: Not authenticated
     if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/' + AppRoutes.AUTH_LOGIN]);
       return false;
     }
 

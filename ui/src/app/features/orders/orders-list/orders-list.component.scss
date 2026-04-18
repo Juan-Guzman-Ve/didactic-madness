@@ -1,0 +1,108 @@
+.orders-page {
+  padding: var(--spacing-xl) 0 var(--spacing-3xl);
+  min-height: calc(100vh - 140px);
+  background: var(--nzxt-gray-50);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+
+  h1 { margin-bottom: var(--spacing-xl); }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+
+  .empty-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--nzxt-gray-300);
+    display: block;
+    margin: 0 auto var(--spacing-lg);
+  }
+
+  h2 { color: var(--nzxt-gray-700); }
+  p { color: var(--nzxt-gray-500); margin-bottom: var(--spacing-xl); }
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.order-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.order-header {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-number {
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  color: var(--nzxt-gray-900);
+}
+
+.order-date {
+  font-size: 0.875rem;
+  color: var(--nzxt-gray-500);
+}
+
+.order-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-total {
+  font-weight: var(--font-weight-bold);
+  font-size: 1.0625rem;
+  color: var(--nzxt-gray-900);
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 4px 12px;
+  border-radius: 99px;
+  white-space: nowrap;
+
+  &.pending-payment { background: #fef9c3; color: #854d0e; }
+  &.pending         { background: #fef3c7; color: #92400e; }
+  &.paid            { background: #d1fae5; color: #065f46; }
+  &.processing      { background: #dbeafe; color: #1e40af; }
+  &.shipped         { background: #ede9fe; color: #5b21b6; }
+  &.delivered       { background: #d1fae5; color: #065f46; }
+  &.cancelled       { background: #fee2e2; color: #991b1b; }
+}
+
+.order-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}

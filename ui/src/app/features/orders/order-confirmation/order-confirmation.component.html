@@ -1,0 +1,106 @@
+<div class="confirmation-page">
+  <div class="container">
+    @if (orderData; as data) {
+      <div class="success-header">
+        <div class="success-icon-ring">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+        </div>
+        <h1>Order Placed Successfully!</h1>
+        <p class="order-number">Order <strong>{{ data.order.orderNumber }}</strong></p>
+        <p class="order-subtext">
+          Placed on {{ orderPlacedDate(data.order.createdAt) }} &middot;
+          Estimated delivery by {{ formatDate(data.order.createdAt) }}
+        </p>
+      </div>
+
+      <div class="confirmation-layout">
+        <!-- Order Items -->
+        <section class="section-card main-section">
+          <h3>Order Details</h3>
+          <mat-divider />
+
+          <div class="items-list">
+            @for (item of data.items; track item.id) {
+              <div class="order-item">
+                <img [src]="productImageUrl(item.sku)" [alt]="item.name" class="item-img" loading="lazy" />
+                <div class="item-info">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-sku">{{ item.sku }}</span>
+                </div>
+                <div class="item-right">
+                  <span class="item-qty">×{{ item.quantity }}</span>
+                  <span class="item-price">{{ formatPrice(item.price * item.quantity) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <mat-divider />
+          <div class="totals">
+            <div class="total-line">
+              <span>Subtotal</span>
+              <span>{{ formatPrice(data.order.totalAmount) }}</span>
+            </div>
+            <div class="total-line">
+              <span>Shipping</span>
+              <span class="free">FREE</span>
+            </div>
+            <mat-divider />
+            <div class="total-line grand-total">
+              <span>Total</span>
+              <span>{{ formatPrice(data.order.totalAmount) }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sidebar: Address + Payment + Next Steps -->
+        <div class="sidebar">
+          @if (data.address) {
+            <section class="section-card">
+              <h4>Shipping To</h4>
+              <p class="addr-line">{{ data.address.addressLine1 }}</p>
+              @if (data.address.addressLine2) { <p class="addr-line">{{ data.address.addressLine2 }}</p> }
+              <p class="addr-line">{{ data.address.city }}, {{ data.address.state }} {{ data.address.postalCode }}</p>
+              <p class="addr-line">{{ data.address.country }}</p>
+            </section>
+          }
+
+          <section class="section-card">
+            <h4>Payment</h4>
+            <p class="payment-line">
+              <mat-icon>credit_card</mat-icon>
+              Credit Card ending in 4242
+            </p>
+          </section>
+
+          <section class="section-card next-steps">
+            <h4>What's Next?</h4>
+            <ul>
+              <li>
+                <mat-icon>mail_outline</mat-icon>
+                Email confirmation sent
+              </li>
+              <li>
+                <mat-icon>local_shipping</mat-icon>
+                We'll notify you when your order ships
+              </li>
+              <li>
+                <mat-icon>receipt_long</mat-icon>
+                Track your order in Order History
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <div class="confirmation-footer">
+        <a mat-stroked-button [routerLink]="'/' + routes.ORDER_DETAIL(data.order.id)">
+          <mat-icon>receipt_long</mat-icon> View Order Details
+        </a>
+        <a mat-flat-button color="primary" [routerLink]="'/' + routes.PRODUCTS">
+          Continue Shopping
+        </a>
+      </div>
+    }
+  </div>
+</div>

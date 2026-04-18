@@ -1,0 +1,135 @@
+<div class="checkout-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Checkout</h1>
+      <span class="secure-label"><mat-icon>lock</mat-icon> Secure Checkout</span>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-alert">
+        <mat-icon>error_outline</mat-icon>
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <div class="checkout-layout">
+      <!-- Left: Shipping + Payment -->
+      <div class="checkout-steps">
+        <!-- Shipping Address -->
+        <section class="step-card">
+          <h2 class="step-title"><span class="step-num">1</span> Shipping Address</h2>
+
+          @if (addresses().length > 0) {
+            <div class="address-list">
+              @for (addr of addresses(); track addr.id) {
+                <label class="address-option" [class.selected]="selectedAddressId() === addr.id">
+                  <input
+                    type="radio"
+                    name="address"
+                    [value]="addr.id"
+                    [checked]="selectedAddressId() === addr.id"
+                    (change)="selectAddress(addr)" />
+                  <div class="address-details">
+                    @if (addr.isDefault) {
+                      <span class="default-badge">Default</span>
+                    }
+                    <p class="addr-line">{{ addr.addressLine1 }}</p>
+                    @if (addr.addressLine2) { <p class="addr-line">{{ addr.addressLine2 }}</p> }
+                    <p class="addr-line">{{ addr.city }}, {{ addr.state }} {{ addr.postalCode }}</p>
+                    <p class="addr-line">{{ addr.country }}</p>
+                  </div>
+                </label>
+              }
+            </div>
+          }
+
+          <button mat-stroked-button class="add-address-btn" (click)="toggleAddressForm()">
+            <mat-icon>{{ showAddressForm() ? 'expand_less' : 'add' }}</mat-icon>
+            {{ showAddressForm() ? 'Cancel' : '+ Add New Address' }}
+          </button>
+
+          @if (showAddressForm()) {
+            <form class="address-form" [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+              <ui-input
+                label="Street Address"
+                [control]="$any(addressForm.controls.addressLine1)"
+                [required]="true" />
+              <ui-input
+                label="Apartment, suite, etc. (optional)"
+                [control]="$any(addressForm.controls.addressLine2)" />
+              <div class="form-row">
+                <ui-input label="City" [control]="$any(addressForm.controls.city)" [required]="true" />
+                <ui-input label="State / Province" [control]="$any(addressForm.controls.state)" [required]="true" />
+              </div>
+              <div class="form-row">
+                <ui-input label="Postal Code" [control]="$any(addressForm.controls.postalCode)" [required]="true" />
+                <ui-input label="Country" [control]="$any(addressForm.controls.country)" [required]="true" />
+              </div>
+              <button mat-flat-button color="primary" type="submit" [disabled]="addressForm.invalid">
+                Save Address
+              </button>
+            </form>
+          }
+        </section>
+
+        <!-- Payment (mock) -->
+        <section class="step-card">
+          <h2 class="step-title"><span class="step-num">2</span> Payment</h2>
+          <div class="mock-payment">
+            <mat-icon class="payment-icon">credit_card</mat-icon>
+            <div>
+              <p class="payment-label">Credit Card ending in <strong>4242</strong></p>
+              <p class="mock-note">This is a mock payment for academic purposes. No real charges will be made.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: Order Summary -->
+      <div class="order-summary">
+        <h3>Order Summary</h3>
+        <div class="summary-items">
+          @for (item of cartItems(); track item.id) {
+            <div class="summary-item">
+              <span class="item-name">{{ item.name }}</span>
+              <span class="item-qty">×{{ item.quantity }}</span>
+              <span class="item-total">{{ formatPrice(item.price * item.quantity) }}</span>
+            </div>
+          }
+        </div>
+        <mat-divider />
+        <div class="cost-lines">
+          <div class="cost-line">
+            <span>Subtotal</span>
+            <span>{{ formatPrice(cartTotal()) }}</span>
+          </div>
+          <div class="cost-line">
+            <span>Shipping</span>
+            <span class="free">FREE</span>
+          </div>
+        </div>
+        <mat-divider />
+        <div class="cost-line total">
+          <span>Total</span>
+          <span>{{ formatPrice(cartTotal()) }}</span>
+        </div>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="place-order-btn"
+          [disabled]="!canPlaceOrder"
+          (click)="placeOrder()">
+          @if (submitting()) {
+            <mat-spinner diameter="20" /> Placing Order...
+          } @else {
+            Place Order
+          }
+        </button>
+        <a mat-button [routerLink]="'/' + routes.CART" class="back-link">
+          ← Back to Cart
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

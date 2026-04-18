@@ -1,19 +1,100 @@
-<div class="home-container">
+<div class="home">
   <!-- Hero Section -->
   <section class="hero">
-    <h1>Welcome to TechStore</h1>
-    <p>Discover the best tech products</p>
+    <div class="hero-content">
+      <h1 class="hero-title">Build Your<br><strong>Dream Setup</strong></h1>
+      <p class="hero-subtitle">Premium PC components for every build — from budget to beast.</p>
+      <div class="hero-actions">
+        <a mat-raised-button color="primary" [routerLink]="routes.PRODUCTS" class="hero-btn-primary">
+          Shop Components
+        </a>
+        <a mat-stroked-button [routerLink]="routes.PRODUCTS" class="hero-btn-secondary">
+          Browse All
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shop by Category -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Shop by Category</h2>
+      @if (loading) {
+        <div class="skeleton-grid">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="skeleton-card"></div>
+          }
+        </div>
+      } @else {
+        <div class="category-grid">
+          @for (cat of categories; track cat.id) {
+            <a class="category-card" [routerLink]="routes.PRODUCTS" [queryParams]="{ categoryId: cat.id }">
+              <div class="category-icon">
+                <mat-icon>memory</mat-icon>
+              </div>
+              <span class="category-name">{{ cat.name }}</span>
+            </a>
+          }
+        </div>
+      }
+    </div>
   </section>
 
   <!-- Featured Products -->
-  <section class="featured-products">
-    <h2>Featured Products</h2>
-    <!-- TODO: Add product grid -->
-  </section>
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">New Arrivals</h2>
+        <a mat-button [routerLink]="routes.PRODUCTS" class="view-all">
+          View All <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
 
-  <!-- Categories -->
-  <section class="categories">
-    <h2>Shop by Category</h2>
-    <!-- TODO: Add category grid -->
+      @if (loading) {
+        <div class="product-grid">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="skeleton-product"></div>
+          }
+        </div>
+      } @else {
+        <div class="product-grid">
+          @for (product of featuredProducts; track product.id) {
+            <div class="product-card">
+              <a [routerLink]="'/' + routes.PRODUCT_DETAIL(product.id)" class="product-image-link">
+                <img [src]="productImageUrl(product.sku)" [alt]="product.name" class="product-image" loading="lazy" />
+              </a>
+              <div class="product-info">
+                <a [routerLink]="'/' + routes.PRODUCT_DETAIL(product.id)" class="product-name">
+                  {{ product.name }}
+                </a>
+                <span class="product-brand">{{ product.brand }}</span>
+                <div class="product-footer">
+                  <span class="product-price">{{ formatPrice(product.price) }}</span>
+                  <span class="stock-badge" [class.low]="product.stock < 5">
+                    {{ product.stock > 0 ? (product.stock < 5 ? 'Low Stock' : 'In Stock') : 'Out of Stock' }}
+                  </span>
+                </div>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  class="add-btn"
+                  [disabled]="product.stock === 0"
+                  (click)="addToCart(product)">
+                  @if (addedProductId === product.id) {
+                    <ng-container>
+                      <mat-icon>check</mat-icon> Added
+                    </ng-container>
+                  } @else {
+                    <ng-container>
+                      <mat-icon>add_shopping_cart</mat-icon> Add to Cart
+                    </ng-container>
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </section>
 </div>
