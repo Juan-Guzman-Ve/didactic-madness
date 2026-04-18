@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <OutputPath>bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <BaseIntermediateOutputPath>bin\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

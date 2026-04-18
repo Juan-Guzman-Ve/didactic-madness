@@ -58,6 +58,7 @@ export class UpdateOrderCommandHandler implements ICommandHandler<UpdateOrderCom
 
   private validateStatusTransition(current: string, next: string): void {
     const validTransitions: Record<string, string[]> = {
+      'PendingPayment': ['Paid', 'Cancelled'],
       'Pending': ['Paid', 'Cancelled'],
       'Paid': ['Processing', 'Cancelled'],
       'Processing': ['Shipped', 'Cancelled'],

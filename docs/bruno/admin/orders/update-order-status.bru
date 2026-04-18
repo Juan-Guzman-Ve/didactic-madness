@@ -18,12 +18,13 @@ body:json {
 
 docs {
   Valid status transitions:
-  Pending      → Paid | Cancelled
-  Paid         → Processing | Cancelled
-  Processing   → Shipped | Cancelled
-  Shipped      → Delivered
-  Delivered    → (terminal)
-  Cancelled    → (terminal)
+  PendingPayment → Paid | Cancelled
+  Pending        → Paid | Cancelled
+  Paid           → Processing | Cancelled
+  Processing     → Shipped | Cancelled
+  Shipped        → Delivered
+  Delivered      → (terminal)
+  Cancelled      → (terminal)
 }
 
 tests {

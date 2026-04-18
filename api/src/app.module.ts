@@ -94,6 +94,7 @@ import {
   AdminOrderStatusHistoriesController,
   AdminProductImagesController,
   AdminAddressesController,
+  StorefrontCategoriesController,
   StorefrontProductsController,
   StorefrontCartController,
   StorefrontCheckoutController,
@@ -139,6 +140,7 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     AdminProductImagesController,
     AdminAddressesController,
     // Storefront
+    StorefrontCategoriesController,
     StorefrontProductsController,
     StorefrontCartController,
     StorefrontCheckoutController,

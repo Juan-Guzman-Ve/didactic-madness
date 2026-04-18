@@ -166,3 +166,6 @@ public/uploads/
 # Bruno (API client) - ignore environment secrets
 # ══════════════════════════════════════════════════════════════════════════════
 bruno/environments/*.local.bru
+
+test/src/bin/
+test/src/packages/
