@@ -10,7 +10,7 @@ import {
 } from '@app/application/features/order';
 import { CurrentUser } from '@app/presentation/decorators';
 
-@ApiTags('storefront / orders')
+@ApiTags('orders')
 @ApiBearerAuth()
 @ApiExtraModels(ListOrdersQuery)
 @Controller('orders')

@@ -13,7 +13,7 @@ import { CurrentUser } from '@app/presentation/decorators';
 
 const CART_FULL_ACCESS_POLICY = 'cart:read_all';
 
-@ApiTags('storefront / cart')
+@ApiTags('cart')
 @ApiBearerAuth()
 @ApiExtraModels(ListCartItemsQuery)
 @Controller('cart')

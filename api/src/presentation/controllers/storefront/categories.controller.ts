@@ -10,7 +10,7 @@ import {
 } from '@app/application/features/category';
 import { Public } from '@app/presentation/decorators/public.decorator';
 
-@ApiTags('storefront / categories')
+@ApiTags('categories')
 @ApiExtraModels(ListCategoriesQuery)
 @Controller('categories')
 export class StorefrontCategoriesController {

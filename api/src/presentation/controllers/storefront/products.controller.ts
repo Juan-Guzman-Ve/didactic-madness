@@ -10,7 +10,7 @@ import {
 } from '@app/application/features/product';
 import { Public } from '@app/presentation/decorators/public.decorator';
 
-@ApiTags('storefront / products')
+@ApiTags('products')
 @ApiExtraModels(ListProductsQuery)
 @Controller('products')
 export class StorefrontProductsController {

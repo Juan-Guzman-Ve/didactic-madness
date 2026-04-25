@@ -179,3 +179,4 @@ supabase/.env.keys
 supabase/.env.local
 supabase/.env.*.local
 
+test/src/.vs
