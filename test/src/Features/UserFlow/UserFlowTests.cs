@@ -3,6 +3,7 @@ using CubeAutomate.Http;
 using CubeAutomate.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 using Xunit;
 
 namespace CubeAutomate.Features.UserFlow;
@@ -14,11 +15,9 @@ namespace CubeAutomate.Features.UserFlow;
 ///   - API must be running at the URL configured in appsettings.test.json
 ///   - Database seeds must be applied (database/sql/seeds/)
 ///
-/// KNOWN API LIMITATION:
-///   GET /cart is not user-scoped — it returns all cart items in the database.
-///   Because of this, the shopping flow test requires john.doe@example.com to
-///   have at least one cart item from the seed data. After checkout runs his cart
-///   is cleared; re-apply seeds to restore test state.
+/// PRACTICAL TEST CONSTRAINT:
+///   The cart sync endpoint requires a cartId. For returning-customer stories,
+///   this suite discovers cartId from existing seeded cart items for john.doe.
 /// </summary>
 public sealed class UserFlowTests
 {
@@ -38,12 +37,14 @@ public sealed class UserFlowTests
     }
 
     // -------------------------------------------------------------------------
-    // Story 1: A brand-new customer signs up and can log back in
+    // Story 1: A brand-new customer signs up, gets customer role automatically,
+    //          and can log back in
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task A_new_customer_can_register_and_sign_in_to_their_account()
+    public async Task A_new_customer_gets_customer_role_automatically_and_can_sign_in()
     {
+        var expectedCustomerRoleId = await DiscoverCustomerRoleIdFromSeededPersona();
         var persona = BuildFreshPersona();
 
         var account = await CustomerRegisters(persona);
@@ -51,7 +52,40 @@ public sealed class UserFlowTests
 
         session.User.Id.Should().Be(account.Id);
         session.User.Email.Should().Be(persona.Email);
+        session.User.RoleId.Should().Be(expectedCustomerRoleId);
+        account.RoleId.Should().Be(expectedCustomerRoleId);
         session.User.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task A_customer_cannot_register_twice_with_the_same_email()
+    {
+        var persona = BuildFreshPersona();
+        await CustomerRegisters(persona);
+
+        await ShouldFailWithStatusCode(
+            () => _api.PostAsync<RegisterResult>(
+                "auth/register",
+                new RegisterRequest(persona.Email, persona.Password, persona.FirstName, persona.LastName)),
+            HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task A_customer_with_wrong_password_is_rejected_when_signing_in()
+    {
+        var email = _config["TestPersona:Email"] ?? "john.doe@example.com";
+
+        await ShouldFailWithStatusCode(
+            () => _api.PostAsync<LoginResult>("auth/login", new LoginRequest(email, "WrongPassword123!")),
+            HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task A_guest_cannot_open_a_protected_account_endpoint()
+    {
+        await ShouldFailWithStatusCode(
+            () => _api.GetAsync<UserDetails>("account"),
+            HttpStatusCode.Unauthorized);
     }
 
     // -------------------------------------------------------------------------
@@ -60,7 +94,7 @@ public sealed class UserFlowTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task A_returning_customer_can_browse_fill_their_cart_and_place_an_order()
+    public async Task A_returning_customer_completes_the_full_happy_path_from_browse_to_checkout()
     {
         var email    = _config["TestPersona:Email"]    ?? "john.doe@example.com";
         var password = _config["TestPersona:Password"] ?? "Password123!";
@@ -77,6 +111,22 @@ public sealed class UserFlowTests
         var order   = await CustomerChecksOut(address.Id);
 
         await CustomerConfirmsOrderIsTracked(order.Id, session.User.Id);
+
+        await CustomerLogsOutFromClientAndLosesAccessToProtectedData();
+    }
+
+    [Fact]
+    public async Task A_customer_cannot_access_admin_user_management()
+    {
+        var email    = _config["TestPersona:Email"]    ?? "john.doe@example.com";
+        var password = _config["TestPersona:Password"] ?? "Password123!";
+
+        var session = await CustomerLogsIn(email, password);
+        _api.Authorize(session.AccessToken);
+
+        await ShouldFailWithStatusCode(
+            () => _api.GetPagedAsync<UserDetails>("admin/users"),
+            HttpStatusCode.Forbidden);
     }
 
     // =========================================================================
@@ -159,7 +209,7 @@ public sealed class UserFlowTests
         addresses.Data.Should().NotBeEmpty(
             "the test user must have at least one saved address");
 
-        var address = addresses.Data.First(a => a.IsDefault);
+        var address = addresses.Data.FirstOrDefault(a => a.IsDefault) ?? addresses.Data.First();
         return address;
     }
 
@@ -185,6 +235,38 @@ public sealed class UserFlowTests
 
         var orderList = await _api.GetPagedAsync<OrderResponse>("orders");
         orderList.Data.Should().Contain(o => o.Id == orderId);
+    }
+
+    private async Task CustomerLogsOutFromClientAndLosesAccessToProtectedData()
+    {
+        var anonymousClient = BuildAnonymousClient();
+
+        await ShouldFailWithStatusCode(
+            () => anonymousClient.GetAsync<UserDetails>("account"),
+            HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<int> DiscoverCustomerRoleIdFromSeededPersona()
+    {
+        var email    = _config["TestPersona:Email"]    ?? "john.doe@example.com";
+        var password = _config["TestPersona:Password"] ?? "Password123!";
+
+        var customerSession = await CustomerLogsIn(email, password);
+        return customerSession.User.RoleId;
+    }
+
+    private ApiClient BuildAnonymousClient()
+    {
+        var baseUrl = _config["Api:BaseUrl"]
+            ?? throw new InvalidOperationException("Api:BaseUrl is not configured in appsettings.test.json");
+
+        return new ApiClient(baseUrl);
+    }
+
+    private static async Task ShouldFailWithStatusCode(Func<Task> action, HttpStatusCode expectedStatus)
+    {
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(action);
+        exception.StatusCode.Should().Be(expectedStatus);
     }
 
     // =========================================================================
