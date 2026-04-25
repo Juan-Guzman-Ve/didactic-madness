@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CubeAutomate.Models;
 
 namespace CubeAutomate.Http;
@@ -49,9 +50,17 @@ public sealed class ApiClient
 
     private static async Task<T> Unwrap<T>(HttpResponseMessage response)
     {
-        var wrapper = await response.Content.ReadFromJsonAsync<DataWrapper<T>>(JsonOptions);
-        return wrapper!.Data;
+        await using var stream = await response.Content.ReadAsStreamAsync();
+        using var document = await JsonDocument.ParseAsync(stream);
+
+        if (document.RootElement.ValueKind == JsonValueKind.Object
+            && document.RootElement.TryGetProperty("data", out var dataElement))
+        {
+            return dataElement.Deserialize<T>(JsonOptions)!;
+        }
+
+        return document.RootElement.Deserialize<T>(JsonOptions)!;
     }
 }
 
-internal sealed record DataWrapper<T>(T Data);
+internal sealed record DataWrapper<T>([property: JsonPropertyName("data")] T Data);

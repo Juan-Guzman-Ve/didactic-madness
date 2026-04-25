@@ -1,13 +1,15 @@
-import { Injectable, UnauthorizedException, Inject, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { CART_REPOSITORY, ICartRepository, IUserRepository, USER_REPOSITORY } from '@app/application/contracts/repositories';
+import { CART_REPOSITORY, ICartRepository, IRoleRepository, IUserRepository, ROLE_REPOSITORY, USER_REPOSITORY } from '@app/application/contracts/repositories';
 import { RegisterCommand, LoginCommand } from './auth.commands';
 import { User } from '@app/domain/entities/user.entity';
 import { ICommandHandler } from '@app/application';
 import { AuthLoginResponse, AuthRegisterResponse } from '@app/application/features/auth/auth.responses';
 import { In } from 'typeorm';
 import { Cart } from '@app/domain/entities/cart.entity';
+
+const CUSTOMER_ROLE_NAME = 'Customer';
 
 @Injectable()
 export class LoginCommandHandler implements ICommandHandler<LoginCommand, AuthLoginResponse> {
@@ -52,6 +54,7 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
     @Inject(CART_REPOSITORY) private readonly cartRepository: ICartRepository,
+    @Inject(ROLE_REPOSITORY) private readonly roleRepository: IRoleRepository,
   ) {}
 
   async execute(command: RegisterCommand) : Promise<AuthRegisterResponse> {
@@ -63,7 +66,10 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, 
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(command.password, salt);
 
-    const DEFAULT_ROLE_ID = 2; //customer
+    const customerRole = await this.roleRepository.findByName(CUSTOMER_ROLE_NAME);
+    if (!customerRole) {
+      throw new InternalServerErrorException(`Default role \"${CUSTOMER_ROLE_NAME}\" is not configured`);
+    }
 
     const newUser = Object.assign(new User(), {
       email: command.email,
@@ -71,7 +77,7 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand, 
       lastName: command.lastName,
       passwordHash: hashedPassword,
       status: 'Active',
-      roleId: DEFAULT_ROLE_ID, // Default to 'User' role
+      roleId: customerRole.id,
     });
 
     const createdUser = await this.userRepository.create(newUser);
