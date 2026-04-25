@@ -169,3 +169,13 @@ bruno/environments/*.local.bru
 
 test/src/bin/
 test/src/packages/
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# dotenvx
+supabase/.env.keys
+supabase/.env.local
+supabase/.env.*.local
+
