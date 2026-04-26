@@ -19,3 +19,7 @@ INSERT INTO addresses (user_id, address_line_1, address_line_2, city, state, pos
     ((SELECT id FROM users WHERE email = 'john.doe@example.com'),    '123 Main Street', 'Apt 4B', 'New York',    'NY', '10001', 'USA', true),
     ((SELECT id FROM users WHERE email = 'jane.smith@example.com'),  '456 Oak Avenue',  NULL,     'Los Angeles', 'CA', '90001', 'USA', true),
     ((SELECT id FROM users WHERE email = 'mike.wilson@example.com'), '789 Pine Road',   NULL,     'Chicago',     'IL', '60601', 'USA', true);
+
+-- Create one cart per user
+INSERT INTO carts (user_id)
+SELECT id FROM users;
