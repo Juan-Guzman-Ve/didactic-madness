@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,14 +21,14 @@ export class OrdersListComponent implements OnInit {
   readonly orders = this.ordersService.orders;
   readonly formatPrice = formatPrice;
 
-  loading = false;
+  loading = signal(false);
 
   async ngOnInit(): Promise<void> {
-    this.loading = true;
+    this.loading.set(true);
     try {
       await this.ordersService.loadOrders();
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 

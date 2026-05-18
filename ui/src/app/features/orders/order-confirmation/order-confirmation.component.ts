@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,14 +23,14 @@ export class OrderConfirmationComponent implements OnInit {
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
 
-  orderData: OrderWithItems | null = null;
+  readonly orderData = signal<OrderWithItems | null>(null);
 
   ngOnInit(): void {
     const lastOrder = this.ordersService.lastOrder();
     const routeId = Number(this.route.snapshot.paramMap.get('id'));
 
     if (lastOrder && lastOrder.order.id === routeId) {
-      this.orderData = lastOrder;
+      this.orderData.set(lastOrder);
       return;
     }
 
@@ -54,5 +54,9 @@ export class OrderConfirmationComponent implements OnInit {
       month: 'long',
       day: 'numeric',
     });
+  }
+
+  itemTotal(price: number, quantity: number): string {
+    return this.formatPrice(price * quantity);
   }
 }

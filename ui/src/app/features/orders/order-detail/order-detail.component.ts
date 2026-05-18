@@ -4,9 +4,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
-import { OrdersService, Order } from '@app/core/services/orders.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { OrdersService, Order, OrderItem } from '@app/core/services/orders.service';
 import { AddressesService, Address } from '@app/core/services/addresses.service';
-import { formatPrice } from '@app/core/services/products.service';
+import { formatPrice, productImageUrl } from '@app/core/services/products.service';
 import { AppRoutes } from '@app/app.routes.constants';
 
 const ORDER_STATUSES = [
@@ -16,7 +17,7 @@ const ORDER_STATUSES = [
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatDividerModule, MatDialogModule],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss',
 })
@@ -25,14 +26,18 @@ export class OrderDetailComponent implements OnInit {
   private readonly addressesService = inject(AddressesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
 
   readonly routes = AppRoutes;
   readonly formatPrice = formatPrice;
+  readonly productImageUrl = productImageUrl;
   readonly statuses = ORDER_STATUSES;
 
   readonly order = signal<Order | null>(null);
+  readonly orderItems = signal<OrderItem[]>([]);
   readonly address = signal<Address | null>(null);
   readonly loading = signal(false);
+  readonly cancelling = signal(false);
 
   async ngOnInit(): Promise<void> {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -43,8 +48,12 @@ export class OrderDetailComponent implements OnInit {
 
     this.loading.set(true);
     try {
-      const order = await this.ordersService.getOrder(id);
+      const [order, items] = await Promise.all([
+        this.ordersService.getOrder(id),
+        this.ordersService.getOrderItems(id),
+      ]);
       this.order.set(order);
+      this.orderItems.set(items);
       await this.loadAddress(order.addressId);
     } finally {
       this.loading.set(false);
@@ -55,6 +64,18 @@ export class OrderDetailComponent implements OnInit {
     await this.addressesService.loadAddresses();
     const found = this.addressesService.addresses().find((a) => a.id === addressId);
     this.address.set(found ?? null);
+  }
+
+  async cancelOrder(): Promise<void> {
+    const confirmed = window.confirm('Are you sure you want to cancel this order?');
+    if (!confirmed) return;
+    this.cancelling.set(true);
+    try {
+      const updated = await this.ordersService.cancelOrder(this.order()!.id);
+      this.order.set(updated);
+    } finally {
+      this.cancelling.set(false);
+    }
   }
 
   statusLabel(status: string): string {
@@ -88,6 +109,34 @@ export class OrderDetailComponent implements OnInit {
   currentStatusIndex(status: string): number {
     if (status === 'Cancelled') return -1;
     return ORDER_STATUSES.indexOf(status);
+  }
+
+  stepIsDone(stepIndex: number, status: string): boolean {
+    return stepIndex <= this.currentStatusIndex(status);
+  }
+
+  stepIsActive(stepIndex: number, status: string): boolean {
+    return stepIndex === this.currentStatusIndex(status);
+  }
+
+  isTimelineLineDone(lineIndex: number, status: string): boolean {
+    return lineIndex < this.currentStatusIndex(status);
+  }
+
+  get isOrderActive(): boolean {
+    return this.order()?.status !== 'Cancelled';
+  }
+
+  get hasOrderItems(): boolean {
+    return this.orderItems().length > 0;
+  }
+
+  paymentStatusClass(paymentStatus: string): string {
+    return paymentStatus === 'Paid' ? 'paid' : 'pending-pay';
+  }
+
+  itemTotal(priceAtPurchase: number, quantity: number): string {
+    return this.formatPrice(priceAtPurchase * quantity);
   }
 
   formatDate(dateStr: string): string {

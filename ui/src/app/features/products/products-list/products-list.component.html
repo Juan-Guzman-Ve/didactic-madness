@@ -35,7 +35,7 @@
           <li>
             <button
               class="category-btn"
-              [class.active]="selectedCategoryId() === null"
+              [class.active]="isAllCategoriesSelected()"
               (click)="filterByCategory(null)">
               All Products
             </button>
@@ -44,7 +44,7 @@
             <li>
               <button
                 class="category-btn"
-                [class.active]="selectedCategoryId() === cat.id"
+              [class.active]="isCategorySelected(cat.id)"
                 (click)="filterByCategory(cat.id)">
                 {{ cat.name }}
               </button>
@@ -64,11 +64,11 @@
       <div class="products-area">
         @if (loading()) {
           <div class="loading-grid">
-            @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+            @for (i of skeletonItems; track i) {
               <div class="skeleton-card"></div>
             }
           </div>
-        } @else if (products().length === 0) {
+        } @else if (isProductsEmpty) {
           <div class="no-results">
             <mat-icon>search_off</mat-icon>
             <h3>No products found</h3>
@@ -95,22 +95,22 @@
                     <span class="product-price">{{ formatPrice(product.price) }}</span>
                     <span
                       class="stock-badge"
-                      [class.out]="product.stock === 0"
-                      [class.low]="product.stock > 0 && product.stock < 5">
-                      {{ product.stock === 0 ? 'Out of Stock' : product.stock < 5 ? 'Low Stock' : 'In Stock' }}
+                      [ngClass]="stockBadgeClass(product.stock)">
+                      {{ stockLabel(product.stock) }}
                     </span>
                   </div>
                   <button
                     mat-flat-button
                     color="primary"
                     class="add-btn"
-                    [disabled]="product.stock === 0"
+                    [disabled]="isOutOfStock(product.stock)"
                     (click)="addToCart(product)">
-                    @if (addedProductId() === product.id) {
-                      <mat-icon>check</mat-icon> Added!
+                    @if (isAdded(product.id)) {
+                      <mat-icon>check</mat-icon>
                     } @else {
-                      <mat-icon>add_shopping_cart</mat-icon> Add to Cart
+                      <mat-icon>add_shopping_cart</mat-icon>
                     }
+                    {{ addToCartLabel(product.id) }}
                   </button>
                 </div>
               </div>

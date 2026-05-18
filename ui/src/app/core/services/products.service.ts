@@ -52,6 +52,10 @@ export function productImageUrl(sku: string): string {
   return `https://picsum.photos/seed/${sku}/800/800`;
 }
 
+export function categoryImageUrl(slug: string): string {
+  return `https://picsum.photos/seed/cat-${slug}/400/300`;
+}
+
 export function formatPrice(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }

@@ -22,20 +22,35 @@
           <span class="status-badge" [class]="statusClass(o.status)">
             {{ statusLabel(o.status) }}
           </span>
+          @if (canCancel) {
+            <button
+              mat-stroked-button
+              color="warn"
+              class="cancel-btn"
+              [disabled]="cancelling()"
+              (click)="cancelOrder()">
+              @if (cancelling()) {
+                <mat-spinner diameter="16" />
+              } @else {
+                <mat-icon>cancel</mat-icon>
+              }
+              Cancel Order
+            </button>
+          }
         </div>
       </div>
 
       <!-- Status Timeline -->
-      @if (o.status !== 'Cancelled') {
+      @if (isOrderActive) {
         <section class="timeline-section">
           <div class="timeline">
             @for (s of statuses; track s; let i = $index) {
-              <div class="timeline-step" [class.done]="i <= currentStatusIndex(o.status)" [class.active]="i === currentStatusIndex(o.status)">
+              <div class="timeline-step" [class.done]="stepIsDone(i, o.status)" [class.active]="stepIsActive(i, o.status)">
                 <div class="step-dot"></div>
                 <span class="step-label">{{ statusLabel(s) }}</span>
               </div>
               @if (i < statuses.length - 1) {
-                <div class="timeline-line" [class.done]="i < currentStatusIndex(o.status)"></div>
+                <div class="timeline-line" [class.done]="isTimelineLineDone(i, o.status)"></div>
               }
             }
           </div>
@@ -43,6 +58,35 @@
       }
 
       <div class="order-body">
+        <!-- Order Items -->
+        @if (hasOrderItems) {
+          <section class="section-card items-card">
+            <h3>Order Items</h3>
+            <mat-divider />
+            <div class="items-list">
+              @for (item of orderItems(); track item.id) {
+                <div class="order-item-row">
+                  <img
+                    [src]="productImageUrl(item.productSku)"
+                    [alt]="item.productName"
+                    class="item-img"
+                    loading="lazy" />
+                  <div class="item-info">
+                    <a [routerLink]="'/' + routes.PRODUCT_DETAIL(item.productId)" class="item-name">
+                      {{ item.productName }}
+                    </a>
+                    <span class="item-sku">{{ item.productSku }}</span>
+                  </div>
+                  <div class="item-right">
+                    <span class="item-qty">×{{ item.quantity }}</span>
+                    <span class="item-price">{{ itemTotal(item.priceAtPurchase, item.quantity) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
         <section class="section-card">
           <h3>Order Summary</h3>
           <mat-divider />
@@ -83,7 +127,7 @@
             <mat-icon>credit_card</mat-icon>
             Credit Card ending in 4242
           </p>
-          <p class="payment-status" [class]="o.paymentStatus === 'Paid' ? 'paid' : 'pending-pay'">
+          <p class="payment-status" [class]="paymentStatusClass(o.paymentStatus)">
             Payment: {{ o.paymentStatus }}
           </p>
         </section>

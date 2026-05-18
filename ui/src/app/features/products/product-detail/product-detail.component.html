@@ -9,9 +9,9 @@
         <a [routerLink]="'/' + routes.HOME">Home</a>
         <mat-icon>chevron_right</mat-icon>
         <a [routerLink]="'/' + routes.PRODUCTS">Products</a>
-        @if (category()) {
+        @if (hasCategory) {
           <mat-icon>chevron_right</mat-icon>
-          <a [routerLink]="'/' + routes.PRODUCTS" [queryParams]="{ categoryId: category()!.id }">
+          <a [routerLink]="'/' + routes.PRODUCTS" [queryParams]="categoryQueryParams">
             {{ category()!.name }}
           </a>
         }
@@ -35,11 +35,8 @@
 
           <div class="price-block">
             <span class="price">{{ formatPrice(p.price) }}</span>
-            <span
-              class="stock-badge"
-              [class.out]="p.stock === 0"
-              [class.low]="p.stock > 0 && p.stock < 5">
-              {{ p.stock === 0 ? 'Out of Stock' : p.stock < 5 ? 'Low Stock (​' + p.stock + '​ left)' : 'In Stock' }}
+            <span class="stock-badge" [ngClass]="stockBadgeClass(p.stock)">
+              {{ stockLabel(p.stock) }}
             </span>
           </div>
 
@@ -47,11 +44,11 @@
 
           <div class="actions">
             <div class="qty-control">
-              <button mat-icon-button (click)="decreaseQty()" [disabled]="quantity() <= 1">
+              <button mat-icon-button (click)="decreaseQty()" [disabled]="!canDecreaseQty">
                 <mat-icon>remove</mat-icon>
               </button>
               <span class="qty-value">{{ quantity() }}</span>
-              <button mat-icon-button (click)="increaseQty()" [disabled]="quantity() >= p.stock">
+              <button mat-icon-button (click)="increaseQty()" [disabled]="isQtyAtMax">
                 <mat-icon>add</mat-icon>
               </button>
             </div>
@@ -60,7 +57,7 @@
               mat-flat-button
               color="primary"
               class="add-to-cart-btn"
-              [disabled]="p.stock === 0 || cartLoading()"
+              [disabled]="isAddToCartDisabled"
               (click)="addToCart()">
               @if (addedToCart()) {
                 <ng-container>
@@ -85,7 +82,7 @@
         </div>
       </div>
 
-      @if (specEntries.length > 0) {
+      @if (hasSpecs) {
         <section class="specs-section">
           <h2>Specifications</h2>
           <div class="specs-grid">

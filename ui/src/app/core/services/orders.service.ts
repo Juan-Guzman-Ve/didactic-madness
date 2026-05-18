@@ -17,6 +17,18 @@ export interface Order {
   updatedAt: string;
 }
 
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  productName: string;
+  productSku: string;
+  quantity: number;
+  priceAtPurchase: number; // cents
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface OrderWithItems {
   order: Order;
   items: CartItem[];
@@ -51,6 +63,19 @@ export class OrdersService {
   async getOrder(id: number): Promise<Order> {
     return firstValueFrom(
       this.http.get<Order>(`${this.apiUrl}/orders/${id}`)
+    );
+  }
+
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiListResponse<OrderItem>>(`${this.apiUrl}/orders/${orderId}/items`)
+    );
+    return response.data;
+  }
+
+  async cancelOrder(id: number): Promise<Order> {
+    return firstValueFrom(
+      this.http.patch<Order>(`${this.apiUrl}/orders/${id}/cancel`, {})
     );
   }
 

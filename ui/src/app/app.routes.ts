@@ -8,11 +8,6 @@ export const routes: Routes = [
       import('./features/home/home.component').then((m) => m.HomeComponent),
   },
   {
-    path: 'showcase',
-    loadComponent: () =>
-      import('./showcase/showcase.component').then((m) => m.ShowcaseComponent),
-  },
-  {
     path: 'products',
     loadComponent: () =>
       import('./features/products/products-list/products-list.component').then(
@@ -72,6 +67,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/orders/order-detail/order-detail.component').then(
         (m) => m.OrderDetailComponent
+      ),
+  },
+  {
+    path: 'admin',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/admin/admin-dashboard/admin-dashboard.component').then(
+        (m) => m.AdminDashboardComponent
       ),
   },
   {

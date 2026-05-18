@@ -44,6 +44,18 @@
   h1 { margin: 0; font-size: 1.5rem; }
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  font-size: 0.875rem;
+}
+
 .order-date {
   margin: 4px 0 0;
   font-size: 0.875rem;
@@ -142,6 +154,61 @@
     font-size: 1rem;
     font-weight: var(--font-weight-semibold);
     margin: 0 0 var(--spacing-md);
+  }
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+
+  .item-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    background: var(--nzxt-gray-100);
+    flex-shrink: 0;
+  }
+
+  .item-info {
+    flex: 1;
+    min-width: 0;
+
+    .item-name {
+      display: block;
+      font-size: 0.9375rem;
+      font-weight: var(--font-weight-medium);
+      color: var(--nzxt-gray-900);
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &:hover { color: var(--nzxt-primary); }
+    }
+
+    .item-sku {
+      font-size: 0.8125rem;
+      color: var(--nzxt-gray-500);
+    }
+  }
+
+  .item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+
+    .item-qty { font-size: 0.875rem; color: var(--nzxt-gray-500); }
+    .item-price { font-size: 0.9375rem; font-weight: var(--font-weight-semibold); }
   }
 }
 

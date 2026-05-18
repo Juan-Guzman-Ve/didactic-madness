@@ -44,8 +44,8 @@
           }
 
           <button mat-stroked-button class="add-address-btn" (click)="toggleAddressForm()">
-            <mat-icon>{{ showAddressForm() ? 'expand_less' : 'add' }}</mat-icon>
-            {{ showAddressForm() ? 'Cancel' : '+ Add New Address' }}
+            <mat-icon>{{ addAddressIcon }}</mat-icon>
+            {{ addAddressLabel }}
           </button>
 
           @if (showAddressForm()) {
@@ -93,7 +93,7 @@
             <div class="summary-item">
               <span class="item-name">{{ item.name }}</span>
               <span class="item-qty">×{{ item.quantity }}</span>
-              <span class="item-total">{{ formatPrice(item.price * item.quantity) }}</span>
+              <span class="item-total">{{ itemTotal(item.price, item.quantity) }}</span>
             </div>
           }
         </div>

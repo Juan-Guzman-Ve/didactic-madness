@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,6 +23,7 @@ import { AppRoutes } from '@app/app.routes.constants';
   selector: 'app-products-list',
   standalone: true,
   imports: [
+    NgClass,
     RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
@@ -51,6 +53,41 @@ export class ProductsListComponent implements OnInit {
   readonly categories = signal<Category[]>([]);
 
   readonly addedProductId = signal<number | null>(null);
+  readonly skeletonItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  get isProductsEmpty(): boolean {
+    return this.products().length === 0;
+  }
+
+  isAllCategoriesSelected(): boolean {
+    return this.selectedCategoryId() === null;
+  }
+
+  isCategorySelected(id: number): boolean {
+    return this.selectedCategoryId() === id;
+  }
+
+  isOutOfStock(stock: number): boolean {
+    return stock === 0;
+  }
+
+  stockBadgeClass(stock: number): Record<string, boolean> {
+    return { out: stock === 0, low: stock > 0 && stock < 5 };
+  }
+
+  isAdded(productId: number): boolean {
+    return this.addedProductId() === productId;
+  }
+
+  stockLabel(stock: number): string {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 5) return 'Low Stock';
+    return 'In Stock';
+  }
+
+  addToCartLabel(productId: number): string {
+    return this.addedProductId() === productId ? 'Added!' : 'Add to Cart';
+  }
 
   readonly searchControl = new FormControl('');
   readonly selectedCategoryId = signal<number | null>(null);

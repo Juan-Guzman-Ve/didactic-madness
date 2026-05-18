@@ -14,10 +14,10 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "preserve",
-    "baseUrl": "src",
+    "rootDir": "src",
     "paths": {
-      "@app/*": ["app/*"],
-      "@shared/*": ["app/shared/*"]
+      "@app/*": ["./src/app/*"],
+      "@shared/*": ["./src/app/shared/*"]
     }
   },
   "angularCompilerOptions": {

@@ -1,6 +1,6 @@
 <div class="confirmation-page">
   <div class="container">
-    @if (orderData; as data) {
+    @if (orderData(); as data) {
       <div class="success-header">
         <div class="success-icon-ring">
           <mat-icon class="success-icon">check_circle</mat-icon>
@@ -29,7 +29,7 @@
                 </div>
                 <div class="item-right">
                   <span class="item-qty">×{{ item.quantity }}</span>
-                  <span class="item-price">{{ formatPrice(item.price * item.quantity) }}</span>
+                  <span class="item-price">{{ itemTotal(item.price, item.quantity) }}</span>
                 </div>
               </div>
             }

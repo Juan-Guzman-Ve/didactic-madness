@@ -66,6 +66,18 @@ export class CheckoutComponent implements OnInit {
     if (defaultAddress) this.selectedAddressId.set(defaultAddress.id);
   }
 
+  get addAddressLabel(): string {
+    return this.showAddressForm() ? 'Cancel' : '+ Add New Address';
+  }
+
+  get addAddressIcon(): string {
+    return this.showAddressForm() ? 'expand_less' : 'add';
+  }
+
+  itemTotal(price: number, quantity: number): string {
+    return this.formatPrice(price * quantity);
+  }
+
   selectAddress(address: Address): void {
     this.selectedAddressId.set(address.id);
     this.showAddressForm.set(false);

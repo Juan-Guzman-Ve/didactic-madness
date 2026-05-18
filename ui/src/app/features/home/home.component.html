@@ -19,19 +19,17 @@
   <section class="section">
     <div class="container">
       <h2 class="section-title">Shop by Category</h2>
-      @if (loading) {
+      @if (loading()) {
         <div class="skeleton-grid">
-          @for (i of [1,2,3,4,5,6]; track i) {
+          @for (i of categorySkeleton; track i) {
             <div class="skeleton-card"></div>
           }
         </div>
       } @else {
         <div class="category-grid">
-          @for (cat of categories; track cat.id) {
+          @for (cat of categories(); track cat.id) {
             <a class="category-card" [routerLink]="routes.PRODUCTS" [queryParams]="{ categoryId: cat.id }">
-              <div class="category-icon">
-                <mat-icon>memory</mat-icon>
-              </div>
+              <img [src]="categoryImageUrl(cat.slug)" [alt]="cat.name" class="category-img" loading="lazy" />
               <span class="category-name">{{ cat.name }}</span>
             </a>
           }
@@ -50,15 +48,15 @@
         </a>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="product-grid">
-          @for (i of [1,2,3,4]; track i) {
+          @for (i of productSkeleton; track i) {
             <div class="skeleton-product"></div>
           }
         </div>
       } @else {
         <div class="product-grid">
-          @for (product of featuredProducts; track product.id) {
+          @for (product of featuredProducts(); track product.id) {
             <div class="product-card">
               <a [routerLink]="'/' + routes.PRODUCT_DETAIL(product.id)" class="product-image-link">
                 <img [src]="productImageUrl(product.sku)" [alt]="product.name" class="product-image" loading="lazy" />
@@ -70,17 +68,17 @@
                 <span class="product-brand">{{ product.brand }}</span>
                 <div class="product-footer">
                   <span class="product-price">{{ formatPrice(product.price) }}</span>
-                  <span class="stock-badge" [class.low]="product.stock < 5">
-                    {{ product.stock > 0 ? (product.stock < 5 ? 'Low Stock' : 'In Stock') : 'Out of Stock' }}
+                  <span class="stock-badge" [class.low]="isLowStock(product.stock)">
+                    {{ stockLabel(product.stock) }}
                   </span>
                 </div>
                 <button
                   mat-flat-button
                   color="primary"
                   class="add-btn"
-                  [disabled]="product.stock === 0"
+                  [disabled]="isOutOfStock(product.stock)"
                   (click)="addToCart(product)">
-                  @if (addedProductId === product.id) {
+                  @if (isAdded(product.id)) {
                     <ng-container>
                       <mat-icon>check</mat-icon> Added
                     </ng-container>

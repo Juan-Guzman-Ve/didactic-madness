@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -10,7 +11,7 @@ import { AppRoutes } from '@app/app.routes.constants';
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [NgClass, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -88,5 +89,42 @@ export class ProductDetailComponent implements OnInit {
     const specs = this.product()?.specifications;
     if (!specs) return [];
     return Object.entries(specs).map(([key, value]) => ({ key, value: String(value) }));
+  }
+
+  get hasSpecs(): boolean {
+    return this.specEntries.length > 0;
+  }
+
+  get hasCategory(): boolean {
+    return this.category() !== null;
+  }
+
+  get categoryQueryParams(): { categoryId: number } | null {
+    const cat = this.category();
+    return cat ? { categoryId: cat.id } : null;
+  }
+
+  get canDecreaseQty(): boolean {
+    return this.quantity() > 1;
+  }
+
+  get isQtyAtMax(): boolean {
+    const p = this.product();
+    return p ? this.quantity() >= p.stock : true;
+  }
+
+  get isAddToCartDisabled(): boolean {
+    const p = this.product();
+    return !p || p.stock === 0 || this.cartLoading();
+  }
+
+  stockLabel(stock: number): string {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 5) return `Low Stock (${stock} left)`;
+    return 'In Stock';
+  }
+
+  stockBadgeClass(stock: number): Record<string, boolean> {
+    return { out: stock === 0, low: stock > 0 && stock < 5 };
   }
 }
