@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome (ng serve)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "ng serve",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${workspaceFolder}/*",
+        "/./*": "${workspaceFolder}/*",
+        "/src/*": "${workspaceFolder}/src/*",
+        "/*": "*",
+        "/./~/*": "${workspaceFolder}/node_modules/*"
+      }
+    },
+    {
+      "name": "Attach to Chrome (ng serve running)",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${workspaceFolder}/*",
+        "/./*": "${workspaceFolder}/*",
+        "/src/*": "${workspaceFolder}/src/*",
+        "/*": "*",
+        "/./~/*": "${workspaceFolder}/node_modules/*"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Angular App",
+      "configurations": ["Launch Chrome (ng serve)"]
+    }
+  ]
+}
