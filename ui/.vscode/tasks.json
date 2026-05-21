@@ -2,39 +2,30 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "ng serve",
-      "type": "shell",
-      "command": "npm start",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "typescript",
-        "pattern": "$tsc",
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "Building...",
-          "endsPattern": "compiled|failed"
-        }
-      }
-    },
-    {
-      "label": "ng build",
+      "label": "Build",
       "type": "shell",
       "command": "npm run build",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": "$tsc"
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "always", "panel": "shared" }
     },
     {
-      "label": "ng test",
+      "label": "Start Dev",
+      "type": "shell",
+      "command": "npm start",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": ["$tsc-watch"],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Test",
       "type": "shell",
       "command": "npm test",
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      },
-      "problemMatcher": "$tsc"
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     }
   ]
 }
