@@ -7,6 +7,8 @@ import { OrdersService, OrderWithItems } from '@app/core/services/orders.service
 import { formatPrice, productImageUrl } from '@app/core/services/products.service';
 import { AppRoutes } from '@app/app.routes.constants';
 
+const ESTIMATED_DELIVERY_DAYS = 7;
+
 @Component({
   selector: 'app-order-confirmation',
   standalone: true,
@@ -37,9 +39,9 @@ export class OrderConfirmationComponent implements OnInit {
     this.router.navigate(['/' + this.routes.ORDER_DETAIL(routeId)]);
   }
 
-  formatDate(dateStr: string): string {
-    const delivery = new Date(dateStr);
-    delivery.setDate(delivery.getDate() + 7);
+  estimatedDeliveryDate(orderPlacedAt: string): string {
+    const delivery = new Date(orderPlacedAt);
+    delivery.setDate(delivery.getDate() + ESTIMATED_DELIVERY_DAYS);
     return delivery.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',

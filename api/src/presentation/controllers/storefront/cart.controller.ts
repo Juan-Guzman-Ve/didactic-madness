@@ -1,6 +1,8 @@
-import { Controller, Get, Put, Body, Query, HttpCode, HttpStatus, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Query, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import {
+  AddToCartCommand,
+  AddToCartCommandHandler,
   CartItemResponse,
   ListCartItemsQuery,
   ListCartItemsQueryHandler,
@@ -21,6 +23,7 @@ export class StorefrontCartController {
   constructor(
     private readonly listHandler: ListCartItemsQueryHandler,
     private readonly syncHandler: SyncCartItemsCommandHandler,
+    private readonly addToCartHandler: AddToCartCommandHandler,
     @Inject(POLICY_REPOSITORY) private readonly policyRepository: IPolicyRepository,
   ) {}
 
@@ -39,6 +42,17 @@ export class StorefrontCartController {
     }
 
     return this.listHandler.execute(query);
+  }
+
+  @ApiBody({ type: AddToCartCommand })
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  async addToCart(
+    @Body() command: AddToCartCommand,
+    @CurrentUser() user: { id: number; roleId: number },
+  ): Promise<CartItemResponse> {
+    command.userId = user.id;
+    return this.addToCartHandler.execute(command);
   }
 
   @ApiBody({ type: SyncCartItemsCommand })

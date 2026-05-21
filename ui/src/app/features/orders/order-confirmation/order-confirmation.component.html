@@ -9,7 +9,7 @@
         <p class="order-number">Order <strong>{{ data.order.orderNumber }}</strong></p>
         <p class="order-subtext">
           Placed on {{ orderPlacedDate(data.order.createdAt) }} &middot;
-          Estimated delivery by {{ formatDate(data.order.createdAt) }}
+          Estimated delivery by {{ estimatedDeliveryDate(data.order.createdAt) }}
         </p>
       </div>
 

@@ -61,12 +61,14 @@ import {
 import {
   ListCartItemsQueryHandler,
   SyncCartItemsCommandHandler,
+  AddToCartCommandHandler,
 } from './application/features/cart-item';
 
 // Order
 import {
   CheckoutCommandHandler,
   UpdateOrderCommandHandler,
+  CancelOrderCommandHandler,
   GetOrderByIdQueryHandler,
   ListOrdersQueryHandler,
 } from './application/features/order';
@@ -197,9 +199,11 @@ import { LoginCommandHandler, RegisterCommandHandler } from '@app/application/fe
     // CartItem
     ListCartItemsQueryHandler,
     SyncCartItemsCommandHandler,
+    AddToCartCommandHandler,
     // Order
     CheckoutCommandHandler,
     UpdateOrderCommandHandler,
+    CancelOrderCommandHandler,
     GetOrderByIdQueryHandler,
     ListOrdersQueryHandler,
     // OrderItem

@@ -9,6 +9,7 @@ import { OrdersService, Order, OrderItem } from '@app/core/services/orders.servi
 import { AddressesService, Address } from '@app/core/services/addresses.service';
 import { formatPrice, productImageUrl } from '@app/core/services/products.service';
 import { AppRoutes } from '@app/app.routes.constants';
+import { orderStatusLabel, orderStatusClass } from '../order-status.utils';
 
 const ORDER_STATUSES = [
   'PendingPayment', 'Paid', 'Processing', 'Preparing', 'Shipped', 'Delivered',
@@ -32,6 +33,8 @@ export class OrderDetailComponent implements OnInit {
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
   readonly statuses = ORDER_STATUSES;
+  readonly statusLabel = orderStatusLabel;
+  readonly statusClass = orderStatusClass;
 
   readonly order = signal<Order | null>(null);
   readonly orderItems = signal<OrderItem[]>([]);
@@ -64,46 +67,6 @@ export class OrderDetailComponent implements OnInit {
     await this.addressesService.loadAddresses();
     const found = this.addressesService.addresses().find((a) => a.id === addressId);
     this.address.set(found ?? null);
-  }
-
-  async cancelOrder(): Promise<void> {
-    const confirmed = window.confirm('Are you sure you want to cancel this order?');
-    if (!confirmed) return;
-    this.cancelling.set(true);
-    try {
-      const updated = await this.ordersService.cancelOrder(this.order()!.id);
-      this.order.set(updated);
-    } finally {
-      this.cancelling.set(false);
-    }
-  }
-
-  statusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      PendingPayment: 'Pending Payment',
-      Pending: 'Pending',
-      Paid: 'Paid',
-      Processing: 'Processing',
-      Preparing: 'Preparing',
-      Shipped: 'Shipped',
-      Delivered: 'Delivered',
-      Cancelled: 'Cancelled',
-    };
-    return labels[status] ?? status;
-  }
-
-  statusClass(status: string): string {
-    const map: Record<string, string> = {
-      PendingPayment: 'pending-payment',
-      Pending: 'pending',
-      Paid: 'paid',
-      Processing: 'processing',
-      Preparing: 'processing',
-      Shipped: 'shipped',
-      Delivered: 'delivered',
-      Cancelled: 'cancelled',
-    };
-    return map[status] ?? 'pending';
   }
 
   currentStatusIndex(status: string): number {

@@ -15,9 +15,12 @@ import {
   Category,
   formatPrice,
   productImageUrl,
+  stockBadgeClass,
 } from '@app/core/services/products.service';
 import { CartService } from '@app/core/services/cart.service';
 import { AppRoutes } from '@app/app.routes.constants';
+
+const ADD_TO_CART_FEEDBACK_MS = 2000;
 
 @Component({
   selector: 'app-products-list',
@@ -46,6 +49,7 @@ export class ProductsListComponent implements OnInit {
   readonly routes = AppRoutes;
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
+  readonly stockBadgeClass = stockBadgeClass;
 
   readonly products = this.productsService.products;
   readonly meta = this.productsService.meta;
@@ -67,34 +71,26 @@ export class ProductsListComponent implements OnInit {
     return this.selectedCategoryId() === id;
   }
 
-  isOutOfStock(stock: number): boolean {
-    return stock === 0;
-  }
-
-  stockBadgeClass(stock: number): Record<string, boolean> {
-    return { out: stock === 0, low: stock > 0 && stock < 5 };
-  }
-
-  isAdded(productId: number): boolean {
-    return this.addedProductId() === productId;
-  }
-
   stockLabel(stock: number): string {
     if (stock === 0) return 'Out of Stock';
     if (stock < 5) return 'Low Stock';
     return 'In Stock';
   }
 
+  isAdded(productId: number): boolean {
+    return this.addedProductId() === productId;
+  }
+
   addToCartLabel(productId: number): string {
     return this.addedProductId() === productId ? 'Added!' : 'Add to Cart';
   }
 
-  readonly searchControl = new FormControl('');
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedSort = signal('createdAt:desc');
   readonly inStockOnly = signal(false);
   readonly currentPage = signal(1);
 
+  readonly searchControl = new FormControl('');
   readonly sortOptions = [
     { value: 'createdAt:desc', label: 'Newest' },
     { value: 'price:asc', label: 'Price: Low to High' },
@@ -154,7 +150,7 @@ export class ProductsListComponent implements OnInit {
     try {
       await this.cartService.addToCart(product, 1);
       this.addedProductId.set(product.id);
-      setTimeout(() => this.addedProductId.set(null), 2000);
+      setTimeout(() => this.addedProductId.set(null), ADD_TO_CART_FEEDBACK_MS);
     } catch {
       this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
     }

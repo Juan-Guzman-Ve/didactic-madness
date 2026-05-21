@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -34,25 +34,25 @@ const STORAGE_USER_KEY = 'current_user';
   providedIn: 'root',
 })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private readonly apiUrl = environment.apiUrl;
-  private currentUserSignal = signal<User | null>(null);
-  private tokenSignal = signal<string | null>(null);
+
+  private readonly currentUserSignal = signal<User | null>(null);
+  private readonly tokenSignal = signal<string | null>(null);
 
   readonly currentUser = this.currentUserSignal.asReadonly();
-  readonly isAuthenticated = signal(false);
+  readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
-    this.loadUserFromStorage();
+  constructor() {
+    this.restoreSessionFromStorage();
   }
 
   async login(email: string, password: string): Promise<void> {
     const response = await firstValueFrom(
       this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password }),
     );
-    this.setSession(response);
+    this.persistSession(response);
   }
 
   async register(data: RegisterRequest): Promise<void> {
@@ -62,11 +62,7 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(STORAGE_TOKEN_KEY);
-    localStorage.removeItem(STORAGE_USER_KEY);
-    this.currentUserSignal.set(null);
-    this.tokenSignal.set(null);
-    this.isAuthenticated.set(false);
+    this.clearSession();
     this.router.navigate(['/' + AppRoutes.AUTH_LOGIN]);
   }
 
@@ -74,31 +70,32 @@ export class AuthService {
     return this.tokenSignal();
   }
 
-  private setSession(authResult: LoginResponse): void {
+  private persistSession(authResult: LoginResponse): void {
     localStorage.setItem(STORAGE_TOKEN_KEY, authResult.access_token);
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(authResult.user));
-    this.currentUserSignal.set(authResult.user);
     this.tokenSignal.set(authResult.access_token);
-    this.isAuthenticated.set(true);
+    this.currentUserSignal.set(authResult.user);
   }
 
-  private loadUserFromStorage(): void {
+  private clearSession(): void {
+    localStorage.removeItem(STORAGE_TOKEN_KEY);
+    localStorage.removeItem(STORAGE_USER_KEY);
+    this.tokenSignal.set(null);
+    this.currentUserSignal.set(null);
+  }
+
+  private restoreSessionFromStorage(): void {
     const token = localStorage.getItem(STORAGE_TOKEN_KEY);
     const userJson = localStorage.getItem(STORAGE_USER_KEY);
-    
-    if (!token || !userJson) {
-      return;
-    }
+
+    if (!token || !userJson) return;
 
     try {
       const user = JSON.parse(userJson) as User;
       this.tokenSignal.set(token);
       this.currentUserSignal.set(user);
-      this.isAuthenticated.set(true);
     } catch {
-      // Invalid JSON, clear storage
-      localStorage.removeItem(STORAGE_TOKEN_KEY);
-      localStorage.removeItem(STORAGE_USER_KEY);
+      this.clearSession();
     }
   }
 }

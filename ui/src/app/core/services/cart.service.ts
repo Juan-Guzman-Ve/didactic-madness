@@ -63,25 +63,24 @@ export class CartService {
   }
 
   async addToCart(product: Product, quantity: number = 1): Promise<void> {
-    const cartId = this.cartIdSignal();
-    if (!cartId) throw new Error('Cart not available for this account.');
+    const raw = await firstValueFrom(
+      this.http.post<RawCartItem>(`${this.apiUrl}/cart`, { productId: product.id, quantity })
+    );
+
+    if (!this.cartIdSignal()) {
+      this.cartIdSignal.set(raw.cartId);
+    }
 
     const currentItems = this.cartItemsSignal();
-    const existing = currentItems.find((i) => i.productId === product.id);
-
-    const syncItems = existing
-      ? currentItems.map((i) =>
-          i.productId === product.id
-            ? { productId: i.productId, quantity: i.quantity + quantity }
-            : { productId: i.productId, quantity: i.quantity }
-        )
-      : [
-          ...currentItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-          { productId: product.id, quantity },
-        ];
-
-    const synced = await this.syncCart(cartId, syncItems);
-    this.cartItemsSignal.set(await this.enrichItems(synced));
+    const existing = currentItems.find(i => i.id === raw.id);
+    if (existing) {
+      this.cartItemsSignal.set(
+        currentItems.map(i => i.id === raw.id ? { ...i, quantity: raw.quantity } : i)
+      );
+    } else {
+      const enriched = await this.enrichItems([raw]);
+      this.cartItemsSignal.set([...currentItems, ...enriched]);
+    }
   }
 
   async updateQuantity(cartItemId: number, quantity: number): Promise<void> {

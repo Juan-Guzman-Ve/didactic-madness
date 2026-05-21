@@ -59,6 +59,11 @@ export class DeleteOrderCommand implements ICommand {
   id!: number;
 }
 
+export class CancelOrderCommand implements ICommand {
+  id!: number;
+  userId!: number;
+}
+
 export class CheckoutCommand implements ICommand {
   @ApiProperty()
   @IsInt()

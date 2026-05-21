@@ -4,9 +4,11 @@ import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ProductsService, Product, Category, formatPrice, productImageUrl } from '@app/core/services/products.service';
+import { ProductsService, Product, Category, formatPrice, productImageUrl, stockBadgeClass } from '@app/core/services/products.service';
 import { CartService } from '@app/core/services/cart.service';
 import { AppRoutes } from '@app/app.routes.constants';
+
+const ADD_TO_CART_FEEDBACK_MS = 2500;
 
 @Component({
   selector: 'app-product-detail',
@@ -24,10 +26,10 @@ export class ProductDetailComponent implements OnInit {
   readonly routes = AppRoutes;
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
+  readonly stockBadgeClass = stockBadgeClass;
 
   readonly product = signal<Product | null>(null);
   readonly category = signal<Category | null>(null);
-  readonly relatedProducts = signal<Product[]>([]);
   readonly loading = signal(false);
   readonly quantity = signal(1);
   readonly addedToCart = signal(false);
@@ -47,14 +49,7 @@ export class ProductDetailComponent implements OnInit {
       const cat = categories.find((c) => c.id === product.categoryId) ?? null;
       this.category.set(cat);
 
-      await this.productsService.loadProducts({
-        categoryId: product.categoryId,
-        limit: 4,
-        inStock: true,
-      });
-      this.relatedProducts.set(
-        this.productsService.products().filter((p) => p.id !== product.id).slice(0, 3)
-      );
+
     } finally {
       this.loading.set(false);
     }
@@ -77,7 +72,7 @@ export class ProductDetailComponent implements OnInit {
     try {
       await this.cartService.addToCart(product, this.quantity());
       this.addedToCart.set(true);
-      setTimeout(() => this.addedToCart.set(false), 2500);
+      setTimeout(() => this.addedToCart.set(false), ADD_TO_CART_FEEDBACK_MS);
     } catch {
       this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
     } finally {
@@ -122,9 +117,5 @@ export class ProductDetailComponent implements OnInit {
     if (stock === 0) return 'Out of Stock';
     if (stock < 5) return `Low Stock (${stock} left)`;
     return 'In Stock';
-  }
-
-  stockBadgeClass(stock: number): Record<string, boolean> {
-    return { out: stock === 0, low: stock > 0 && stock < 5 };
   }
 }

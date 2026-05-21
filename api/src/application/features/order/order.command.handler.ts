@@ -10,7 +10,7 @@ import {
   ICommandHandler,
 } from '@app/application';
 import { Order, OrderItem, OrderStatusHistory, CartItem, Product } from '@app/domain';
-import { CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand, CheckoutCommand } from './order.commands';
+import { CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand, CheckoutCommand, CancelOrderCommand } from './order.commands';
 import { OrderResponse } from './order.responses';
 import { OrderMapper } from './order.mapper';
 
@@ -71,6 +71,24 @@ export class UpdateOrderCommandHandler implements ICommandHandler<UpdateOrderCom
     if (!allowed.includes(next)) {
       throw new BadRequestException(`Invalid status transition from ${current} to ${next}`);
     }
+  }
+}
+
+@Injectable()
+export class CancelOrderCommandHandler implements ICommandHandler<CancelOrderCommand, OrderResponse> {
+  constructor(
+    @Inject(ORDER_REPOSITORY) private readonly orderRepository: IOrderRepository,
+  ) {}
+
+  async execute(command: CancelOrderCommand): Promise<OrderResponse> {
+    const order = await this.orderRepository.findById(command.id);
+    if (!order) throw new NotFoundException(`Order with ID ${command.id} not found`);
+    if (order.userId !== command.userId) throw new ForbiddenException('You do not own this order');
+    if (order.status !== 'PendingPayment') {
+      throw new BadRequestException(`Only orders with status PendingPayment can be cancelled`);
+    }
+    const updated = await this.orderRepository.updateById(command.id, { status: 'Cancelled' });
+    return OrderMapper.toResponse(updated);
   }
 }
 
