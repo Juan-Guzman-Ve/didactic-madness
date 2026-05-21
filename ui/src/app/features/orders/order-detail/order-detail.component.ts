@@ -8,6 +8,7 @@ import { OrdersService, Order } from '@app/core/services/orders.service';
 import { AddressesService, Address } from '@app/core/services/addresses.service';
 import { formatPrice } from '@app/core/services/products.service';
 import { AppRoutes } from '@app/app.routes.constants';
+import { orderStatusLabel, orderStatusClass } from '../order-status.utils';
 
 const ORDER_STATUSES = [
   'PendingPayment', 'Paid', 'Processing', 'Preparing', 'Shipped', 'Delivered',
@@ -29,6 +30,8 @@ export class OrderDetailComponent implements OnInit {
   readonly routes = AppRoutes;
   readonly formatPrice = formatPrice;
   readonly statuses = ORDER_STATUSES;
+  readonly statusLabel = orderStatusLabel;
+  readonly statusClass = orderStatusClass;
 
   readonly order = signal<Order | null>(null);
   readonly address = signal<Address | null>(null);
@@ -55,34 +58,6 @@ export class OrderDetailComponent implements OnInit {
     await this.addressesService.loadAddresses();
     const found = this.addressesService.addresses().find((a) => a.id === addressId);
     this.address.set(found ?? null);
-  }
-
-  statusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      PendingPayment: 'Pending Payment',
-      Pending: 'Pending',
-      Paid: 'Paid',
-      Processing: 'Processing',
-      Preparing: 'Preparing',
-      Shipped: 'Shipped',
-      Delivered: 'Delivered',
-      Cancelled: 'Cancelled',
-    };
-    return labels[status] ?? status;
-  }
-
-  statusClass(status: string): string {
-    const map: Record<string, string> = {
-      PendingPayment: 'pending-payment',
-      Pending: 'pending',
-      Paid: 'paid',
-      Processing: 'processing',
-      Preparing: 'processing',
-      Shipped: 'shipped',
-      Delivered: 'delivered',
-      Cancelled: 'cancelled',
-    };
-    return map[status] ?? 'pending';
   }
 
   currentStatusIndex(status: string): number {

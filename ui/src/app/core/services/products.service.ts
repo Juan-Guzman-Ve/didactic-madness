@@ -48,12 +48,21 @@ interface ApiListResponse<T> {
   meta: PaginationMeta;
 }
 
+const LOW_STOCK_THRESHOLD = 5;
+
 export function productImageUrl(sku: string): string {
   return `https://picsum.photos/seed/${sku}/800/800`;
 }
 
 export function formatPrice(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+export function stockBadgeClass(stock: number): Record<string, boolean> {
+  return {
+    out: stock === 0,
+    low: stock > 0 && stock < LOW_STOCK_THRESHOLD,
+  };
 }
 
 @Injectable({ providedIn: 'root' })

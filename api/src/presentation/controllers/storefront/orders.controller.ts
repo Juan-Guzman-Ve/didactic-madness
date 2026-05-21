@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Patch, Query } from '@nestjs/common';
 import { ApiTags, ApiExtraModels, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import {
   GetOrderByIdQuery,
@@ -7,7 +7,14 @@ import {
   ListOrdersQueryHandler,
   ListOrdersResponse,
   OrderResponse,
+  CancelOrderCommand,
+  CancelOrderCommandHandler,
 } from '@app/application/features/order';
+import {
+  ListOrderItemsQuery,
+  ListOrderItemsQueryHandler,
+  ListOrderItemsResponse,
+} from '@app/application/features/order-item';
 import { CurrentUser } from '@app/presentation/decorators';
 
 @ApiTags('storefront / orders')
@@ -18,6 +25,8 @@ export class StorefrontOrdersController {
   constructor(
     private readonly getByIdHandler: GetOrderByIdQueryHandler,
     private readonly listHandler: ListOrdersQueryHandler,
+    private readonly listItemsHandler: ListOrderItemsQueryHandler,
+    private readonly cancelHandler: CancelOrderCommandHandler,
   ) {}
 
   @Get()
@@ -37,5 +46,20 @@ export class StorefrontOrdersController {
     @CurrentUser() _user: { id: number },
   ): Promise<OrderResponse> {
     return this.getByIdHandler.execute({ id } as GetOrderByIdQuery);
+  }
+
+  @Get(':id/items')
+  getItems(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ListOrderItemsResponse> {
+    return this.listItemsHandler.execute({ orderId: id } as ListOrderItemsQuery);
+  }
+
+  @Patch(':id/cancel')
+  cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
+  ): Promise<OrderResponse> {
+    return this.cancelHandler.execute({ id, userId: user.id } as CancelOrderCommand);
   }
 }

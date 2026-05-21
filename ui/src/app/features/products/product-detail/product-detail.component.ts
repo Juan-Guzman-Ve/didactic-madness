@@ -3,9 +3,11 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ProductsService, Product, Category, formatPrice, productImageUrl } from '@app/core/services/products.service';
+import { ProductsService, Product, Category, formatPrice, productImageUrl, stockBadgeClass } from '@app/core/services/products.service';
 import { CartService } from '@app/core/services/cart.service';
 import { AppRoutes } from '@app/app.routes.constants';
+
+const ADD_TO_CART_FEEDBACK_MS = 2500;
 
 @Component({
   selector: 'app-product-detail',
@@ -23,10 +25,10 @@ export class ProductDetailComponent implements OnInit {
   readonly routes = AppRoutes;
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
+  readonly stockBadgeClass = stockBadgeClass;
 
   readonly product = signal<Product | null>(null);
   readonly category = signal<Category | null>(null);
-  readonly relatedProducts = signal<Product[]>([]);
   readonly loading = signal(false);
   readonly quantity = signal(1);
   readonly addedToCart = signal(false);
@@ -46,14 +48,7 @@ export class ProductDetailComponent implements OnInit {
       const cat = categories.find((c) => c.id === product.categoryId) ?? null;
       this.category.set(cat);
 
-      await this.productsService.loadProducts({
-        categoryId: product.categoryId,
-        limit: 4,
-        inStock: true,
-      });
-      this.relatedProducts.set(
-        this.productsService.products().filter((p) => p.id !== product.id).slice(0, 3)
-      );
+
     } finally {
       this.loading.set(false);
     }
@@ -76,7 +71,7 @@ export class ProductDetailComponent implements OnInit {
     try {
       await this.cartService.addToCart(product, this.quantity());
       this.addedToCart.set(true);
-      setTimeout(() => this.addedToCart.set(false), 2500);
+      setTimeout(() => this.addedToCart.set(false), ADD_TO_CART_FEEDBACK_MS);
     } catch {
       this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
     } finally {
@@ -88,5 +83,38 @@ export class ProductDetailComponent implements OnInit {
     const specs = this.product()?.specifications;
     if (!specs) return [];
     return Object.entries(specs).map(([key, value]) => ({ key, value: String(value) }));
+  }
+
+  get hasSpecs(): boolean {
+    return this.specEntries.length > 0;
+  }
+
+  get hasCategory(): boolean {
+    return this.category() !== null;
+  }
+
+  get categoryQueryParams(): { categoryId: number } | null {
+    const cat = this.category();
+    return cat ? { categoryId: cat.id } : null;
+  }
+
+  get canDecreaseQty(): boolean {
+    return this.quantity() > 1;
+  }
+
+  get isQtyAtMax(): boolean {
+    const p = this.product();
+    return p ? this.quantity() >= p.stock : true;
+  }
+
+  get isAddToCartDisabled(): boolean {
+    const p = this.product();
+    return !p || p.stock === 0 || this.cartLoading();
+  }
+
+  stockLabel(stock: number): string {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 5) return `Low Stock (${stock} left)`;
+    return 'In Stock';
   }
 }

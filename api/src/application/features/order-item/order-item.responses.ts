@@ -12,6 +12,12 @@ export class OrderItemResponse implements IResponse {
   @ApiProperty({ example: 1 })
   productId!: number;
 
+  @ApiProperty({ example: 'AMD Ryzen 9 7900X' })
+  productName!: string;
+
+  @ApiProperty({ example: 'AMD-7900X-001' })
+  productSku!: string;
+
   @ApiProperty({ example: 2 })
   quantity!: number;
 

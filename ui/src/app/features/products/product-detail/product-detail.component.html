@@ -99,29 +99,6 @@
         </section>
       }
 
-      @if (relatedProducts().length > 0) {
-        <section class="related-section">
-          <div class="section-header">
-            <h2>You May Also Like</h2>
-            <a mat-button [routerLink]="'/' + routes.PRODUCTS" [queryParams]="{ categoryId: p.categoryId }">
-              View All <mat-icon>arrow_forward</mat-icon>
-            </a>
-          </div>
-          <div class="related-grid">
-            @for (related of relatedProducts(); track related.id) {
-              <a class="related-card" [routerLink]="'/' + routes.PRODUCT_DETAIL(related.id)">
-                <div class="related-image">
-                  <img [src]="productImageUrl(related.sku)" [alt]="related.name" loading="lazy" />
-                </div>
-                <div class="related-info">
-                  <span class="related-name">{{ related.name }}</span>
-                  <span class="related-price">{{ formatPrice(related.price) }}</span>
-                </div>
-              </a>
-            }
-          </div>
-        </section>
-      }
     } @else {
       <div class="not-found">
         <mat-icon>error_outline</mat-icon>

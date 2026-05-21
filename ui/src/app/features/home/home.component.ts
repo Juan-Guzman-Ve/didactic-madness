@@ -46,7 +46,7 @@ export class HomeComponent implements OnInit {
       this.addedProductId = product.id;
       setTimeout(() => (this.addedProductId = null), 2000);
     } catch {
-      // Cart not available - user needs to log in or cart is not initialized
+      // Cart not available
     }
   }
 }

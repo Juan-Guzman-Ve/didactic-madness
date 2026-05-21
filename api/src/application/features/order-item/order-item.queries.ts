@@ -30,4 +30,11 @@ export class ListOrderItemsQuery implements IQuery<ListOrderItemsResponse> {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  orderId?: number;
 }
