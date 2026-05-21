@@ -71,6 +71,10 @@ export class ProductsListComponent implements OnInit {
     return this.selectedCategoryId() === id;
   }
 
+  isOutOfStock(stock: number): boolean {
+    return stock === 0;
+  }
+
   stockLabel(stock: number): string {
     if (stock === 0) return 'Out of Stock';
     if (stock < 5) return 'Low Stock';

@@ -115,4 +115,17 @@ export class OrderDetailComponent implements OnInit {
   get canCancel(): boolean {
     return this.order()?.status === 'PendingPayment';
   }
+
+  async cancelOrder(): Promise<void> {
+    const id = this.order()?.id;
+    if (!id) return;
+    this.cancelling.set(true);
+    try {
+      await this.ordersService.cancelOrder(id);
+      const updated = await this.ordersService.getOrder(id);
+      this.order.set(updated);
+    } finally {
+      this.cancelling.set(false);
+    }
+  }
 }
