@@ -15,13 +15,13 @@ export class OrderResponse implements IResponse {
   @ApiProperty({ example: 1 })
   addressId!: number;
 
-  @ApiProperty({ example: 'Pending' })
+  @ApiProperty({ example: 'PaymentConfirmed' })
   status!: string;
 
   @ApiProperty({ example: 199.99 })
   totalAmount!: number;
 
-  @ApiProperty({ example: 'Paid' })
+  @ApiProperty({ example: 'Confirmed' })
   paymentStatus!: string;
 
   @ApiProperty({ example: '2024-03-31T00:00:00.000Z' })

@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "UI: Serve and Debug Chrome",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": ["--prefix", "E:/git/didactic-madness/ui", "start"],
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s"
+      }
+    },
+    {
+      "name": "UI: Debug Chrome (server already running)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/ui/src",
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${workspaceFolder}/ui/*",
+        "/./*": "${workspaceFolder}/ui/*",
+        "/src/*": "${workspaceFolder}/ui/src/*",
+        "/*": "*",
+        "/./~/*": "${workspaceFolder}/ui/node_modules/*"
+      }
+    },
+    {
+      "name": "API: Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/api/src/main.ts",
+      "runtimeArgs": [
+        "-r",
+        "${workspaceFolder}/api/node_modules/ts-node/register",
+        "-r",
+        "${workspaceFolder}/api/node_modules/tsconfig-paths/register"
+      ],
+      "cwd": "${workspaceFolder}/api",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/api/node_modules/**"],
+      "env": {
+        "NODE_ENV": "development",
+        "TS_NODE_PROJECT": "${workspaceFolder}/api/tsconfig.json"
+      }
+    }
+  ]
+}

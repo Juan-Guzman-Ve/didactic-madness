@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductsService, Product, Category, formatPrice, productImageUrl, stockBadgeClass } from '@app/core/services/products.service';
 import { CartService } from '@app/core/services/cart.service';
+import { AuthService } from '@app/core/services/auth.service';
+import { getApiErrorMessage } from '@app/core/utils/http-error.utils';
 import { AppRoutes } from '@app/app.routes.constants';
 
 const ADD_TO_CART_FEEDBACK_MS = 2500;
@@ -20,6 +22,7 @@ const ADD_TO_CART_FEEDBACK_MS = 2500;
 export class ProductDetailComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
   private readonly cartService = inject(CartService);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -34,6 +37,7 @@ export class ProductDetailComponent implements OnInit {
   readonly quantity = signal(1);
   readonly addedToCart = signal(false);
   readonly cartLoading = signal(false);
+  readonly errorMessage = signal('');
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -68,13 +72,20 @@ export class ProductDetailComponent implements OnInit {
     const product = this.product();
     if (!product) return;
 
+    this.errorMessage.set('');
+
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
+      return;
+    }
+
     this.cartLoading.set(true);
     try {
       await this.cartService.addToCart(product, this.quantity());
       this.addedToCart.set(true);
       setTimeout(() => this.addedToCart.set(false), ADD_TO_CART_FEEDBACK_MS);
-    } catch {
-      this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
+    } catch (error) {
+      this.errorMessage.set(getApiErrorMessage(error, 'Failed to add product to cart. Please try again.'));
     } finally {
       this.cartLoading.set(false);
     }

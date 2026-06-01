@@ -132,6 +132,20 @@
   flex-wrap: wrap;
 }
 
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  color: #991b1b;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+}
+
 .qty-control {
   display: flex;
   align-items: center;

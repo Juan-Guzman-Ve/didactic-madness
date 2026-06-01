@@ -35,24 +35,26 @@ export class StorefrontOrdersController {
   @ApiQuery({ name: 'sort', required: false, type: String })
   list(
     @Query() query: ListOrdersQuery,
-    @CurrentUser() _user: { id: number },
+    @CurrentUser() user: { id: number },
   ): Promise<ListOrdersResponse> {
+    query.userId = user.id;
     return this.listHandler.execute(query);
   }
 
   @Get(':id')
   getById(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() _user: { id: number },
+    @CurrentUser() user: { id: number },
   ): Promise<OrderResponse> {
-    return this.getByIdHandler.execute({ id } as GetOrderByIdQuery);
+    return this.getByIdHandler.execute({ id, userId: user.id } as GetOrderByIdQuery);
   }
 
   @Get(':id/items')
   getItems(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
   ): Promise<ListOrderItemsResponse> {
-    return this.listItemsHandler.execute({ orderId: id } as ListOrderItemsQuery);
+    return this.listItemsHandler.execute({ orderId: id, userId: user.id } as ListOrderItemsQuery);
   }
 
   @Patch(':id/cancel')

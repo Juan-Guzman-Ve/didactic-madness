@@ -7,6 +7,8 @@ import { AddressResponse, ListAddressesResponse } from './address.responses';
 export class GetAddressByIdQuery implements IQuery<AddressResponse> {
   @ApiProperty()
   id!: number;
+
+  userId?: number;
 }
 
 export class ListAddressesQuery implements IQuery<ListAddressesResponse> {

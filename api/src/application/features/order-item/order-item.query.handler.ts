@@ -1,6 +1,7 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import {
   IOrderItemRepository, ORDER_ITEM_REPOSITORY,
+  IOrderRepository, ORDER_REPOSITORY,
   IProductRepository, PRODUCT_REPOSITORY,
   IQueryHandler,
 } from '@app/application';
@@ -12,6 +13,7 @@ import { OrderItemMapper } from './order-item.mapper';
 export class GetOrderItemByIdQueryHandler implements IQueryHandler<GetOrderItemByIdQuery, OrderItemResponse> {
   constructor(
     @Inject(ORDER_ITEM_REPOSITORY) private readonly orderItemRepository: IOrderItemRepository,
+    @Inject(ORDER_REPOSITORY) private readonly orderRepository: IOrderRepository,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
   ) {}
 
@@ -27,11 +29,18 @@ export class GetOrderItemByIdQueryHandler implements IQueryHandler<GetOrderItemB
 export class ListOrderItemsQueryHandler implements IQueryHandler<ListOrderItemsQuery, ListOrderItemsResponse> {
   constructor(
     @Inject(ORDER_ITEM_REPOSITORY) private readonly orderItemRepository: IOrderItemRepository,
+    @Inject(ORDER_REPOSITORY) private readonly orderRepository: IOrderRepository,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
   ) {}
 
   async execute(query: ListOrderItemsQuery): Promise<ListOrderItemsResponse> {
     if (query.orderId !== undefined) {
+      if (query.userId !== undefined) {
+        const order = await this.orderRepository.findById(query.orderId);
+        if (!order) throw new NotFoundException(`Order with ID ${query.orderId} not found`);
+        if (order.userId !== query.userId) throw new ForbiddenException('You do not own this order');
+      }
+
       const items = await this.orderItemRepository.findByOrderId(query.orderId);
       const enriched = await Promise.all(
         items.map(async (item) => {

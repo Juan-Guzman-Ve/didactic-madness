@@ -58,32 +58,11 @@
   padding: 64px 0;
 }
 
-.section-alt {
-  background: var(--mat-sys-surface-container-lowest, #f8f9fa);
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 40px;
-}
-
 .section-title {
   font-size: 1.75rem;
   font-weight: 600;
   margin: 0 0 40px;
   color: var(--mat-sys-on-surface);
-
-  .section-header & {
-    margin-bottom: 0;
-  }
-}
-
-.view-all {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 /* Category Grid */
@@ -127,110 +106,8 @@
   padding: 12px 16px;
 }
 
-/* Product Grid */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
-}
-
-.product-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
-  transition: box-shadow 0.2s, transform 0.2s;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-  }
-}
-
-.product-image-link {
-  display: block;
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-
-  .product-card:hover & {
-    transform: scale(1.04);
-  }
-}
-
-.product-info {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 6px;
-}
-
-.product-name {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  line-height: 1.3;
-  text-decoration: none;
-  color: inherit;
-
-  &:hover {
-    color: #7c6af7;
-  }
-}
-
-.product-brand {
-  font-size: 0.8125rem;
-  color: var(--mat-sys-on-surface-variant, #666);
-}
-
-.product-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-
-.product-price {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #7c6af7;
-}
-
-.stock-badge {
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: #e8f5e9;
-  color: #2e7d32;
-
-  &.low {
-    background: #fff3e0;
-    color: #e65100;
-  }
-}
-
-.add-btn {
-  width: 100%;
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-}
-
 /* Skeletons */
-.skeleton-grid,
-.skeleton-product {
+.skeleton-grid {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -242,12 +119,6 @@
 
 .skeleton-card {
   height: 120px;
-  background: #e0e0e0;
-  border-radius: 12px;
-}
-
-.product-grid .skeleton-product {
-  height: 360px;
   background: #e0e0e0;
   border-radius: 12px;
 }

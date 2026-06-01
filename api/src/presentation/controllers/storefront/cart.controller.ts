@@ -58,7 +58,11 @@ export class StorefrontCartController {
   @ApiBody({ type: SyncCartItemsCommand })
   @Put()
   @HttpCode(HttpStatus.OK)
-  sync(@Body() command: SyncCartItemsCommand): Promise<CartItemResponse[]> {
+  sync(
+    @Body() command: SyncCartItemsCommand,
+    @CurrentUser() user: { id: number },
+  ): Promise<CartItemResponse[]> {
+    command.userId = user.id;
     return this.syncHandler.execute(command);
   }
 }

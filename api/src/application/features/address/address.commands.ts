@@ -42,6 +42,8 @@ export class UpdateAddressCommand implements ICommand {
   @ApiProperty()
   id!: number;
 
+  userId?: number;
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -81,4 +83,6 @@ export class UpdateAddressCommand implements ICommand {
 export class DeleteAddressCommand implements ICommand {
   @ApiProperty()
   id!: number;
+
+  userId?: number;
 }

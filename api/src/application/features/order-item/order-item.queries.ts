@@ -8,6 +8,8 @@ import { OrderItemResponse, ListOrderItemsResponse } from './order-item.response
 export class GetOrderItemByIdQuery implements IQuery<OrderItemResponse> {
   @ApiProperty()
   id!: number;
+
+  userId?: number;
 }
 
 export class ListOrderItemsQuery implements IQuery<ListOrderItemsResponse> {
@@ -37,4 +39,6 @@ export class ListOrderItemsQuery implements IQuery<ListOrderItemsResponse> {
   @IsInt()
   @Min(1)
   orderId?: number;
+
+  userId?: number;
 }

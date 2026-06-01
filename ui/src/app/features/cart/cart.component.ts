@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { CartService, CartItem } from '@app/core/services/cart.service';
 import { formatPrice, productImageUrl } from '@app/core/services/products.service';
+import { getApiErrorMessage } from '@app/core/utils/http-error.utils';
 import { AppRoutes } from '@app/app.routes.constants';
 
 @Component({
@@ -21,23 +22,31 @@ export class CartComponent {
   readonly cartTotal = this.cartService.cartTotal;
   readonly routes = AppRoutes;
   readonly updating = signal(false);
+  readonly errorMessage = signal('');
   readonly formatPrice = formatPrice;
   readonly productImageUrl = productImageUrl;
 
   async updateQuantity(itemId: number, quantity: number): Promise<void> {
     if (quantity < 1) return;
+
+    this.errorMessage.set('');
     this.updating.set(true);
     try {
       await this.cartService.updateQuantity(itemId, quantity);
+    } catch (error) {
+      this.errorMessage.set(getApiErrorMessage(error, 'Failed to update cart item. Please try again.'));
     } finally {
       this.updating.set(false);
     }
   }
 
   async removeItem(itemId: number): Promise<void> {
+    this.errorMessage.set('');
     this.updating.set(true);
     try {
       await this.cartService.removeItem(itemId);
+    } catch (error) {
+      this.errorMessage.set(getApiErrorMessage(error, 'Failed to remove item from cart. Please try again.'));
     } finally {
       this.updating.set(false);
     }

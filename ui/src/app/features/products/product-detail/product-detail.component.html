@@ -73,6 +73,13 @@
             </button>
           </div>
 
+          @if (errorMessage()) {
+            <div class="error-alert">
+              <mat-icon>error_outline</mat-icon>
+              {{ errorMessage() }}
+            </div>
+          }
+
           <div class="sku-info">
             <span>SKU: <strong>{{ p.sku }}</strong></span>
             <a [routerLink]="'/' + routes.CART" mat-button class="view-cart-link">

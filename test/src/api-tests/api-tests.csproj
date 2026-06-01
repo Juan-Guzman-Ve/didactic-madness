@@ -4,8 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>CubeAutomate</RootNamespace>
-    <AssemblyName>CubeAutomate</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RootNamespace>CubeAutomate.ApiTests</RootNamespace>
+    <AssemblyName>CubeAutomate.ApiTests</AssemblyName>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -28,7 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.test.json">
+    <Compile Include="..\Http\**\*.cs" />
+    <Compile Include="..\Models\**\*.cs" />
+    <Compile Include="..\Features\UserFlow\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\appsettings.test.json" Link="appsettings.test.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

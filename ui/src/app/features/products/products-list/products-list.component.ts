@@ -18,6 +18,8 @@ import {
   stockBadgeClass,
 } from '@app/core/services/products.service';
 import { CartService } from '@app/core/services/cart.service';
+import { AuthService } from '@app/core/services/auth.service';
+import { getApiErrorMessage } from '@app/core/utils/http-error.utils';
 import { AppRoutes } from '@app/app.routes.constants';
 
 const ADD_TO_CART_FEEDBACK_MS = 2000;
@@ -43,6 +45,7 @@ const ADD_TO_CART_FEEDBACK_MS = 2000;
 export class ProductsListComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
   private readonly cartService = inject(CartService);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -57,6 +60,7 @@ export class ProductsListComponent implements OnInit {
   readonly categories = signal<Category[]>([]);
 
   readonly addedProductId = signal<number | null>(null);
+  readonly cartErrorMessage = signal('');
   readonly skeletonItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   get isProductsEmpty(): boolean {
@@ -151,12 +155,19 @@ export class ProductsListComponent implements OnInit {
   }
 
   async addToCart(product: Product): Promise<void> {
+    this.cartErrorMessage.set('');
+
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
+      return;
+    }
+
     try {
       await this.cartService.addToCart(product, 1);
       this.addedProductId.set(product.id);
       setTimeout(() => this.addedProductId.set(null), ADD_TO_CART_FEEDBACK_MS);
-    } catch {
-      this.router.navigate(['/' + this.routes.AUTH_LOGIN]);
+    } catch (error) {
+      this.cartErrorMessage.set(getApiErrorMessage(error, 'Failed to add product to cart. Please try again.'));
     }
   }
 

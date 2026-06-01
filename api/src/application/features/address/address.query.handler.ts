@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { IAddressRepository, ADDRESS_REPOSITORY, IQueryHandler } from '@app/application';
 import { GetAddressByIdQuery, ListAddressesQuery } from './address.queries';
 import { AddressResponse, ListAddressesResponse } from './address.responses';
@@ -13,6 +13,9 @@ export class GetAddressByIdQueryHandler implements IQueryHandler<GetAddressByIdQ
   async execute(query: GetAddressByIdQuery): Promise<AddressResponse> {
     const address = await this.addressRepository.findById(query.id);
     if (!address) throw new NotFoundException(`Address with ID ${query.id} not found`);
+    if (query.userId !== undefined && address.userId !== query.userId) {
+      throw new ForbiddenException('You do not own this address');
+    }
     return AddressMapper.toResponse(address);
   }
 }

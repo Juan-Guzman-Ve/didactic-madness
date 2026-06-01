@@ -1,4 +1,6 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import {
   IOrderRepository, ORDER_REPOSITORY,
   IOrderItemRepository, ORDER_ITEM_REPOSITORY,
@@ -10,6 +12,7 @@ import {
   ICommandHandler,
 } from '@app/application';
 import { Order, OrderItem, OrderStatusHistory, CartItem, Product } from '@app/domain';
+import { CartItemEntity, OrderEntity, OrderItemEntity, OrderStatusHistoryEntity, ProductEntity } from '@app/infra/database/entities';
 import { CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand, CheckoutCommand, CancelOrderCommand } from './order.commands';
 import { OrderResponse } from './order.responses';
 import { OrderMapper } from './order.mapper';
@@ -25,7 +28,7 @@ export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
       orderNumber: command.orderNumber || `ORD-${Date.now()}`,
       userId: command.userId,
       addressId: command.addressId,
-      status: 'Pending',
+      status: 'PendingPayment',
       totalAmount: command.totalAmount,
       paymentStatus: 'Pending',
     });
@@ -58,9 +61,9 @@ export class UpdateOrderCommandHandler implements ICommandHandler<UpdateOrderCom
 
   private validateStatusTransition(current: string, next: string): void {
     const validTransitions: Record<string, string[]> = {
-      'PendingPayment': ['Paid', 'Cancelled'],
-      'Pending': ['Paid', 'Cancelled'],
-      'Paid': ['Processing', 'Cancelled'],
+      'PendingPayment': ['PaymentConfirmed', 'Cancelled'],
+      'Pending': ['PaymentConfirmed', 'Cancelled'],
+      'PaymentConfirmed': ['Processing', 'Cancelled'],
       'Processing': ['Shipped', 'Cancelled'],
       'Shipped': ['Delivered'],
       'Delivered': [],
@@ -108,6 +111,7 @@ export class DeleteOrderCommandHandler implements ICommandHandler<DeleteOrderCom
 @Injectable()
 export class CheckoutCommandHandler implements ICommandHandler<CheckoutCommand, OrderResponse> {
   constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
     @Inject(ORDER_REPOSITORY) private readonly orderRepository: IOrderRepository,
     @Inject(ORDER_ITEM_REPOSITORY) private readonly orderItemRepository: IOrderItemRepository,
     @Inject(ORDER_STATUS_HISTORY_REPOSITORY) private readonly historyRepository: IOrderStatusHistoryRepository,
@@ -132,12 +136,16 @@ export class CheckoutCommandHandler implements ICommandHandler<CheckoutCommand, 
 
     const products = await this.loadAndValidateProducts(cartItems);
     const totalAmount = this.calculateTotal(cartItems, products);
-    const order = await this.createOrder(userId, addressId, totalAmount);
+    const order = await this.dataSource.transaction(async (manager) => {
+      const createdOrder = await this.createOrder(manager, userId, addressId, totalAmount);
 
-    await this.createOrderItems(order.id, cartItems, products);
-    await this.decrementStock(cartItems, products);
-    await this.recordStatusHistory(order.id, userId);
-    await this.clearCart(cartItems);
+      await this.createOrderItems(manager, createdOrder.id, cartItems, products);
+      await this.decrementStock(manager, cartItems, products);
+      await this.recordStatusHistoryEntries(manager, createdOrder.id, userId);
+      await this.clearCart(manager, cartItems);
+
+      return createdOrder;
+    });
 
     return OrderMapper.toResponse(order);
   }
@@ -160,49 +168,78 @@ export class CheckoutCommandHandler implements ICommandHandler<CheckoutCommand, 
     return cartItems.reduce((total, item) => total + products.get(item.productId)!.price * item.quantity, 0);
   }
 
-  private async createOrder(userId: number, addressId: number, totalAmount: number): Promise<Order> {
-    const order = Object.assign(new Order(), {
+  private async createOrder(manager: DataSource['manager'], userId: number, addressId: number, totalAmount: number): Promise<Order> {
+    const saved = await manager.getRepository(OrderEntity).save(
+      Object.assign(new OrderEntity(), {
+        orderNumber: `ORD-${Date.now()}`,
+        userId,
+        addressId,
+        status: 'PaymentConfirmed',
+        totalAmount,
+        paymentStatus: 'Confirmed',
+      }),
+    );
+
+    return Object.assign(new Order(), {
+      id: saved.id,
       orderNumber: `ORD-${Date.now()}`,
       userId,
       addressId,
-      status: 'PendingPayment',
+      status: 'PaymentConfirmed',
       totalAmount,
-      paymentStatus: 'Pending',
+      paymentStatus: 'Confirmed',
+      createdAt: saved.createdAt,
+      updatedAt: saved.updatedAt,
+      createdBy: saved.createdBy,
+      updatedBy: saved.updatedBy,
     });
-    return this.orderRepository.create(order);
   }
 
-  private async createOrderItems(orderId: number, cartItems: CartItem[], products: Map<number, Product>): Promise<void> {
+  private async createOrderItems(manager: DataSource['manager'], orderId: number, cartItems: CartItem[], products: Map<number, Product>): Promise<void> {
     const orderItems = cartItems.map((item) =>
-      Object.assign(new OrderItem(), {
+      Object.assign(new OrderItemEntity(), {
         orderId,
         productId: item.productId,
         quantity: item.quantity,
         priceAtPurchase: products.get(item.productId)!.price,
       }),
     );
-    await this.orderItemRepository.createMany(orderItems);
+    await manager.getRepository(OrderItemEntity).save(orderItems);
   }
 
-  private async decrementStock(cartItems: CartItem[], products: Map<number, Product>): Promise<void> {
+  private async decrementStock(manager: DataSource['manager'], cartItems: CartItem[], products: Map<number, Product>): Promise<void> {
     for (const item of cartItems) {
       const product = products.get(item.productId)!;
-      await this.productRepository.updateById(product.id, { stock: product.stock - item.quantity });
+      await manager.getRepository(ProductEntity).update(product.id, { stock: product.stock - item.quantity });
     }
   }
 
-  private async recordStatusHistory(orderId: number, userId: number): Promise<void> {
-    const history = Object.assign(new OrderStatusHistory(), {
-      orderId,
-      status: 'PendingPayment',
-      changedByUserId: userId,
-      notes: 'Order placed',
-      changedAt: new Date(),
-    });
-    await this.historyRepository.create(history);
+  private async recordStatusHistoryEntries(manager: DataSource['manager'], orderId: number, userId: number): Promise<void> {
+    const orderPlacedAt = new Date();
+    const paymentConfirmedAt = new Date(orderPlacedAt.getTime() + 1000);
+
+    await manager.getRepository(OrderStatusHistoryEntity).save(
+      Object.assign(new OrderStatusHistoryEntity(), {
+        orderId,
+        status: 'PendingPayment',
+        changedByUserId: userId,
+        notes: 'Order placed',
+        changedAt: orderPlacedAt,
+      }),
+    );
+
+    await manager.getRepository(OrderStatusHistoryEntity).save(
+      Object.assign(new OrderStatusHistoryEntity(), {
+        orderId,
+        status: 'PaymentConfirmed',
+        changedByUserId: userId,
+        notes: 'Mock payment confirmed during checkout',
+        changedAt: paymentConfirmedAt,
+      }),
+    );
   }
 
-  private async clearCart(cartItems: CartItem[]): Promise<void> {
-    await this.cartItemRepository.deleteByIds(cartItems.map((item) => item.id));
+  private async clearCart(manager: DataSource['manager'], cartItems: CartItem[]): Promise<void> {
+    await manager.getRepository(CartItemEntity).delete(cartItems.map((item) => item.id));
   }
 }

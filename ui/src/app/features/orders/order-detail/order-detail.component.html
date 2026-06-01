@@ -128,7 +128,7 @@
             Credit Card ending in 4242
           </p>
           <p class="payment-status" [class]="paymentStatusClass(o.paymentStatus)">
-            Payment: {{ o.paymentStatus }}
+            Payment: {{ o.paymentStatus === 'Confirmed' ? 'Confirmed' : o.paymentStatus }}
           </p>
         </section>
       </div>

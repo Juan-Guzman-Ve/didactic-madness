@@ -24,6 +24,21 @@
   }
 }
 
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  color: #991b1b;
+
+  .mat-icon {
+    flex-shrink: 0;
+  }
+}
+
 .empty-state {
   text-align: center;
   padding: var(--spacing-3xl) var(--spacing-lg);

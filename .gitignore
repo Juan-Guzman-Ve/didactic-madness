@@ -180,3 +180,4 @@ supabase/.env.local
 supabase/.env.*.local
 
 test/src/.vs
+test/src/**/bin/*

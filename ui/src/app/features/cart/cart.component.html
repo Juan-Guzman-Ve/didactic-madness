@@ -7,6 +7,13 @@
       }
     </div>
 
+    @if (errorMessage()) {
+      <div class="error-alert">
+        <mat-icon>error_outline</mat-icon>
+        {{ errorMessage() }}
+      </div>
+    }
+
     @if (isCartEmpty) {
       <div class="empty-state">
         <mat-icon class="empty-icon">shopping_cart</mat-icon>

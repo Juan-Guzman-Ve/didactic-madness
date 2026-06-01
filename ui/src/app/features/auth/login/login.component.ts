@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { UiInputComponent } from '@shared/components/input/ui-input.component';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { AuthService } from '@app/core/services/auth.service';
+import { CartService } from '@app/core/services/cart.service';
 import { AppRoutes } from '@app/app.routes.constants';
   
 @Component({
@@ -26,6 +27,7 @@ import { AppRoutes } from '@app/app.routes.constants';
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
+  private readonly cartService = inject(CartService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -47,6 +49,7 @@ export class LoginComponent {
     try {
       const { email, password } = this.form.getRawValue();
       await this.authService.login(email, password);
+      await this.cartService.loadCart();
       this.router.navigate([AppRoutes.HOME]);
     } catch {
       this.errorMessage.set('Invalid email or password. Please try again.');

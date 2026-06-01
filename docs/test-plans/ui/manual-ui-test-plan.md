@@ -52,18 +52,10 @@
 | # | Step | Expected Result | Result |
 |---|---|---|---|
 | 1 | Open `/` | Hero section is visible with title "Build Your Dream Setup" | |
-| 2 | While loading | Skeleton cards appear for categories and products | |
+| 2 | While loading | Skeleton cards appear for categories | |
 | 3 | After load | Category grid appears with images (one per category) | |
-| 4 | After load | "New Arrivals" product grid shows up to 8 products with images, name, brand, price, stock badge | |
-| 5 | Stock badge: in-stock product | Shows "In Stock" (no special color) | |
-| 6 | Stock badge: low stock product (< 5 units) | Shows "Low Stock" with low styling | |
-| 7 | Stock badge: out of stock product | Shows "Out of Stock" | |
-| 8 | Click a category card | Navigates to `/products?categoryId={id}`, list filtered to that category | |
-| 9 | Click "Shop Components" or "Browse All" | Navigates to `/products` | |
-| 10 | Click "View All" in New Arrivals | Navigates to `/products` | |
-| 11 | Click a product name or image | Navigates to `/products/{id}` | |
-| 12 | "Add to Cart" — unauthenticated | Button present, clicking silently fails (no redirect — known gap) | |
-| 13 | "Add to Cart" — authenticated | Button icon changes to ✓ and label says "Added" for ~2s | |
+| 4 | Click a category card | Navigates to `/products?categoryId={id}`, list filtered to that category | |
+| 5 | Click "Shop Components" or "Browse All" | Navigates to `/products` | |
 
 ---
 
@@ -89,7 +81,7 @@
 
 | # | Step | Expected Result | Result |
 |---|---|---|---|
-| 1 | Open `/auth/register` | Registration form with: First Name, Last Name, Email, Phone (optional), Password | |
+| 1 | Open `/auth/register` | Registration form with: First Name, Last Name, Email, Password | |
 | 2 | Submit empty form | Required field errors shown, form not submitted | |
 | 3 | Enter invalid email (e.g. `notanemail`) | Email validation error shown | |
 | 4 | Enter password < 8 chars | Minimum length error shown | |
@@ -131,7 +123,7 @@
 | 6 | Click "All Products" | Filter cleared, all products shown | |
 | 7 | Search box — type a product name and press Enter | Grid filters to matching products | |
 | 8 | Search with no results | "No products found" empty state shown with "Clear Filters" button | |
-| 9 | "Clear Filters" button | Resets category and search, shows all products | |
+| 9 | "Clear Filters" button | Resets category filter, reloads product list | |
 | 10 | Sort: "Price: Low to High" | Products reorder ascending by price | |
 | 11 | Sort: "Price: High to Low" | Products reorder descending by price | |
 | 12 | Sort: "Name A–Z" | Products reorder alphabetically | |
@@ -139,6 +131,8 @@
 | 14 | "In Stock Only" checkbox | Filters out out-of-stock products | |
 | 15 | Stock badge on out-of-stock product | "Add to Cart" button is disabled | |
 | 16 | Click product image or name | Navigates to `/products/{id}` | |
+| 17 | If "Load More Products" is visible, click it | Next page products are appended to the grid | |
+| 18 | Unauthenticated — click "Add to Cart" on in-stock product | Redirected to `/auth/login` | |
 
 ---
 
@@ -161,8 +155,6 @@
 | 11 | Authenticated — "View Cart" link | Navigates to `/cart` | |
 | 12 | Unauthenticated — click "Add to Cart" | Redirected to `/auth/login` | |
 | 13 | Specifications section | Shown if product has specs; key/value grid | |
-| 14 | "You May Also Like" section | Shows up to 3 related products from same category | |
-| 15 | Click a related product | Navigates to that product's detail page | |
 
 ---
 
@@ -259,12 +251,10 @@
 | 9 | Payment section | Shows mock card info and payment status | |
 | 10 | Cancel button — "PendingPayment" order | "Cancel Order" button visible in header | |
 | 11 | Cancel button — other statuses | "Cancel Order" button is NOT shown | |
-| 12 | Click "Cancel Order" | Confirmation dialog appears | |
-| 13 | Confirm cancellation | Order status updates to "Cancelled", cancel button disappears | |
-| 14 | Dismiss cancellation dialog | Nothing changes | |
-| 15 | Invalid order ID in URL | "Order not found" state shown | |
-| 16 | "← Back to Orders" | Navigates to `/orders` | |
-| 17 | "Continue Shopping" | Navigates to `/products` | |
+| 12 | Click "Cancel Order" | Order is cancelled immediately; status updates to "Cancelled", cancel button disappears | |
+| 13 | Invalid order ID in URL | "Order not found" state shown | |
+| 14 | "← Back to Orders" | Navigates to `/orders` | |
+| 15 | "Continue Shopping" | Navigates to `/products` | |
 
 ---
 
@@ -276,6 +266,7 @@
 |---|---|---|---|
 | 1 | Navigate to `/admin` | Admin dashboard page loads | |
 | 2 | Unauthenticated access to `/admin` | Redirected to `/auth/login` | |
+| 3 | In dashboard, click "Manage Products", "View Orders", or "Manage Users" | Redirects to `/` via wildcard route (admin child routes not implemented yet) | |
 
 ---
 
@@ -318,5 +309,5 @@
 | Gap | Description |
 |---|---|
 | Cart not loaded after login | After logging in, cart items only load on page reload. The cart count may show 0 until refresh. |
-| "Add to Cart" unauthenticated on home page | Silently fails instead of redirecting to login (product detail page does redirect). |
 | Admin role enforcement | Any authenticated user can access `/admin` — role check not yet implemented. |
+| Admin quick-action routes | `/admin/products`, `/admin/orders`, and `/admin/users` are linked from dashboard but not defined in routes yet. |

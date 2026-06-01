@@ -27,6 +27,8 @@ export class SyncCartItemsCommand implements ICommand {
   @ValidateNested({ each: true })
   @Type(() => CartItemDto)
   items!: CartItemDto[];
+
+  userId!: number;
 }
 
 export class AddToCartCommand implements ICommand {

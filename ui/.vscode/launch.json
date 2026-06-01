@@ -2,25 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Chrome (ng serve)",
-      "type": "chrome",
+      "name": "UI: Serve and Debug Chrome",
+      "type": "node",
       "request": "launch",
-      "preLaunchTask": "Start Dev",
-      "url": "http://localhost:4200",
-      "webRoot": "${workspaceFolder}/src",
-      "sourceMapPathOverrides": {
-        "webpack:/*": "${workspaceFolder}/*",
-        "/./*": "${workspaceFolder}/*",
-        "/src/*": "${workspaceFolder}/src/*",
-        "/*": "*",
-        "/./~/*": "${workspaceFolder}/node_modules/*"
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": ["--prefix", "E:/git/didactic-madness/ui", "start"],
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s"
       }
     },
     {
-      "name": "Attach to Chrome (ng serve running)",
+      "name": "UI: Debug Chrome (server already running)",
       "type": "chrome",
-      "request": "attach",
-      "port": 9222,
+      "request": "launch",
       "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}/src",
       "sourceMapPathOverrides": {

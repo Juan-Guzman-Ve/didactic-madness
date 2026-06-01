@@ -12,7 +12,7 @@ import { AppRoutes } from '@app/app.routes.constants';
 import { orderStatusLabel, orderStatusClass } from '../order-status.utils';
 
 const ORDER_STATUSES = [
-  'PendingPayment', 'Paid', 'Processing', 'Preparing', 'Shipped', 'Delivered',
+  'PendingPayment', 'PaymentConfirmed', 'Processing', 'Preparing', 'Shipped', 'Delivered',
 ];
 
 @Component({
@@ -95,7 +95,7 @@ export class OrderDetailComponent implements OnInit {
   }
 
   paymentStatusClass(paymentStatus: string): string {
-    return paymentStatus === 'Paid' ? 'paid' : 'pending-pay';
+    return paymentStatus === 'Confirmed' || paymentStatus === 'Paid' ? 'paid' : 'pending-pay';
   }
 
   itemTotal(priceAtPurchase: number, quantity: number): string {

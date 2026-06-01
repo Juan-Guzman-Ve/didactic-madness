@@ -1,5 +1,5 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { ICartItemRepository, CART_ITEM_REPOSITORY, ICommandHandler, IProductRepository, PRODUCT_REPOSITORY } from '@app/application';
+import { Injectable, Inject, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { ICartItemRepository, CART_ITEM_REPOSITORY, ICommandHandler, IProductRepository, PRODUCT_REPOSITORY, ICartRepository, CART_REPOSITORY } from '@app/application';
 import { CartItem } from '@app/domain';
 import { SyncCartItemsCommand, CartItemDto } from './cart-item.commands';
 import { CartItemResponse } from './cart-item.responses';
@@ -9,12 +9,19 @@ import { CartItemMapper } from './cart-item.mapper';
 export class SyncCartItemsCommandHandler implements ICommandHandler<SyncCartItemsCommand, CartItemResponse[]> {
   constructor(
     @Inject(CART_ITEM_REPOSITORY) private readonly cartItemRepository: ICartItemRepository,
+    @Inject(CART_REPOSITORY) private readonly cartRepository: ICartRepository,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
   ) {}
 
   async execute(command: SyncCartItemsCommand): Promise<CartItemResponse[]> {
 
     if (command.items.length === 0) throw new BadRequestException('Items list cannot be empty');
+
+    const userCart = await this.cartRepository.findByUserId(command.userId);
+    if (!userCart) throw new NotFoundException(`Cart for user ${command.userId} not found`);
+    if (userCart.id !== command.cartId) {
+      throw new ForbiddenException('Cart does not belong to the current user');
+    }
 
     const cartId = command.cartId;
     const existingItems = await this.cartItemRepository.findByCartId(cartId);

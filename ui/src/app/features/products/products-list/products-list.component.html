@@ -62,6 +62,13 @@
       </aside>
 
       <div class="products-area">
+        @if (cartErrorMessage()) {
+          <div class="error-alert">
+            <mat-icon>error_outline</mat-icon>
+            {{ cartErrorMessage() }}
+          </div>
+        }
+
         @if (loading()) {
           <div class="loading-grid">
             @for (i of skeletonItems; track i) {

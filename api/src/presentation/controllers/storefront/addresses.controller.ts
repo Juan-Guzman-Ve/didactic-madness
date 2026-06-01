@@ -39,13 +39,20 @@ export class StorefrontAddressesController extends BaseController<
   }
 
   @Get(':id')
-  override getById(@Param('id', ParseIntPipe) id: number): Promise<AddressResponse> {
-    return super.getById(id);
+  override getById(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user?: { id: number },
+  ): Promise<AddressResponse> {
+    return this.getByIdHandler.execute({ id, userId: user?.id } as GetAddressByIdQuery);
   }
 
   @ApiBody({ type: CreateAddressCommand })
   @Post()
-  override create(@Body() command: CreateAddressCommand): Promise<AddressResponse> {
+  override create(
+    @Body() command: CreateAddressCommand,
+    @CurrentUser() user?: { id: number },
+  ): Promise<AddressResponse> {
+    command.userId = user?.id ?? command.userId;
     return super.create(command);
   }
 
@@ -54,14 +61,19 @@ export class StorefrontAddressesController extends BaseController<
   override update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateAddressCommand,
+    @CurrentUser() user?: { id: number },
   ): Promise<AddressResponse> {
+    body.userId = user?.id;
     return super.update(id, body);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  override delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return super.delete(id);
+  override delete(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user?: { id: number },
+  ): Promise<void> {
+    return this.deleteHandler.execute({ id, userId: user?.id } as DeleteAddressCommand);
   }
 
   @Get()

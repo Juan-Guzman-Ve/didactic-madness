@@ -11,6 +11,7 @@ import { AddressesService, Address } from '@app/core/services/addresses.service'
 import { CartService } from '@app/core/services/cart.service';
 import { OrdersService } from '@app/core/services/orders.service';
 import { formatPrice } from '@app/core/services/products.service';
+import { getApiErrorMessage } from '@app/core/utils/http-error.utils';
 import { AppRoutes } from '@app/app.routes.constants';
 
 @Component({
@@ -89,11 +90,17 @@ export class CheckoutComponent implements OnInit {
 
   async saveAddress(): Promise<void> {
     if (this.addressForm.invalid) return;
-    const data = this.addressForm.getRawValue();
-    const newAddress = await this.addressesService.createAddress(data);
-    this.selectedAddressId.set(newAddress.id);
-    this.showAddressForm.set(false);
-    this.addressForm.reset();
+    this.errorMessage.set('');
+
+    try {
+      const data = this.addressForm.getRawValue();
+      const newAddress = await this.addressesService.createAddress(data);
+      this.selectedAddressId.set(newAddress.id);
+      this.showAddressForm.set(false);
+      this.addressForm.reset();
+    } catch (error) {
+      this.errorMessage.set(getApiErrorMessage(error, 'Failed to save address. Please review the fields and try again.'));
+    }
   }
 
   async placeOrder(): Promise<void> {
@@ -108,8 +115,8 @@ export class CheckoutComponent implements OnInit {
       const order = await this.ordersService.checkout(addressId, items, address);
       this.cartService.clearLocalCart();
       this.router.navigate(['/' + this.routes.ORDER_CONFIRMATION(order.id)]);
-    } catch {
-      this.errorMessage.set('Failed to place order. Please try again.');
+    } catch (error) {
+      this.errorMessage.set(getApiErrorMessage(error, 'Failed to place order. Please try again.'));
     } finally {
       this.submitting.set(false);
     }

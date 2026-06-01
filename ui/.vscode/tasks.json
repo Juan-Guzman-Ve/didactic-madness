@@ -14,7 +14,19 @@
       "type": "shell",
       "command": "npm --prefix \"${workspaceFolder}\" start",
       "isBackground": true,
-      "problemMatcher": ["$tsc-watch"],
+      "problemMatcher": [
+        {
+          "owner": "custom",
+          "pattern": {
+            "regexp": "$a"
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^.*$",
+            "endsPattern": "Application bundle generation complete\\.|Compiled successfully\\.|Local:\\s+http://localhost:4200/"
+          }
+        }
+      ],
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {

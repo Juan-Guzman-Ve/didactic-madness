@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { IAddressRepository, ADDRESS_REPOSITORY, ICommandHandler } from '@app/application';
 import { Address } from '@app/domain';
 import { CreateAddressCommand, UpdateAddressCommand, DeleteAddressCommand } from './address.commands';
@@ -36,6 +36,9 @@ export class UpdateAddressCommandHandler implements ICommandHandler<UpdateAddres
   async execute(command: UpdateAddressCommand): Promise<AddressResponse> {
     const existing = await this.addressRepository.findById(command.id);
     if (!existing) throw new NotFoundException(`Address with ID ${command.id} not found`);
+    if (command.userId !== undefined && existing.userId !== command.userId) {
+      throw new ForbiddenException('You do not own this address');
+    }
 
     const updated = await this.addressRepository.updateById(command.id, {
       addressLine1: command.addressLine1,
@@ -57,8 +60,11 @@ export class DeleteAddressCommandHandler implements ICommandHandler<DeleteAddres
   ) {}
 
   async execute(command: DeleteAddressCommand): Promise<void> {
-    const exists = await this.addressRepository.exists(command.id);
-    if (!exists) throw new NotFoundException(`Address with ID ${command.id} not found`);
+    const existing = await this.addressRepository.findById(command.id);
+    if (!existing) throw new NotFoundException(`Address with ID ${command.id} not found`);
+    if (command.userId !== undefined && existing.userId !== command.userId) {
+      throw new ForbiddenException('You do not own this address');
+    }
     await this.addressRepository.deleteById(command.id);
   }
 }

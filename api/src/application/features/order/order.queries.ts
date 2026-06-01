@@ -8,6 +8,8 @@ import { OrderResponse, ListOrdersResponse } from './order.responses';
 export class GetOrderByIdQuery implements IQuery<OrderResponse> {
   @ApiProperty()
   id!: number;
+
+  userId?: number;
 }
 
 export class ListOrdersQuery implements IQuery<ListOrdersResponse> {
@@ -30,4 +32,6 @@ export class ListOrdersQuery implements IQuery<ListOrdersResponse> {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  userId?: number;
 }
