@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
+using System.Text.Json;
 using Xunit;
 
 namespace CubeAutomate.Features.UiFlow;
@@ -104,9 +105,6 @@ public sealed class StorefrontUserJourneyTests : IAsyncLifetime
     }
 
     private const int DefaultExpectVisibleTimeoutMs = 10000;
-    private const int DefaultViewportWidth = 1920;
-    private const int DefaultViewportHeight = 1080;
-
     private IPlaywright _playwright = default!;
     private IBrowser _browser = default!;
 
@@ -137,6 +135,7 @@ public sealed class StorefrontUserJourneyTests : IAsyncLifetime
         {
             Headless = headless,
             SlowMo = slowMoMs,
+            IgnoreDefaultArgs = ["--window-size=1280,720"],
             Args = ["--start-maximized"],
         });
     }
@@ -463,11 +462,72 @@ public sealed class StorefrontUserJourneyTests : IAsyncLifetime
             BaseURL = _uiBaseUrl,
             IgnoreHTTPSErrors = true,
             ViewportSize = null,
-            ScreenSize = new ScreenSize { Width = DefaultViewportWidth, Height = DefaultViewportHeight },
         });
 
         var page = await context.NewPageAsync();
+        await MaximizeBrowserWindow(page);
+        await FitPageViewportToScreen(page);
         await scenario(page);
+    }
+
+    private static async Task FitPageViewportToScreen(IPage page)
+    {
+        var metrics = await page.EvaluateAsync<JsonElement?>("""
+            () => {
+              const width = Math.max(1, Math.floor(window.screen.availWidth || window.innerWidth || 1280));
+              const height = Math.max(1, Math.floor(window.screen.availHeight || window.innerHeight || 720));
+              return { width, height };
+            }
+            """);
+
+        if (metrics is null
+            || !metrics.Value.TryGetProperty("width", out var widthProperty)
+            || !metrics.Value.TryGetProperty("height", out var heightProperty)
+            || !widthProperty.TryGetInt32(out var width)
+            || !heightProperty.TryGetInt32(out var height))
+        {
+            return;
+        }
+
+        await page.SetViewportSizeAsync(width, height);
+    }
+
+    private static async Task MaximizeBrowserWindow(IPage page)
+    {
+        // Keep viewport emulation disabled and request native maximize from Chromium.
+        if (!string.Equals(page.Context.Browser?.BrowserType.Name, "chromium", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var cdpSession = await page.Context.NewCDPSessionAsync(page);
+        JsonElement? windowInfo;
+        try
+        {
+            windowInfo = await cdpSession.SendAsync("Browser.getWindowForTarget");
+        }
+        catch
+        {
+            return;
+        }
+
+        if (windowInfo is null
+            || !windowInfo.Value.TryGetProperty("windowId", out var windowIdProperty)
+            || !windowIdProperty.TryGetInt32(out var windowId))
+        {
+            return;
+        }
+
+        await cdpSession.SendAsync("Browser.setWindowBounds", new Dictionary<string, object>
+        {
+            ["windowId"] = windowId,
+            ["bounds"] = new Dictionary<string, object>
+            {
+                ["windowState"] = "maximized",
+            },
+        });
+
+        await cdpSession.SendAsync("Emulation.clearDeviceMetricsOverride");
     }
 
     private async Task ExpectVisible(IPage page, string selector)

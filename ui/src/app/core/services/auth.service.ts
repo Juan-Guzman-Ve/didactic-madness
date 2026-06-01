@@ -24,7 +24,6 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  phone?: string;
 }
 
 const STORAGE_TOKEN_KEY = 'access_token';
